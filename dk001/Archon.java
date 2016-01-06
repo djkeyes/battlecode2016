@@ -15,8 +15,13 @@ import battlecode.common.Team;
 public class Archon {
 
 	static final int ATTACK_RAD_SQ = RobotType.ARCHON.attackRadiusSquared;
-	static final Direction[] CARDINAL_DIRECTIONS = { Direction.NORTH, Direction.NORTH_EAST, Direction.EAST,
+	static final Direction[] ACTUAL_DIRECTIONS = { Direction.NORTH, Direction.NORTH_EAST, Direction.EAST,
 			Direction.SOUTH_EAST, Direction.SOUTH, Direction.SOUTH_WEST, Direction.WEST, Direction.NORTH_WEST };
+
+	public static final Direction[] CARDINAL_DIRECTIONS = { Direction.NORTH, Direction.EAST, Direction.SOUTH,
+			Direction.WEST, };
+	public static final Direction[] UN_CARDINAL_DIRECTIONS = { Direction.NORTH_EAST, Direction.SOUTH_EAST,
+			Direction.SOUTH_WEST, Direction.NORTH_WEST, };
 
 	static final RobotType[] buildOrder = { RobotType.TURRET, RobotType.SCOUT, RobotType.TURRET, RobotType.TURRET,
 			RobotType.TURRET, RobotType.TURRET };
@@ -64,12 +69,25 @@ public class Archon {
 			// build first. Building should probably be distributed where
 			// it's most helpful, or something.
 
+			MapLocation curLoc = rc.getLocation();
+
 			// do we need to check rc.hasBuildRequirements()? or check the
 			// core delay? the docs mention rc.isBuildReady(), but that
 			// isn't a real method
 			if (rc.hasBuildRequirements(buildOrder[nextToBuild])) {
 				boolean built = false;
-				for (Direction d : Direction.values()) {
+
+				// checkerboard placement, so shit doesn't get stuck
+				// TODO(daniel): invent a more clever packing strategy, or at
+				// least move blocking turrets out of the way.
+
+				Direction[] dirs;
+				if (((curLoc.x ^ curLoc.y) & 1) > 0) {
+					dirs = CARDINAL_DIRECTIONS;
+				} else {
+					dirs = UN_CARDINAL_DIRECTIONS;
+				}
+				for (Direction d : dirs) {
 					if (rc.canBuild(d, buildOrder[nextToBuild])) {
 						rc.build(d, buildOrder[nextToBuild]);
 						nextToBuild++;
@@ -113,8 +131,6 @@ public class Archon {
 
 			// 4a run away
 
-			MapLocation curLoc = rc.getLocation();
-
 			// check for opponents and run away from them
 			RobotInfo[] nearZombies = rc.senseNearbyRobots(8, Team.ZOMBIE);
 			boolean[] isAwayFromZombie = dirsAwayFrom(nearZombies, curLoc);
@@ -127,9 +143,9 @@ public class Archon {
 				// tbh, for something like this, we should randomly permute
 				// the directions.
 				// meh.
-				for (int i = CARDINAL_DIRECTIONS.length; --i >= 0;) {
+				for (int i = ACTUAL_DIRECTIONS.length; --i >= 0;) {
 					if (isAwayFromEnemy[i] || isAwayFromZombie[i]) {
-						Direction d = CARDINAL_DIRECTIONS[i];
+						Direction d = ACTUAL_DIRECTIONS[i];
 						MapLocation next = curLoc.add(d);
 						double rubble = rc.senseRubble(next);
 						if (rubble >= GameConstants.RUBBLE_OBSTRUCTION_THRESH
@@ -196,7 +212,7 @@ public class Archon {
 	}
 
 	private static boolean[] dirsAwayFrom(RobotInfo[] nearbyRobots, MapLocation curLoc) {
-		final int size = CARDINAL_DIRECTIONS.length;
+		final int size = ACTUAL_DIRECTIONS.length;
 		if (nearbyRobots.length == 0) {
 			return new boolean[size];
 		}
@@ -205,6 +221,11 @@ public class Archon {
 		int total = 0; // checksum for early termination
 
 		for (int i = nearbyRobots.length; --i >= 0;) {
+			// ignore scouts for archon behavior
+			if (nearbyRobots[i].type == RobotType.SCOUT) {
+				continue;
+			}
+
 			Direction dir = nearbyRobots[i].location.directionTo(curLoc);
 			int asInt = dirToInt(dir);
 			// cw and ccw might be reversed here, but the effect is the same

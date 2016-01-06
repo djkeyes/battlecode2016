@@ -34,8 +34,8 @@ public class Turret {
 			RobotInfo[] nearbyEnemies = rc.senseNearbyRobots(curLoc, attackRadiusSq, them);
 			RobotInfo[] nearbyZombies = rc.senseNearbyRobots(curLoc, attackRadiusSq, zombies);
 
-			// which is better? attack the weakest? or attack the closest? or a
-			// combo?
+			// which is better? attack the weakest? or attack the closest?
+			// attack the one with the most damage? or a combo?
 
 			RobotInfo weakestEnemy = getWeakest(nearbyEnemies, curLoc);
 			RobotInfo weakestZombie = getWeakest(nearbyZombies, curLoc);
