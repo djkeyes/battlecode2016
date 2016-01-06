@@ -19,7 +19,7 @@ public class Scout {
 
 		// just broadcast locations of nearby enemies
 		while (true) {
-			Util.observeAndBroadcast(rc, broadcastRadiusSq, them);
+			Util.observeAndBroadcast(rc, broadcastRadiusSq, them, -1);
 			Clock.yield();
 		}
 	}

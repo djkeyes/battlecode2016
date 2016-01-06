@@ -1,5 +1,6 @@
 package dk001;
 
+import dk001.Util.SignalContents;
 import battlecode.common.Clock;
 import battlecode.common.GameActionException;
 import battlecode.common.GameConstants;
@@ -25,6 +26,7 @@ public class Turret {
 		final Team zombies = Team.ZOMBIE;
 
 		while (true) {
+			Signal[] signals = rc.emptySignalQueue();
 
 			if (!rc.isWeaponReady()) {
 				Clock.yield();
@@ -52,16 +54,43 @@ public class Turret {
 				attackLoc = weakestZombie.location;
 			}
 
-			// if we don't see any nearby enemies, scouts may have broadcasted
-			// targets
-			// check if we can hit any of those
-			Signal[] signals = rc.emptySignalQueue();
-			for (int i = signals.length; --i >= 0;) {
-				int[] message = signals[i].getMessage();
-				MapLocation target = new MapLocation(message[0], message[1]);
-				if (rc.canAttackLocation(target)) {
-					attackLoc = target;
-					break;
+			if (attackLoc == null) {
+				// if we don't see any nearby enemies, scouts may have
+				// broadcasted
+				// targets
+				// check if we can hit any of those
+				SignalContents[] decodedSignals = Util.receiveBroadcasts(rc, them, signals);
+				// because we don't know the execution order, we have two
+				// targets:
+				// 1. enemies that are *definitely* in the same place, and
+				// 2. enemies that *might* be in the same place, but could have
+				// moved
+				int minHealthStationary = Integer.MAX_VALUE;
+				int minHealthMoveable = Integer.MAX_VALUE;
+				MapLocation targetStationary = null;
+				MapLocation targetMoveable = null;
+				int curTurn = rc.getRoundNum();
+				for (int i = decodedSignals.length; --i >= 0;) {
+					SignalContents cur = decodedSignals[i];
+					MapLocation loc = new MapLocation(cur.x, cur.y);
+					if (rc.canAttackLocation(loc)) {
+						if (cur.coreDelay >= 2) {
+							if (cur.health < minHealthStationary) {
+								minHealthStationary = cur.health;
+								targetStationary = loc;
+							}
+						} else {
+							if (cur.health < minHealthMoveable) {
+								minHealthMoveable = cur.health;
+								targetMoveable = loc;
+							}
+						}
+					}
+				}
+				if (targetStationary != null) {
+					attackLoc = targetStationary;
+				} else {
+					attackLoc = targetMoveable;
 				}
 			}
 

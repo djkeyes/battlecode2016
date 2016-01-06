@@ -15,8 +15,13 @@ import battlecode.common.Team;
 public class Archon {
 
 	static final int ATTACK_RAD_SQ = RobotType.ARCHON.attackRadiusSquared;
-	static final Direction[] CARDINAL_DIRECTIONS = { Direction.NORTH, Direction.NORTH_EAST, Direction.EAST,
+	static final Direction[] ACTUAL_DIRECTIONS = { Direction.NORTH, Direction.NORTH_EAST, Direction.EAST,
 			Direction.SOUTH_EAST, Direction.SOUTH, Direction.SOUTH_WEST, Direction.WEST, Direction.NORTH_WEST };
+
+	public static final Direction[] CARDINAL_DIRECTIONS = { Direction.NORTH, Direction.EAST, Direction.SOUTH,
+			Direction.WEST, };
+	public static final Direction[] UN_CARDINAL_DIRECTIONS = { Direction.NORTH_EAST, Direction.SOUTH_EAST,
+			Direction.SOUTH_WEST, Direction.NORTH_WEST, };
 
 	static final RobotType[] buildOrder = { RobotType.TURRET, RobotType.SCOUT, RobotType.TURRET, RobotType.TURRET,
 			RobotType.TURRET, RobotType.TURRET };
@@ -29,7 +34,13 @@ public class Archon {
 
 		final Random gen = new Random(rc.getID());
 
+		final int broadcastRadiusSq = (int) (Math.pow(
+				Math.sqrt(RobotType.TURRET.attackRadiusSquared) + Math.sqrt(RobotType.ARCHON.sensorRadiusSquared), 2));
+
 		while (true) {
+			// send broadcasts
+			Util.observeAndBroadcast(rc, broadcastRadiusSq, them, 0.8);
+
 			if (!rc.isCoreReady()) {
 				Clock.yield();
 				continue;
@@ -45,9 +56,12 @@ public class Archon {
 			// 3. repair an adjacent unit, if possible
 			// 4. move randomly, or onto parts or something
 
+			// except repair is really imba? but archons are really fragile? can
+			// we micro archon positioning+repair to take advantage of zombie
+			// AI?
+
 			// 1. activate
-			// senseNearbyRobots() is pretty expensive, might be cheaper to
-			// call
+			// senseNearbyRobots() is pretty expensive, might be cheaper to call
 			// for a larger radius and check the results
 			RobotInfo[] neutrals = rc.senseNearbyRobots(GameConstants.ARCHON_ACTIVATION_RANGE, Team.NEUTRAL);
 			if (neutrals.length > 0) {
@@ -56,33 +70,6 @@ public class Archon {
 
 				Clock.yield();
 				continue;
-			}
-
-			// 2. build
-			// TODO(daniel): greedily building things seems like a bad idea,
-			// because the archon with the lowest ID will always get to
-			// build first. Building should probably be distributed where
-			// it's most helpful, or something.
-
-			// do we need to check rc.hasBuildRequirements()? or check the
-			// core delay? the docs mention rc.isBuildReady(), but that
-			// isn't a real method
-			if (rc.hasBuildRequirements(buildOrder[nextToBuild])) {
-				boolean built = false;
-				for (Direction d : Direction.values()) {
-					if (rc.canBuild(d, buildOrder[nextToBuild])) {
-						rc.build(d, buildOrder[nextToBuild]);
-						nextToBuild++;
-						nextToBuild %= buildOrder.length;
-						built = true;
-						break;
-					}
-				}
-
-				if (built) {
-					Clock.yield();
-					continue;
-				}
 			}
 
 			// 3. repair
@@ -109,16 +96,14 @@ public class Archon {
 				continue;
 			}
 
-			// 4. move
-
-			// 4a run away
+			// 1.5 run away
 
 			MapLocation curLoc = rc.getLocation();
 
 			// check for opponents and run away from them
-			RobotInfo[] nearZombies = rc.senseNearbyRobots(8, Team.ZOMBIE);
+			RobotInfo[] nearZombies = rc.senseNearbyRobots(RobotType.ARCHON.sensorRadiusSquared, Team.ZOMBIE);
 			boolean[] isAwayFromZombie = dirsAwayFrom(nearZombies, curLoc);
-			RobotInfo[] nearEnemies = rc.senseNearbyRobots(8, them);
+			RobotInfo[] nearEnemies = rc.senseNearbyRobots(RobotType.ARCHON.sensorRadiusSquared, them);
 			boolean[] isAwayFromEnemy = dirsAwayFrom(nearEnemies, curLoc);
 			{
 				Direction dirToMove = null;
@@ -127,9 +112,9 @@ public class Archon {
 				// tbh, for something like this, we should randomly permute
 				// the directions.
 				// meh.
-				for (int i = CARDINAL_DIRECTIONS.length; --i >= 0;) {
+				for (int i = ACTUAL_DIRECTIONS.length; --i >= 0;) {
 					if (isAwayFromEnemy[i] || isAwayFromZombie[i]) {
-						Direction d = CARDINAL_DIRECTIONS[i];
+						Direction d = ACTUAL_DIRECTIONS[i];
 						MapLocation next = curLoc.add(d);
 						double rubble = rc.senseRubble(next);
 						if (rubble >= GameConstants.RUBBLE_OBSTRUCTION_THRESH
@@ -159,7 +144,48 @@ public class Archon {
 				}
 			}
 
-			// 4b move normally
+			// 2. build
+			// TODO(daniel): greedily building things seems like a bad idea,
+			// because the archon with the lowest ID will always get to
+			// build first. Building should probably be distributed where
+			// it's most helpful, or something.
+
+			// do we need to check rc.hasBuildRequirements()? or check the
+			// core delay? the docs mention rc.isBuildReady(), but that
+			// isn't a real method
+			if (rc.hasBuildRequirements(buildOrder[nextToBuild])) {
+				boolean built = false;
+
+				// checkerboard placement, so shit doesn't get stuck
+				// TODO(daniel): invent a more clever packing strategy, or at
+				// least move blocking turrets out of the way.
+
+				Direction[] dirs;
+				if (((curLoc.x ^ curLoc.y) & 1) > 0) {
+					dirs = CARDINAL_DIRECTIONS;
+				} else {
+					dirs = UN_CARDINAL_DIRECTIONS;
+				}
+				for (Direction d : dirs) {
+					if (rc.canBuild(d, buildOrder[nextToBuild])) {
+						rc.build(d, buildOrder[nextToBuild]);
+						nextToBuild++;
+						nextToBuild %= buildOrder.length;
+						built = true;
+						break;
+					}
+				}
+
+				if (built) {
+					Clock.yield();
+					continue;
+				}
+			}
+
+			// 4. move
+
+			// this just choses a random direction, which is dumb shit. what we
+			// should do is move toward friendly archons
 			Direction dirToMove = null;
 			// TODO(daniel): the math for time to clear rubble is pretty
 			// approachable. we should calculate the optimal level at
@@ -196,7 +222,7 @@ public class Archon {
 	}
 
 	private static boolean[] dirsAwayFrom(RobotInfo[] nearbyRobots, MapLocation curLoc) {
-		final int size = CARDINAL_DIRECTIONS.length;
+		final int size = ACTUAL_DIRECTIONS.length;
 		if (nearbyRobots.length == 0) {
 			return new boolean[size];
 		}
@@ -205,6 +231,15 @@ public class Archon {
 		int total = 0; // checksum for early termination
 
 		for (int i = nearbyRobots.length; --i >= 0;) {
+			// ignore scouts for archon behavior
+			if (nearbyRobots[i].type == RobotType.SCOUT) {
+				continue;
+			}
+			// also ignore enemies too far away
+			if (nearbyRobots[i].location.distanceSquaredTo(curLoc) > 25) {
+				continue;
+			}
+
 			Direction dir = nearbyRobots[i].location.directionTo(curLoc);
 			int asInt = dirToInt(dir);
 			// cw and ccw might be reversed here, but the effect is the same
