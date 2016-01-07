@@ -1,6 +1,6 @@
-package dk001;
+package dk002;
 
-import dk001.Util.SignalContents;
+import dk002.Util.SignalContents;
 import battlecode.common.Clock;
 import battlecode.common.GameActionException;
 import battlecode.common.GameConstants;
@@ -51,46 +51,6 @@ public class Turret {
 				attackLoc = weakestEnemy.location;
 			} else if (weakestZombie != null) {
 				attackLoc = weakestZombie.location;
-			}
-
-			if (attackLoc == null) {
-				// if we don't see any nearby enemies, scouts may have
-				// broadcasted
-				// targets
-				// check if we can hit any of those
-				SignalContents[] decodedSignals = Util.receiveBroadcasts(rc, them, signals);
-				// because we don't know the execution order, we have two
-				// targets:
-				// 1. enemies that are *definitely* in the same place, and
-				// 2. enemies that *might* be in the same place, but could have
-				// moved
-				int minHealthStationary = Integer.MAX_VALUE;
-				int minHealthMoveable = Integer.MAX_VALUE;
-				MapLocation targetStationary = null;
-				MapLocation targetMoveable = null;
-				int curTurn = rc.getRoundNum();
-				for (int i = decodedSignals.length; --i >= 0;) {
-					SignalContents cur = decodedSignals[i];
-					MapLocation loc = new MapLocation(cur.x, cur.y);
-					if (rc.canAttackLocation(loc)) {
-						if (cur.coreDelay >= 2) {
-							if (cur.health < minHealthStationary) {
-								minHealthStationary = cur.health;
-								targetStationary = loc;
-							}
-						} else {
-							if (cur.health < minHealthMoveable) {
-								minHealthMoveable = cur.health;
-								targetMoveable = loc;
-							}
-						}
-					}
-				}
-				if (targetStationary != null) {
-					attackLoc = targetStationary;
-				} else {
-					attackLoc = targetMoveable;
-				}
 			}
 
 			// I think rc.canAttackLocation(attackLoc) only checks the range,
