@@ -1,6 +1,6 @@
-package team155;
+package team292;
 
-import team155.Util.SignalContents;
+import team292.Util.SignalContents;
 import battlecode.common.Clock;
 import battlecode.common.GameActionException;
 import battlecode.common.GameConstants;

@@ -1,4 +1,4 @@
-package team155;
+package team292;
 
 import battlecode.common.GameActionException;
 import battlecode.common.RobotController;
@@ -15,14 +15,15 @@ public class Util {
 	public static void observeAndBroadcast(RobotController rc, int broadcastRadiusSq, Team them, double maxCoreDelay)
 			throws GameActionException {
 		RobotInfo[] nearby = rc.senseNearbyRobots();
-		
-		double coreDelayIncrement = BROADCASTS_PER_MESSAGE * (0.05 + 0.03 * (broadcastRadiusSq/rc.getType().sensorRadiusSquared - 2));
+
+		double coreDelayIncrement = BROADCASTS_PER_MESSAGE
+				* (0.05 + 0.03 * (broadcastRadiusSq / rc.getType().sensorRadiusSquared - 2));
 
 		// if there are a lot of enemies, this could get costly. consider
 		// terminating early if we're running out of bytecodes.
 		int roundLimit = rc.getRoundLimit();
 		for (int i = nearby.length; --i >= 0;) {
-			if(maxCoreDelay > 0 && rc.getCoreDelay() + coreDelayIncrement >= maxCoreDelay){
+			if (maxCoreDelay > 0 && rc.getCoreDelay() + coreDelayIncrement >= maxCoreDelay) {
 				break;
 			}
 			RobotInfo cur = nearby[i];
@@ -38,6 +39,10 @@ public class Util {
 				// bytecodes. There are usually way more listeners than talkers,
 				// so totally not worth it.
 				// -daniel
+				// wait a second, i didn't actually compare it to any baseline.
+				// I think creating an object with 3 variables costs like 15
+				// bytecodes to q=begin with, so maybe 30 bytecodes to decode and
+				// return that object is unavoidable...
 
 				// We can send several successive signals, since there are lots
 				// of things worth sending:
