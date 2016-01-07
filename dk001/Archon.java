@@ -146,8 +146,8 @@ public class Archon {
 
 			// 2. build
 			// TODO(daniel): greedily building things seems like a bad idea,
-			// because the archon with the lowest ID will always get to
-			// build first. Building should probably be distributed where
+			// because the archon with the earliest spawn time will always get
+			// to build first. Building should probably be distributed where
 			// it's most helpful, or something.
 
 			// do we need to check rc.hasBuildRequirements()? or check the

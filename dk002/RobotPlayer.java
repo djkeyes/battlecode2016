@@ -1,5 +1,7 @@
 package dk002;
 
+import java.util.Random;
+
 import battlecode.common.Clock;
 import battlecode.common.GameActionException;
 import battlecode.common.RobotController;
@@ -12,14 +14,24 @@ import battlecode.common.RobotController;
 
 public class RobotPlayer {
 
+	public static RobotController rc;
+
+	// why is this here and not in, for examle, Util?
+	// because it's seeded with the rc.getID(), which isn't available during
+	// static initialization! (unless you want to gamble with static class
+	// initialization order...)
+	public static Random gen;
+
 	public static void run(RobotController rc) {
+		RobotPlayer.rc = rc;
+		gen = new Random(rc.getID());
 		while (true) {
 			try {
 				// TODO(daniel): all of these classes have a static method that
 				// more-or-less does the same thing. It would be nice to use
 				// inheritance to enforce this, but java doesn't have abstract
 				// static methods (plus that seems like it would have a bytecode
-				// impact). Maybe there's a way to enfore this pattern using an
+				// impact). Maybe there's a way to enforce this pattern using an
 				// annotation processor?
 				switch (rc.getType()) {
 				case ARCHON:

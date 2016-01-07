@@ -1,5 +1,7 @@
 package dk001;
 
+import java.util.Random;
+
 import battlecode.common.GameActionException;
 import battlecode.common.RobotController;
 import battlecode.common.RobotInfo;
@@ -8,7 +10,7 @@ import battlecode.common.Signal;
 import battlecode.common.Team;
 
 public class Util {
-
+	
 	public static final Team zombies = Team.ZOMBIE;
 	public static final int BROADCASTS_PER_MESSAGE = 2;
 

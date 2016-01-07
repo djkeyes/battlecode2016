@@ -1,6 +1,8 @@
 package dk002;
 
+import battlecode.common.Direction;
 import battlecode.common.GameActionException;
+import battlecode.common.MapLocation;
 import battlecode.common.RobotController;
 import battlecode.common.RobotInfo;
 import battlecode.common.RobotType;
@@ -9,8 +11,12 @@ import battlecode.common.Team;
 
 public class Util {
 
+	// TODO(daniel): a lot of these things are broadcast-related. maybe we
+	// should make a separate class for that.
+
 	public static final Team zombies = Team.ZOMBIE;
 	public static final int BROADCASTS_PER_MESSAGE = 2;
+	public static boolean killSignalSent = false;
 
 	public static void observeAndBroadcast(RobotController rc, int broadcastRadiusSq, Team them, double maxCoreDelay)
 			throws GameActionException {
@@ -41,7 +47,8 @@ public class Util {
 				// -daniel
 				// wait a second, i didn't actually compare it to any baseline.
 				// I think creating an object with 3 variables costs like 15
-				// bytecodes to q=begin with, so maybe 30 bytecodes to decode and
+				// bytecodes to q=begin with, so maybe 30 bytecodes to decode
+				// and
 				// return that object is unavoidable...
 
 				// We can send several successive signals, since there are lots
@@ -89,7 +96,7 @@ public class Util {
 
 		int numFromUs = 0;
 		for (int i = 0; i < signals.length; i++) {
-			if (signals[i].getTeam() != them) {
+			if (signals[i].getTeam() != them && signals[i].getMessage() != null) {
 				numFromUs++;
 			}
 		}
@@ -98,6 +105,10 @@ public class Util {
 		int messageNum = 0;
 		for (int i = 0; i < signals.length; i++) {
 			if (signals[i].getTeam() == them) {
+				continue;
+			}
+
+			if (signals[i].getMessage() == null) {
 				continue;
 			}
 
@@ -121,7 +132,118 @@ public class Util {
 	}
 
 	public static void broadcastArchonLocations(RobotController rc) {
-		// TODO Auto-generated method stub
-		
+		// actually don't do this. It would be nice to unite archons at the
+		// start of a match, but if you shout out your location, your enemy will
+		// be able to find you, too.
+
+		// in fact, we should write code that listens for wide-range enemy
+		// broadcasts at the beginning of the match, and then attacks those
+		// locations.
+
 	}
+
+	public static void sendKillSignal(RobotController rc) throws GameActionException {
+		rc.broadcastSignal(RobotType.SCOUT.sensorRadiusSquared);
+	}
+
+	public static boolean isKillSignalSent(RobotController rc) {
+		Signal[] signals = rc.emptySignalQueue();
+
+		for (int i = 0; i < signals.length; i++) {
+			if (signals[i].getTeam() == rc.getTeam() && signals[i].getMessage() == null) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public static boolean[] dirsAwayFrom(RobotInfo[] nearbyRobots, MapLocation curLoc) {
+		final int size = DirectionWrapper.ACTUAL_DIRECTIONS.length;
+		if (nearbyRobots.length == 0) {
+			return new boolean[size];
+		}
+
+		boolean[] result = new boolean[size];
+		int total = 0; // checksum for early termination
+
+		for (int i = nearbyRobots.length; --i >= 0;) {
+			// ignore scouts for archon behavior
+			if (nearbyRobots[i].type == RobotType.SCOUT) {
+				continue;
+			}
+			// also ignore enemies too far away
+			if (nearbyRobots[i].location.distanceSquaredTo(curLoc) > 25) {
+				continue;
+			}
+
+			Direction dir = nearbyRobots[i].location.directionTo(curLoc);
+			int asInt = dirToInt(dir);
+			// cw and ccw might be reversed here, but the effect is the same
+			int ccw, cw;
+			if (asInt == 0) {
+				ccw = size - 1;
+				cw = 1;
+			} else if (asInt == size - 1) {
+				ccw = size - 2;
+				cw = 0;
+			} else {
+				ccw = asInt - 1;
+				cw = asInt + 1;
+			}
+
+			if (!result[ccw]) {
+				total++;
+			}
+			if (!result[asInt]) {
+				total++;
+			}
+			if (!result[cw]) {
+				total++;
+			}
+
+			result[ccw] = result[asInt] = result[cw] = true;
+
+			if (total == size) {
+				break;
+			}
+		}
+		return result;
+	}
+
+	private static int dirToInt(Direction dir) {
+		switch (dir) {
+		case NORTH:
+			return 0;
+		case NORTH_EAST:
+			return 1;
+		case EAST:
+			return 2;
+		case SOUTH_EAST:
+			return 3;
+		case SOUTH:
+			return 4;
+		case SOUTH_WEST:
+			return 5;
+		case WEST:
+			return 6;
+		case NORTH_WEST:
+			return 7;
+		default:
+			return -1;
+		}
+	}
+
+	public static Direction[] getDirectionsToward(Direction toDest) {
+		Direction[] dirs = { toDest, toDest.rotateLeft(), toDest.rotateRight(), toDest.rotateLeft().rotateLeft(),
+				toDest.rotateRight().rotateRight() };
+
+		return dirs;
+	}
+
+	public static Direction[] getDirectionsStrictlyToward(Direction toDest) {
+		Direction[] dirs = { toDest, toDest.rotateLeft(), toDest.rotateRight() };
+
+		return dirs;
+	}
+
 }
