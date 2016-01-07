@@ -1,8 +1,8 @@
 package dk001;
 
-import battlecode.common.*;
-
-import java.util.Random;
+import battlecode.common.Clock;
+import battlecode.common.GameActionException;
+import battlecode.common.RobotController;
 
 // OKAY HERE'S THE PLAN
 // THIS IS GONNA BE A PRETTY SIMPLE IMPLEMENTATION IN WHICH WE JUST MAKE SCOUTS AND TURRETS
@@ -15,14 +15,10 @@ public class RobotPlayer {
 			try {
 				// TODO(daniel): all of these classes have a static method that
 				// more-or-less does the same thing. It would be nice to use
-				// inheritance
-				// to enforce this, but java doesn't have abstract static
-				// methods
-				// (plus
-				// that seems like it would have a bytecode impact). Maybe
-				// there's a
-				// way
-				// to enfore this pattern using an annotation processor?
+				// inheritance to enforce this, but java doesn't have abstract
+				// static methods (plus that seems like it would have a bytecode
+				// impact). Maybe there's a way to enfore this pattern using an
+				// annotation processor?
 				switch (rc.getType()) {
 				case ARCHON:
 					Archon.run(rc);
