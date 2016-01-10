@@ -7,16 +7,15 @@ import battlecode.common.MapLocation;
 public class Soldier extends BaseHandler {
 
 	public static void run() throws GameActionException {
-		// boolean goingNorth = true;
 		while (true) {
 			beginningOfLoop();
 			Mapping.updateMap();
 
-			MapLocation goal = new MapLocation(Mapping.startCol - 22, Mapping.startRow + 15);
-			if(!AStarPathing.aStarToward(goal)){
-				if(rc.isCoreReady() && rc.isWeaponReady()){
-					rc.attackLocation(goal);
-				}
+			MapLocation goal = new MapLocation(421, 144);
+			AStarPathing.aStarToward(goal);
+			
+			if(goal.equals(rc.getLocation())){
+				System.out.println("success!");
 			}
 			Clock.yield();
 		}

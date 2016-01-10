@@ -86,7 +86,9 @@ public class AStarPathing extends Mapping {
 	}
 
 	public static void runAStar() {
-		PriorityQueue<HeuristicWeightedMapLocation> queue = new PriorityQueue<>();
+		// PriorityQueue<HeuristicWeightedMapLocation> queue = new
+		// PriorityQueue<>();
+		BinaryHeap queue = new BinaryHeap();
 		toParent = new Direction[GameConstants.MAP_MAX_HEIGHT][GameConstants.MAP_MAX_WIDTH];
 		expectedRubble = new double[GameConstants.MAP_MAX_HEIGHT][GameConstants.MAP_MAX_WIDTH];
 
@@ -131,7 +133,6 @@ public class AStarPathing extends Mapping {
 				anyEdge = true;
 				eastEdge = true;
 			}
-
 
 			Direction startDir, endDir;
 			if (anyEdge) {
@@ -179,7 +180,6 @@ public class AStarPathing extends Mapping {
 				startDir = Direction.NORTH;
 				endDir = Direction.NORTH;
 			}
-			
 
 			Direction d = startDir;
 			do {
@@ -212,6 +212,62 @@ public class AStarPathing extends Mapping {
 				d = d.rotateRight();
 			} while (d != endDir);
 		}
+	}
+
+	private static class BinaryHeap {
+		private int size;
+		private HeuristicWeightedMapLocation[] arr;
+		
+		private static final int MAX_SIZE = 100000;
+
+		public BinaryHeap() {
+			size = 0;
+			arr = new HeuristicWeightedMapLocation[MAX_SIZE+1];
+		}
+
+		public void add(HeuristicWeightedMapLocation newElement) {
+			// silently fail
+			if(size == MAX_SIZE){
+				return;
+			}
+			
+			int k = ++size;
+			arr[k] = newElement;
+
+			while (k / 2 > 0 && newElement.heuristicWeight < arr[k / 2].heuristicWeight) {
+				arr[k] = arr[k / 2];
+				k /= 2;
+			}
+			arr[k] = newElement;
+		}
+
+		public HeuristicWeightedMapLocation remove() {
+			HeuristicWeightedMapLocation toRemove = arr[1];
+			arr[1] = arr[size--];
+
+			int k = 1;
+			HeuristicWeightedMapLocation cur = arr[k];
+			while (k <= size / 2) {
+				int j = 2 * k;
+				if (j < size && arr[j].heuristicWeight > arr[j + 1].heuristicWeight) {
+					++j;
+				}
+				if (cur.heuristicWeight <= arr[j].heuristicWeight) {
+					break;
+				}
+
+				arr[k] = arr[j];
+				k = j;
+			}
+			arr[k] = cur;
+
+			return toRemove;
+		}
+
+		public boolean isEmpty() {
+			return size == 0;
+		}
+
 	}
 
 }
