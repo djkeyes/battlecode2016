@@ -1,7 +1,5 @@
 package dk003;
 
-import java.util.PriorityQueue;
-
 import battlecode.common.Direction;
 import battlecode.common.GameActionException;
 import battlecode.common.GameConstants;
@@ -13,25 +11,22 @@ public class AStarPathing extends Mapping {
 
 	public static Direction[][] toParent;
 	public static double[][] expectedRubble;
-	public static final int epsilon = 1; // weighting for heuristic. make's it
-											// sub-optimal, but faster.
-
-	private static class HeuristicWeightedMapLocation implements Comparable<HeuristicWeightedMapLocation> {
+	public static Direction[] pathList;
+	public static int pathSize;
+	// weighting for heuristic. make's it sub-optimal, but faster in most cases.
+	public static final double epsilon = 2.0;
+	
+	private static class HeuristicWeightedMapLocation {
 		public MapLocation loc;
-		public int weight;
-		public int heuristicWeight;
+		public double weight;
+		public double heuristicWeight;
 		public Direction parentDir;
 
-		public HeuristicWeightedMapLocation(MapLocation l, int w, int hw, Direction p) {
+		public HeuristicWeightedMapLocation(MapLocation l, double w, double hw, Direction p) {
 			loc = l;
 			weight = w;
 			heuristicWeight = hw;
 			parentDir = p;
-		}
-
-		@Override
-		public int compareTo(HeuristicWeightedMapLocation that) {
-			return this.heuristicWeight - that.heuristicWeight;
 		}
 	}
 
@@ -43,14 +38,16 @@ public class AStarPathing extends Mapping {
 			// too long.
 			runAStar();
 		}
+
+		if (curLoc.equals(target)) {
+			return false;
+		}
+		
 		// reuse old calculation
 		int localRow = worldToLocalRow(curLoc);
 		int localCol = worldToLocalCol(curLoc);
-		Direction dir = toParent[worldToLocalRow(curLoc)][worldToLocalCol(curLoc)];
-		if (dir == Direction.NONE) {
-			// indicates we've reached our goal. why is this being called?
-			return false;
-		}
+		Direction dir = pathList[pathSize - 1];
+
 		if (dir != null) {
 			MapLocation next = curLoc.add(dir);
 			double rubble = rc.senseRubble(next);
@@ -74,6 +71,7 @@ public class AStarPathing extends Mapping {
 						rc.clearRubble(dir);
 					} else {
 						rc.move(dir);
+						pathSize--;
 					}
 					return true;
 				}
@@ -86,19 +84,11 @@ public class AStarPathing extends Mapping {
 	}
 
 	public static void runAStar() {
-		// PriorityQueue<HeuristicWeightedMapLocation> queue = new
-		// PriorityQueue<>();
 		BinaryHeap queue = new BinaryHeap();
 		toParent = new Direction[GameConstants.MAP_MAX_HEIGHT][GameConstants.MAP_MAX_WIDTH];
 		expectedRubble = new double[GameConstants.MAP_MAX_HEIGHT][GameConstants.MAP_MAX_WIDTH];
 
-		// we use the current location as the goal, so that toParent points
-		// toward the target.
-
-		// TODO: add() and remove() are both very costly (70-300 bcs for just a
-		// small queue). maybe we should implement our own queue.
-
-		queue.add(new HeuristicWeightedMapLocation(curTarget, 0, 0, Direction.NONE));
+		queue.add(new HeuristicWeightedMapLocation(curLoc, 0, 0, Direction.NONE));
 
 		while (!queue.isEmpty()) {
 			HeuristicWeightedMapLocation cur = queue.remove();
@@ -106,7 +96,7 @@ public class AStarPathing extends Mapping {
 			MapLocation loc = cur.loc;
 			int curLocalRow = worldToLocalRow(loc);
 			int curLocalCol = worldToLocalCol(loc);
-			if (loc.equals(curLoc)) {
+			if (loc.equals(curTarget)) {
 				toParent[curLocalRow][curLocalCol] = cur.parentDir;
 				break;
 			}
@@ -114,8 +104,8 @@ public class AStarPathing extends Mapping {
 				continue;
 			}
 			toParent[curLocalRow][curLocalCol] = cur.parentDir;
-			rc.setIndicatorDot(loc, Math.min(255, 50 + cur.weight * 5), 0, 0);
-			int dist = cur.weight;
+			rc.setIndicatorDot(loc, Math.min(255, 50 + (int) (cur.weight * 5)), 0, 0);
+			double dist = cur.weight;
 
 			boolean southEdge = false, northEdge = false, westEdge = false, eastEdge = false, anyEdge = false;
 			if (Mapping.minRow != null && Mapping.minRow == loc.y) {
@@ -204,33 +194,52 @@ public class AStarPathing extends Mapping {
 
 				// robots can travel diagonals
 				// so they're as fast as their longest path
-				int heuristic = Math.max(Math.abs(curLoc.x - nextLoc.x), Math.abs(curLoc.y - nextLoc.y));
-				int weight = dist + actionsToClearAndMove;
+				double heuristic = Math.max(Math.abs(curTarget.x - nextLoc.x), Math.abs(curTarget.y - nextLoc.y));
+				double weight = dist + actionsToClearAndMove;
 
 				queue.add(new HeuristicWeightedMapLocation(nextLoc, weight, weight + epsilon * heuristic, d.opposite()));
 
 				d = d.rotateRight();
 			} while (d != endDir);
 		}
+
+		// reconstruct the direction order
+		// TODO: instead of storing one direction back, we should store a mask
+		// of all directions which are equidistant. So if one is blocked, we can
+		// try another.
+		pathList = new Direction[10000];
+		pathSize = 0;
+		int curRow = worldToLocalRow(curTarget);
+		int curCol = worldToLocalCol(curTarget);
+		Direction cur = toParent[curRow][curCol];
+		do {
+			pathList[pathSize++] = cur.opposite();
+			curRow += cur.dy + GameConstants.MAP_MAX_HEIGHT;
+			curCol += cur.dx + GameConstants.MAP_MAX_WIDTH;
+
+			curRow %= GameConstants.MAP_MAX_HEIGHT;
+			curCol %= GameConstants.MAP_MAX_WIDTH;
+			cur = toParent[curRow][curCol];
+		} while (cur != Direction.NONE);
 	}
 
 	private static class BinaryHeap {
 		private int size;
 		private HeuristicWeightedMapLocation[] arr;
-		
+
 		private static final int MAX_SIZE = 100000;
 
 		public BinaryHeap() {
 			size = 0;
-			arr = new HeuristicWeightedMapLocation[MAX_SIZE+1];
+			arr = new HeuristicWeightedMapLocation[MAX_SIZE + 1];
 		}
 
 		public void add(HeuristicWeightedMapLocation newElement) {
 			// silently fail
-			if(size == MAX_SIZE){
+			if (size == MAX_SIZE) {
 				return;
 			}
-			
+
 			int k = ++size;
 			arr[k] = newElement;
 
