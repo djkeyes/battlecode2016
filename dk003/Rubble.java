@@ -23,6 +23,8 @@ public class Rubble {
 		// where x_0 is the initial amount of rubble
 		// and x_n is the final acceptable amount of rubble
 
+		// TODO: can this overflow if rubble == Double.MAX_VALUE?
+		// we should totally check for that case.
 		double turns = (rubbleEqnTop - Math.log(rubbleEqnLogicand + rubble)) / rubbleEqnBot;
 		// if there's exactly 100 rubble, this gives exactly 0
 		// so return smallest integer strictly greater than

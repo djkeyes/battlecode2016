@@ -45,11 +45,10 @@ public class BaseHandler {
 			Noop.run();
 			break;
 		case SCOUT:
-			rc.disintegrate(); // these are in the way
-			Noop.run();
+			Scout.run();
 			break;
 		case SOLDIER:
-			Soldier.run();
+			Noop.run();
 			break;
 		case TTM:
 			Noop.run();

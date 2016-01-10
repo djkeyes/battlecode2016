@@ -7,15 +7,28 @@ import battlecode.common.MapLocation;
 
 public class AStarPathing extends Mapping {
 
+	// here's a dilemma:
+	// should we search from curLoc to the target? or from target to curLoc?
+	// starting from curLoc is smart, because we already have a lot of
+	// information about that part of the map
+	// on the other hand, starting from the goal is smart, because then our
+	// intermediate data structures store directions/distance TO the target,
+	// rather than FROM some arbitrary starting location. so it's more re-use
+	// friendly.
+
 	public static MapLocation curTarget;
 
+	// start and goal correspond to curLoc and curTarget (but not necessarily in
+	// that order).
+	// in fact, the current implementation searches from curTarget to curLoc.
+	private static MapLocation start, goal;
+
 	public static Direction[][] toParent;
+	public static double[][] distFromStart;
 	public static double[][] expectedRubble;
-	public static Direction[] pathList;
-	public static int pathSize;
 	// weighting for heuristic. make's it sub-optimal, but faster in most cases.
 	public static final double epsilon = 2.0;
-	
+
 	private static class HeuristicWeightedMapLocation {
 		public MapLocation loc;
 		public double weight;
@@ -42,53 +55,117 @@ public class AStarPathing extends Mapping {
 		if (curLoc.equals(target)) {
 			return false;
 		}
-		
-		// reuse old calculation
-		int localRow = worldToLocalRow(curLoc);
-		int localCol = worldToLocalCol(curLoc);
-		Direction dir = pathList[pathSize - 1];
 
-		if (dir != null) {
-			MapLocation next = curLoc.add(dir);
-			double rubble = rc.senseRubble(next);
+		if (rc.isCoreReady()) {
+			// reuse old calculation
+			int localRow = worldToLocalRow(curLoc);
+			int localCol = worldToLocalCol(curLoc);
+			Direction dir = toParent[localRow][localCol];
 
-			// if the amount of rubble has changed, the path may have changed
-			// though if it's less than expected, maybe we're okay.
-			if (expectedRubble[localRow][localCol] < rubble) {
-				runAStar();
-			}
-
-			if (!rc.onTheMap(next)) {
-				runAStar();
-			}
-
-			if (rc.isCoreReady()) {
-				if (rubble >= GameConstants.RUBBLE_OBSTRUCTION_THRESH) {
-					rc.clearRubble(dir);
-					return true;
-				} else if (rc.canMove(dir)) {
-					if (rubble >= GameConstants.RUBBLE_SLOW_THRESH && Rubble.betterToClearRubble(rubble)) {
-						rc.clearRubble(dir);
-					} else {
-						rc.move(dir);
-						pathSize--;
-					}
+			if (dir != null) {
+				MapLocation next = curLoc.add(dir);
+				double nextRubble = rc.senseRubble(next);
+				int nextRow = worldToLocalRow(next);
+				int nextCol = worldToLocalCol(next);
+				if (canMoveInDir(next, nextRubble, nextRow, nextCol)) {
+					moveInDir(dir, nextRubble);
 					return true;
 				}
-				// TODO: if this direction is blocked, we should try any
-				// equidistant paths
+
+				// we should only go in directions that are
+				// equally distant as the original route
+				// and in lieu of that, we should only go in directions that
+				// are <= the current distance.
+
+				double curCost = distFromStart[localRow][localCol];
+				// can this ever be 0?
+				// I guess it can be 0 if the next spot is the goal...
+				Direction cheapestOtherDir = null;
+				double cheapestOtherCost = curCost;
+				double cheapestOtherDirRubble = 0.0;
+				for (Direction otherDir : Util.ACTUAL_DIRECTIONS) {
+					if (dir == otherDir) {
+						continue;
+					}
+
+
+					MapLocation otherNext = curLoc.add(otherDir);
+					double rubble = rc.senseRubble(otherNext);
+					int otherNextRow = worldToLocalRow(otherNext);
+					int otherNextCol = worldToLocalCol(otherNext);
+					double otherNextCost = distFromStart[otherNextRow][otherNextCol]
+							+ actionsToClearRubbleAndMove(rubble);
+					if (otherNextCost <= cheapestOtherCost
+							&& canMoveInDir(otherNext, rubble, otherNextRow, otherNextCol)) {
+						cheapestOtherCost = otherNextCost;
+						cheapestOtherDir = otherDir;
+						cheapestOtherDirRubble = rubble;
+					}
+				}
+
+				if (cheapestOtherDir != null) {
+					moveInDir(cheapestOtherDir, cheapestOtherDirRubble);
+					return true;
+				}
+
 			}
+
+			// couldn't find any alternative routes, either because there's new
+			// rubble or robots are blocking our path. re-run A*.
+			// ...not sure how i feel about re-running A* here without also
+			// re-running move() code.
+			// what if someone accidentally runs A*, but then doesn't use it
+			// at all?
+			runAStar();
+			return false;
+		}
+		return false;
+	}
+
+	private static boolean canMoveInDir(MapLocation next, double nextRubble, int localRow, int localCol)
+			throws GameActionException {
+		// if the amount of rubble has changed, the path may have changed
+		// though if it's less than expected, maybe we're okay.
+		if (expectedRubble[localRow][localCol] < nextRubble) {
+			return false;
 		}
 
-		return false;
+		if (!rc.onTheMap(next)) {
+			return false;
+		}
+
+		if (rc.senseRobotAtLocation(next) != null) {
+			return false;
+		}
+		return true;
+	}
+
+	// precondition: isCoreReady(), next is on the map, no robots at next
+	// location
+	private static void moveInDir(Direction dir, double nextRubble) throws GameActionException {
+		if (nextRubble >= GameConstants.RUBBLE_OBSTRUCTION_THRESH) {
+			// TODO: we're stuck clearing rubble, this would be an ideal
+			// time to broadcast a clear-rubble message if there's a
+			// crapton of rubble
+			rc.clearRubble(dir);
+		} else if (rc.canMove(dir)) {
+			if (nextRubble >= GameConstants.RUBBLE_SLOW_THRESH && Rubble.betterToClearRubble(nextRubble)) {
+				rc.clearRubble(dir);
+			} else {
+				rc.move(dir);
+			}
+		}
 	}
 
 	public static void runAStar() {
 		BinaryHeap queue = new BinaryHeap();
 		toParent = new Direction[GameConstants.MAP_MAX_HEIGHT][GameConstants.MAP_MAX_WIDTH];
+		distFromStart = new double[GameConstants.MAP_MAX_HEIGHT][GameConstants.MAP_MAX_WIDTH];
 		expectedRubble = new double[GameConstants.MAP_MAX_HEIGHT][GameConstants.MAP_MAX_WIDTH];
 
-		queue.add(new HeuristicWeightedMapLocation(curLoc, 0, 0, Direction.NONE));
+		start = curTarget;
+		goal = curLoc;
+		queue.add(new HeuristicWeightedMapLocation(start, 0, 0, Direction.NONE));
 
 		while (!queue.isEmpty()) {
 			HeuristicWeightedMapLocation cur = queue.remove();
@@ -96,14 +173,16 @@ public class AStarPathing extends Mapping {
 			MapLocation loc = cur.loc;
 			int curLocalRow = worldToLocalRow(loc);
 			int curLocalCol = worldToLocalCol(loc);
-			if (loc.equals(curTarget)) {
+			if (loc.equals(goal)) {
 				toParent[curLocalRow][curLocalCol] = cur.parentDir;
+				distFromStart[curLocalRow][curLocalCol] = cur.weight;
 				break;
 			}
 			if (toParent[curLocalRow][curLocalCol] != null) {
 				continue;
 			}
 			toParent[curLocalRow][curLocalCol] = cur.parentDir;
+			distFromStart[curLocalRow][curLocalCol] = cur.weight;
 			rc.setIndicatorDot(loc, Math.min(255, 50 + (int) (cur.weight * 5)), 0, 0);
 			double dist = cur.weight;
 
@@ -183,18 +262,11 @@ public class AStarPathing extends Mapping {
 				}
 				double rubble = map[nextLocalRow][nextLocalCol];
 				expectedRubble[nextLocalRow][nextLocalCol] = rubble;
-				int actionsToClearAndMove;
-				if (rubble >= GameConstants.RUBBLE_OBSTRUCTION_THRESH) {
-					actionsToClearAndMove = 1 + Rubble.turnsToClearRubble(rubble);
-				} else if (rubble >= GameConstants.RUBBLE_SLOW_THRESH) {
-					actionsToClearAndMove = 2;
-				} else {
-					actionsToClearAndMove = 1;
-				}
+				int actionsToClearAndMove = actionsToClearRubbleAndMove(rubble);
 
 				// robots can travel diagonals
 				// so they're as fast as their longest path
-				double heuristic = Math.max(Math.abs(curTarget.x - nextLoc.x), Math.abs(curTarget.y - nextLoc.y));
+				double heuristic = Math.max(Math.abs(goal.x - nextLoc.x), Math.abs(goal.y - nextLoc.y));
 				double weight = dist + actionsToClearAndMove;
 
 				queue.add(new HeuristicWeightedMapLocation(nextLoc, weight, weight + epsilon * heuristic, d.opposite()));
@@ -202,25 +274,16 @@ public class AStarPathing extends Mapping {
 				d = d.rotateRight();
 			} while (d != endDir);
 		}
+	}
 
-		// reconstruct the direction order
-		// TODO: instead of storing one direction back, we should store a mask
-		// of all directions which are equidistant. So if one is blocked, we can
-		// try another.
-		pathList = new Direction[10000];
-		pathSize = 0;
-		int curRow = worldToLocalRow(curTarget);
-		int curCol = worldToLocalCol(curTarget);
-		Direction cur = toParent[curRow][curCol];
-		do {
-			pathList[pathSize++] = cur.opposite();
-			curRow += cur.dy + GameConstants.MAP_MAX_HEIGHT;
-			curCol += cur.dx + GameConstants.MAP_MAX_WIDTH;
-
-			curRow %= GameConstants.MAP_MAX_HEIGHT;
-			curCol %= GameConstants.MAP_MAX_WIDTH;
-			cur = toParent[curRow][curCol];
-		} while (cur != Direction.NONE);
+	private static int actionsToClearRubbleAndMove(double rubble) {
+		if (rubble >= GameConstants.RUBBLE_OBSTRUCTION_THRESH) {
+			return 1 + Rubble.turnsToClearRubble(rubble);
+		} else if (rubble >= GameConstants.RUBBLE_SLOW_THRESH) {
+			return 2;
+		} else {
+			return 1;
+		}
 	}
 
 	private static class BinaryHeap {

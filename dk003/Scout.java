@@ -4,7 +4,7 @@ import battlecode.common.Clock;
 import battlecode.common.GameActionException;
 import battlecode.common.MapLocation;
 
-public class Soldier extends BaseHandler {
+public class Scout extends BaseHandler {
 
 	public static boolean success = false;
 
