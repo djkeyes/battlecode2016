@@ -3,6 +3,7 @@ package dk001;
 import java.util.Random;
 
 import battlecode.common.GameActionException;
+import battlecode.common.GameConstants;
 import battlecode.common.RobotController;
 import battlecode.common.RobotInfo;
 import battlecode.common.RobotType;
@@ -10,7 +11,7 @@ import battlecode.common.Signal;
 import battlecode.common.Team;
 
 public class Util {
-	
+
 	public static final Team zombies = Team.ZOMBIE;
 	public static final int BROADCASTS_PER_MESSAGE = 2;
 
@@ -43,7 +44,8 @@ public class Util {
 				// -daniel
 				// wait a second, i didn't actually compare it to any baseline.
 				// I think creating an object with 3 variables costs like 15
-				// bytecodes to q=begin with, so maybe 30 bytecodes to decode and
+				// bytecodes to q=begin with, so maybe 30 bytecodes to decode
+				// and
 				// return that object is unavoidable...
 
 				// We can send several successive signals, since there are lots
@@ -67,8 +69,10 @@ public class Util {
 				}
 				int curTurn = rc.getRoundNum();
 
-				rc.broadcastMessageSignal(cur.location.x, cur.location.y, broadcastRadiusSq);
-				rc.broadcastMessageSignal(health, coreDelay * (roundLimit + 1) + curTurn, broadcastRadiusSq);
+				if (rc.getMessageSignalCount() <= GameConstants.MESSAGE_SIGNALS_PER_TURN - 2) {
+					rc.broadcastMessageSignal(cur.location.x, cur.location.y, broadcastRadiusSq);
+					rc.broadcastMessageSignal(health, coreDelay * (roundLimit + 1) + curTurn, broadcastRadiusSq);
+				}
 			}
 		}
 
