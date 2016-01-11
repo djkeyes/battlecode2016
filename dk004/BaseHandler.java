@@ -1,4 +1,4 @@
-package vipertest;
+package dk004;
 
 import battlecode.common.GameActionException;
 import battlecode.common.MapLocation;
@@ -43,7 +43,7 @@ public class BaseHandler {
 			Noop.run();
 			break;
 		case SCOUT:
-			Noop.run();
+			Scout.run();
 			break;
 		case SOLDIER:
 			Noop.run();

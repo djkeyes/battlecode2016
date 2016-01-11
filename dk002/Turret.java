@@ -68,7 +68,6 @@ public class Turret {
 				int minHealthMoveable = Integer.MAX_VALUE;
 				MapLocation targetStationary = null;
 				MapLocation targetMoveable = null;
-				int curTurn = rc.getRoundNum();
 				for (int i = decodedSignals.length; --i >= 0;) {
 					SignalContents cur = decodedSignals[i];
 					MapLocation loc = new MapLocation(cur.x, cur.y);
