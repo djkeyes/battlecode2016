@@ -102,16 +102,19 @@ public class Pathfinding extends BaseHandler {
 			}
 
 			turnsSinceBlocked++;
-			Direction dir = dirAtStart;
+			Direction possibleDir = dirAtStart;
+			Direction dir = null;
+
 			for (int i = 8; i-- > 0;) {
-				if (canMove(dir)) {
+				if (canMove(possibleDir)) {
+					dir = possibleDir;
 					break;
 				}
 
 				if (isGoingLeft) {
-					dir = dir.rotateRight();
+					possibleDir = possibleDir.rotateRight();
 				} else {
-					dir = dir.rotateLeft();
+					possibleDir = possibleDir.rotateLeft();
 				}
 				turnsSinceBlocked = 0;
 			}
