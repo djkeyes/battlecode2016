@@ -1,5 +1,7 @@
 package dk005;
 
+import java.util.Arrays;
+
 import battlecode.common.Direction;
 import battlecode.common.MapLocation;
 import battlecode.common.RobotInfo;
@@ -51,18 +53,20 @@ public class Util {
 	}
 
 	public static Direction getEstimatedEnemyDirection(RobotInfo[] nearbyEnemies, SignalContents[] decodedSignals,
-			MapLocation curLoc) {
+			MapLocation curLoc, boolean ignoreZombies) {
 		int[] enemyCount = new int[8];
 		for (int i = nearbyEnemies.length; --i >= 0;) {
 			enemyCount[Util.dirToInt(curLoc.directionTo(nearbyEnemies[i].location))]++;
 		}
 		// also check broadcasted results
 		for (int i = decodedSignals.length; --i >= 0;) {
-			// TODO: might want to add a threshold to this distance, since
-			// broadcasts can come from far and wide.
-			// ...or maybe weight by inverse distance. idk.
-			MapLocation enemyLoc = new MapLocation(decodedSignals[i].x, decodedSignals[i].y);
-			enemyCount[Util.dirToInt(curLoc.directionTo(enemyLoc))]++;
+			if (!ignoreZombies || !decodedSignals[i].isZombie) {
+				// TODO: might want to add a threshold to this distance, since
+				// broadcasts can come from far and wide.
+				// ...or maybe weight by inverse distance. idk.
+				MapLocation enemyLoc = new MapLocation(decodedSignals[i].x, decodedSignals[i].y);
+				enemyCount[Util.dirToInt(curLoc.directionTo(enemyLoc))]++;
+			}
 		}
 
 		int maxDir = 0;
@@ -76,6 +80,7 @@ public class Util {
 		if (maxCount == 0) {
 			return null;
 		}
+		BaseHandler.rc.setIndicatorString(2, Arrays.toString(enemyCount));
 		return Util.ACTUAL_DIRECTIONS[maxDir];
 	}
 

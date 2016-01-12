@@ -23,6 +23,8 @@ public class Archon extends BaseHandler {
 
 	public static MapLocation randomTarget = null;
 
+	public static MapLocation oldNearArchonLoc = null;
+
 	public static void run() throws GameActionException {
 
 		final int broadcastRadiusSq = RobotType.ARCHON.sensorRadiusSquared;
@@ -139,6 +141,10 @@ public class Archon extends BaseHandler {
 					} else {
 						rc.clearRubble(dirToDig);
 					}
+
+					// clear out stored movement plans
+					randomTarget = null;
+
 					Clock.yield();
 					continue;
 				}
@@ -213,16 +219,28 @@ public class Archon extends BaseHandler {
 				continue;
 			}
 
-			boolean archonNearby = false;
+			int minArchonDist;
+			MapLocation closestArchon;
+			if (oldNearArchonLoc != null) {
+				minArchonDist = curLoc.distanceSquaredTo(oldNearArchonLoc);
+				closestArchon = oldNearArchonLoc;
+			} else {
+				minArchonDist = Integer.MAX_VALUE;
+				closestArchon = null;
+			}
 			for (int i = allies.length; --i >= 0;) {
 				if (allies[i].type == RobotType.ARCHON) {
-					Pathfinding.setTarget(allies[i].location, /* avoidEnemies= */true);
-					Pathfinding.pathfindToward();
-					archonNearby = true;
-					break;
+					int dist = curLoc.distanceSquaredTo(allies[i].location);
+					if (dist < minArchonDist) {
+						minArchonDist = dist;
+						closestArchon = allies[i].location;
+					}
 				}
 			}
-			if (archonNearby) {
+			if (closestArchon != null) {
+				oldNearArchonLoc = closestArchon;
+				Pathfinding.setTarget(closestArchon, /* avoidEnemies= */true);
+				Pathfinding.pathfindToward();
 				Clock.yield();
 				continue;
 			}

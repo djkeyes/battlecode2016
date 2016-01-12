@@ -105,8 +105,9 @@ public class Messaging extends BaseHandler {
 		minDistSqFollowMe = Integer.MAX_VALUE;
 		minDistSqPrepAtk = Integer.MAX_VALUE;
 		minDistSqCharge = Integer.MAX_VALUE;
-		
-		// should we null these out to get rid of obscenely old values? is that worth it?
+
+		// should we null these out to get rid of obscenely old values? is that
+		// worth it?
 		// closestFollowMe = null;
 		// closestPrepAttackTarget = null;
 		// closestChargeTarget = null;

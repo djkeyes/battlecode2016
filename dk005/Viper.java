@@ -108,32 +108,40 @@ public class Viper extends BaseHandler {
 						// do it by bucketing all the known enemies into the 8
 						// directions
 
-						Direction dirToBias = Util.getEstimatedEnemyDirection(nearbyEnemies, decodedSignals, curLoc);
+						Direction dirToBias = Util.getEstimatedEnemyDirection(nearbyEnemies, decodedSignals, curLoc,
+								true);
+						// TODO: if there's no visible enemies nearby, maybe we
+						// should just start infecting scouts farthest away.
+						// after all, why would the kamakaze signal be sent if
+						// there aren't any enemies?
+						// or maybe that's stupid and all the enemies are
+						// already dead. idk.
+						if (dirToBias != null) {
+							// not sure whether it's more efficient to call this
+							// again, or filter the old list.
+							RobotInfo[] reallyNearbyEnemies = rc.senseNearbyRobots(curLoc, atkRangeSq, them);
+							RobotInfo[] nearbyAllies = rc.senseNearbyRobots(curLoc, atkRangeSq, us);
+							RobotInfo target = findBestViperTarget(reallyNearbyEnemies, nearbyAllies, dirToBias);
 
-						// not sure whether it's more efficient to call this
-						// again, or filter the old list.
-						RobotInfo[] reallyNearbyEnemies = rc.senseNearbyRobots(curLoc, atkRangeSq, them);
-						RobotInfo[] nearbyAllies = rc.senseNearbyRobots(curLoc, atkRangeSq, us);
-						RobotInfo target = findBestViperTarget(reallyNearbyEnemies, nearbyAllies, dirToBias);
+							if (target != null) {
+								rc.attackLocation(target.location);
+								Clock.yield();
+								continue;
+							} else {
+								if (rc.isCoreReady()) {
+									// advance toward opponent
+									MapLocation enemyTarget = Messaging.getCharge();
+									boolean avoidEnemies = false;
+									if (enemyTarget == null) {
+										enemyTarget = Messaging.getPrepAttack();
+										avoidEnemies = true;
+									}
 
-						if (target != null) {
-							rc.attackLocation(target.location);
-							Clock.yield();
-							continue;
-						} else {
-							if (rc.isCoreReady()) {
-								// advance toward opponent
-								MapLocation enemyTarget = Messaging.getCharge();
-								boolean avoidEnemies = false;
-								if (enemyTarget == null) {
-									enemyTarget = Messaging.getPrepAttack();
-									avoidEnemies = true;
-								}
-
-								if (enemyTarget != null) {
-									Pathfinding.setTarget(enemyTarget, avoidEnemies);
-									Pathfinding.pathfindToward();
-									Clock.yield();
+									if (enemyTarget != null) {
+										Pathfinding.setTarget(enemyTarget, avoidEnemies);
+										Pathfinding.pathfindToward();
+										Clock.yield();
+									}
 								}
 							}
 						}

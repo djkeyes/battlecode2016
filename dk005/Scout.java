@@ -86,7 +86,7 @@ public class Scout extends BaseHandler {
 				// kamakaze on short notice
 				RobotInfo[] nearEnemies = rc.senseNearbyRobots(RobotType.SCOUT.sensorRadiusSquared, them);
 				if (nearEnemies.length + decodedSignals.length > 0) {
-					lastEnemyDir = Util.getEstimatedEnemyDirection(nearEnemies, decodedSignals, curLoc);
+					lastEnemyDir = Util.getEstimatedEnemyDirection(nearEnemies, decodedSignals, curLoc, true);
 					rc.setIndicatorString(1, "rough enemy dir: " + lastEnemyDir);
 				}
 
@@ -110,7 +110,7 @@ public class Scout extends BaseHandler {
 				// than just "enemy unit". so watch out for that.
 				Direction roughEnemyDir = null;
 				if (nearEnemies.length + decodedSignals.length > 0) {
-					roughEnemyDir = Util.getEstimatedEnemyDirection(nearEnemies, decodedSignals, curLoc);
+					roughEnemyDir = Util.getEstimatedEnemyDirection(nearEnemies, decodedSignals, curLoc, true);
 					rc.setIndicatorString(1, "rough enemy dir*: " + lastEnemyDir);
 				} else {
 					roughEnemyDir = lastEnemyDir;
