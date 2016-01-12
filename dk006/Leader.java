@@ -1,8 +1,11 @@
 package dk006;
 
+import java.util.Map;
+
 import battlecode.common.Clock;
 import battlecode.common.Direction;
 import battlecode.common.GameActionException;
+import battlecode.common.GameConstants;
 import battlecode.common.MapLocation;
 import battlecode.common.RobotInfo;
 import battlecode.common.RobotType;
@@ -33,6 +36,8 @@ public class Leader extends BaseHandler {
 	private static MapLocation scoutingTarget = null;
 	private static boolean scoutCW = false;
 
+	private static boolean sentMapMessage = false;
+
 	public static void run() throws GameActionException {
 		// TODO: some of this code is very scout-specific, but we could rewite
 		// it to work for other units if we wanted
@@ -52,6 +57,8 @@ public class Leader extends BaseHandler {
 		while (true) {
 			beginningOfLoop();
 			Mapping.updateMap();
+
+			checkMapDimensions();
 
 			rc.setIndicatorString(2, "" + curPlan.ordinal());
 
@@ -198,6 +205,26 @@ public class Leader extends BaseHandler {
 			}
 			if (curPlan == BattlePlan.Attack) {
 				Messaging.charge(enemyArchonLoc);
+			}
+		}
+	}
+
+	private static void checkMapDimensions() throws GameActionException {
+		if (!sentMapMessage) {
+			if (Mapping.mapHeight != null || Mapping.mapWidth != null) {
+				// right now, our scouts aren't very thorough, so they're
+				// unlikely to get both the height AND the width. so for now,
+				// assume square maps, and do fucky things with the broacast
+				// radius.
+				int dim;
+				if (Mapping.mapHeight != null) {
+					dim = Mapping.mapHeight;
+				} else {
+					dim = Mapping.mapWidth;
+				}
+				int broadcastRadiusSq = dim * dim + GameConstants.MAP_MAX_HEIGHT * GameConstants.MAP_MAX_HEIGHT;
+				Messaging.mapDimensions(dim, dim, broadcastRadiusSq);
+				sentMapMessage = true;
 			}
 		}
 	}

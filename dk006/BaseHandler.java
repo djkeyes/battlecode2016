@@ -67,7 +67,7 @@ public class BaseHandler {
 			Noop.run();
 			break;
 		case TURRET:
-			Noop.run();
+			Turret.run();
 			break;
 		case VIPER:
 			Viper.run();

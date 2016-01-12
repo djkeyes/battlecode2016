@@ -1,6 +1,6 @@
-package dk001;
+package dk006;
 
-import dk001.Util.SignalContents;
+import dk006.Messaging.SignalContents;
 import battlecode.common.Clock;
 import battlecode.common.GameActionException;
 import battlecode.common.GameConstants;
@@ -11,12 +11,9 @@ import battlecode.common.RobotType;
 import battlecode.common.Signal;
 import battlecode.common.Team;
 
-public class Turret {
+public class Turret extends BaseHandler {
 
-	static final int attackRadiusSq = RobotType.TURRET.attackRadiusSquared;
-	static final int minAttackRadiusSq = GameConstants.TURRET_MINIMUM_RANGE;
-
-	public static void run(RobotController rc) throws GameActionException {
+	public static void run() throws GameActionException {
 		// just kill shit
 
 		final MapLocation curLoc = rc.getLocation();
@@ -32,8 +29,8 @@ public class Turret {
 				continue;
 			}
 
-			RobotInfo[] nearbyEnemies = rc.senseNearbyRobots(curLoc, attackRadiusSq, them);
-			RobotInfo[] nearbyZombies = rc.senseNearbyRobots(curLoc, attackRadiusSq, zombies);
+			RobotInfo[] nearbyEnemies = rc.senseNearbyRobots(curLoc, atkRangeSq, them);
+			RobotInfo[] nearbyZombies = rc.senseNearbyRobots(curLoc, atkRangeSq, zombies);
 
 			// which is better? attack the weakest? or attack the closest?
 			// attack the one with the most damage? or a combo?
@@ -55,10 +52,9 @@ public class Turret {
 
 			if (attackLoc == null) {
 				// if we don't see any nearby enemies, scouts may have
-				// broadcasted
-				// targets
+				// broadcasted targets
 				// check if we can hit any of those
-				SignalContents[] decodedSignals = Util.receiveBroadcasts(rc, them, signals);
+				SignalContents[] decodedSignals = Messaging.receiveBroadcasts(signals);
 				// because we don't know the execution order, we have two
 				// targets:
 				// 1. enemies that are *definitely* in the same place, and
@@ -122,7 +118,7 @@ public class Turret {
 			RobotInfo enemy = nearby[i];
 			int distSq = curLoc.distanceSquaredTo(enemy.location);
 			// turrets have a min attack radius
-			if (distSq >= minAttackRadiusSq) {
+			if (distSq >= GameConstants.TURRET_MINIMUM_RANGE) {
 				if (enemy.health < minHealth) {
 					minHealth = enemy.health;
 					result = enemy;

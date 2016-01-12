@@ -21,12 +21,13 @@ public class Messaging extends BaseHandler {
 	// if the core delay is really big, no need to broadcast exact numbers
 	public static final int MAX_CORE_DELAY = 100;
 
-	public final static int NUM_MESSAGE_TYPES = 5;
+	public final static int NUM_MESSAGE_TYPES = 6;
 	public final static int ENEMY_UNIT_MESSAGE = 0;
 	public final static int FOLLOW_ME_MESSAGE = 1;
 	public final static int PREP_ATTACK_MESSAGE = 2;
 	public final static int CHARGE_MESSAGE = 3;
 	public final static int ARCHON_GATHER_MESSAGE = 4;
+	public final static int MAP_SIZE_MESSAGE = 5;
 
 	public static MapLocation closestFollowMe = null;
 	public static MapLocation closestPrepAttackTarget = null;
@@ -35,6 +36,9 @@ public class Messaging extends BaseHandler {
 	public static MapLocation latestArchonGatherSpot = null;
 
 	public static int minDistSqFollowMe, minDistSqPrepAtk, minDistSqCharge;
+
+	public static boolean areMapDimensionsKnown;
+	public static int mapHeight, mapWidth;
 
 	public static void observeAndBroadcast(int broadcastRadiusSq, double maxCoreDelay) throws GameActionException {
 		RobotInfo[] nearby = rc.senseHostileRobots(curLoc, sensorRangeSq);
@@ -188,6 +192,13 @@ public class Messaging extends BaseHandler {
 			case ARCHON_GATHER_MESSAGE:
 				parseGather(first, signals[i].getLocation());
 				break;
+			case MAP_SIZE_MESSAGE:
+				areMapDimensionsKnown = true;
+				first /= NUM_MESSAGE_TYPES;
+				mapHeight = first % (GameConstants.MAP_MAX_HEIGHT + 1);
+				first /= (GameConstants.MAP_MAX_HEIGHT + 1);
+				mapWidth = first;
+				break;
 			}
 
 		}
@@ -315,5 +326,22 @@ public class Messaging extends BaseHandler {
 
 	public static MapLocation getArchonGatheringSpot() {
 		return latestArchonGatherSpot;
+	}
+
+	public static void mapDimensions(int width, int height, int broadcastRadiusSq) throws GameActionException {
+		rc.broadcastMessageSignal((width * (GameConstants.MAP_MAX_HEIGHT + 1) + height) * NUM_MESSAGE_TYPES
+				+ MAP_SIZE_MESSAGE, 0, broadcastRadiusSq);
+	}
+
+	public static boolean areMapDimensionsKnown() {
+		return areMapDimensionsKnown;
+	}
+
+	public static int getMapHeight() {
+		return mapHeight;
+	}
+
+	public static int getMapWidth() {
+		return mapWidth;
 	}
 }

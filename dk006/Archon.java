@@ -1,5 +1,6 @@
 package dk006;
 
+import dk006.Messaging.SignalContents;
 import battlecode.common.Clock;
 import battlecode.common.Direction;
 import battlecode.common.GameActionException;
@@ -18,7 +19,7 @@ public class Archon extends BaseHandler {
 	public static MapLocation gatheringSpot;
 	public static int gatheringSpotTimestamp = 0;
 	public static boolean isFirstArchon = false;
-	public static boolean shouldBuildScount = false;
+	public static boolean shouldBuildScout = false;
 
 	public static final int GATHERING_SPOT_DISTANCE = 10;
 	public static final int GATHERING_SPOT_EXPIRATION = 300;
@@ -35,13 +36,16 @@ public class Archon extends BaseHandler {
 		gatheringSpot = Messaging.readArchonLocations(signals);
 
 		if (isFirstArchon) {
-			shouldBuildScount = true;
+			shouldBuildScout = true;
 		}
 
 		while (true) {
 			beginningOfLoop();
 
 			Messaging.observeAndBroadcast(broadcastRadiusSq, 0.5);
+
+			signals = rc.emptySignalQueue();
+			SignalContents[] decodedSignals = Messaging.receiveBroadcasts(signals);
 
 			if (!rc.isCoreReady()) {
 				Clock.yield();
@@ -164,7 +168,7 @@ public class Archon extends BaseHandler {
 			// because the archon with the earliest spawn time will always get
 			// to build first. Building should probably be distributed where
 			// it's most helpful, or something.
-			RobotType nextToBuild = getNextToBuild();
+			RobotType nextToBuild = getNextToBuild(allies);
 			if (rc.hasBuildRequirements(nextToBuild)) {
 				boolean built = false;
 
@@ -270,8 +274,19 @@ public class Archon extends BaseHandler {
 		}
 	}
 
-	private static RobotType getNextToBuild() {
-		if (shouldBuildScount) {
+	private static RobotType getNextToBuild(RobotInfo[] allies) {
+		if (Messaging.areMapDimensionsKnown()) {
+			int area = Messaging.getMapHeight() * Messaging.getMapWidth();
+			if (area <= 1600) {
+				for (int i = allies.length; --i >= 0;) {
+					if (allies[i].type == RobotType.SCOUT) {
+						return RobotType.TURRET;
+					}
+				}
+				return RobotType.SCOUT;
+			}
+		}
+		if (shouldBuildScout) {
 			return RobotType.SCOUT;
 		} else {
 			return RobotType.SOLDIER;
@@ -279,8 +294,8 @@ public class Archon extends BaseHandler {
 	}
 
 	private static void incrementNextToBuild() {
-		if (shouldBuildScount) {
-			shouldBuildScount = false;
+		if (shouldBuildScout) {
+			shouldBuildScout = false;
 		}
 	}
 }
