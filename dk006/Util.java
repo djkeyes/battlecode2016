@@ -108,8 +108,8 @@ public class Util {
 		int total = 0; // checksum for early termination
 
 		for (int i = nearbyRobots.length; --i >= 0;) {
-			// ignore scouts for archon behavior
-			if (nearbyRobots[i].type == RobotType.SCOUT) {
+			// ignore non-lethal for archon behavior
+			if (nearbyRobots[i].type == RobotType.SCOUT || nearbyRobots[i].type == RobotType.ARCHON || nearbyRobots[i].type == RobotType.ZOMBIEDEN) {
 				continue;
 			}
 			// also ignore enemies too far away

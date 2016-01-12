@@ -1,85 +1,106 @@
 package team292;
 
-import java.util.Random;
-
 import battlecode.common.Clock;
 import battlecode.common.Direction;
 import battlecode.common.GameActionException;
 import battlecode.common.GameConstants;
 import battlecode.common.MapLocation;
-import battlecode.common.RobotController;
 import battlecode.common.RobotInfo;
 import battlecode.common.RobotType;
+import battlecode.common.Signal;
 import battlecode.common.Team;
+import team292.Messaging.SignalContents;
 
-public class Archon {
+public class Archon extends BaseHandler {
 
-	static final int ATTACK_RAD_SQ = RobotType.ARCHON.attackRadiusSquared;
-	static final Direction[] ACTUAL_DIRECTIONS = { Direction.NORTH, Direction.NORTH_EAST, Direction.EAST,
-			Direction.SOUTH_EAST, Direction.SOUTH, Direction.SOUTH_WEST, Direction.WEST, Direction.NORTH_WEST };
+	public static RobotType[] buildOrder = { RobotType.GUARD, RobotType.SOLDIER, RobotType.SOLDIER, RobotType.SOLDIER };
+	public static int nextToBuild = 0;
 
-	public static final Direction[] CARDINAL_DIRECTIONS = { Direction.NORTH, Direction.EAST, Direction.SOUTH,
-			Direction.WEST, };
-	public static final Direction[] UN_CARDINAL_DIRECTIONS = { Direction.NORTH_EAST, Direction.SOUTH_EAST,
-			Direction.SOUTH_WEST, Direction.NORTH_WEST, };
+	public static MapLocation oldNearArchonLoc = null;
+	public static MapLocation gatheringSpot;
+	public static int gatheringSpotTimestamp = 0;
+	public static boolean isFirstArchon = false;
+	public static boolean shouldBuildScout = false;
 
-	static final RobotType[] buildOrder = { RobotType.TURRET, RobotType.SCOUT, RobotType.TURRET, RobotType.TURRET,
-			RobotType.TURRET, RobotType.TURRET };
+	public static final int GATHERING_SPOT_DISTANCE = 10;
+	public static final int GATHERING_SPOT_EXPIRATION = 300;
 
-	public static void run(RobotController rc) throws GameActionException {
-		int nextToBuild = 0;
+	public static void run() throws GameActionException {
 
-		final Team us = rc.getTeam();
-		final Team them = us.opponent();
+		final int broadcastRadiusSq = RobotType.ARCHON.sensorRadiusSquared;
 
-		final Random gen = new Random(rc.getID());
+		Messaging.broadcastArchonLocations();
+		Signal[] signals = rc.emptySignalQueue();
+		isFirstArchon = Messaging.isFirstArchon(signals);
+		Clock.yield();
+		signals = Messaging.concatArray(signals, rc.emptySignalQueue());
+		gatheringSpot = Messaging.readArchonLocations(signals);
 
-		final int broadcastRadiusSq = (int) (Math.pow(
-				Math.sqrt(RobotType.TURRET.attackRadiusSquared) + Math.sqrt(RobotType.ARCHON.sensorRadiusSquared), 2));
+		if (isFirstArchon) {
+			shouldBuildScout = true;
+		}
 
 		while (true) {
-			// send broadcasts
-			Util.observeAndBroadcast(rc, broadcastRadiusSq, them, 0.8);
+			beginningOfLoop();
+
+			Messaging.observeAndBroadcast(broadcastRadiusSq, 0.5);
+
+			signals = rc.emptySignalQueue();
+			SignalContents[] decodedSignals = Messaging.receiveBroadcasts(signals);
 
 			if (!rc.isCoreReady()) {
 				Clock.yield();
 				continue;
 			}
-			// archons can move, repair, build new units, and activate
-			// neutral
-			// units
-			// we do some testing to find the best action for different
-			// situations
-			// for now, here's the priorities:
-			// 1. activate a neutral unit if it's nearby
-			// 2. build a new unit, if we can afford it
-			// 3. repair an adjacent unit, if possible
-			// 4. move randomly, or onto parts or something
 
-			// except repair is really imba? but archons are really fragile? can
-			// we micro archon positioning+repair to take advantage of zombie
-			// AI?
+			MapLocation curLoc = rc.getLocation();
 
 			// 1. activate
 			// senseNearbyRobots() is pretty expensive, might be cheaper to call
 			// for a larger radius and check the results
-			RobotInfo[] neutrals = rc.senseNearbyRobots(GameConstants.ARCHON_ACTIVATION_RANGE, Team.NEUTRAL);
+			RobotInfo[] neutrals = rc.senseNearbyRobots(RobotType.ARCHON.sensorRadiusSquared, Team.NEUTRAL);
 			if (neutrals.length > 0) {
-				// just pick the first one
-				rc.activate(neutrals[0].location);
+				// find the closest one
+				int minDistSq = Integer.MAX_VALUE;
+				MapLocation bestLoc = null;
+				for (int i = neutrals.length; --i >= 0;) {
+					int distSq = neutrals[i].location.distanceSquaredTo(curLoc);
+					if (distSq < minDistSq) {
+						minDistSq = distSq;
+						bestLoc = neutrals[i].location;
+					}
+				}
 
-				Clock.yield();
-				continue;
+				if (minDistSq <= GameConstants.ARCHON_ACTIVATION_RANGE) {
+					rc.activate(bestLoc);
+					Clock.yield();
+					continue;
+				}
+
+				// hmm, changing targets on the fly like this sounds like a good
+				// way to fuck up bug-pathfinding. oh well.
+				Pathfinding.setTarget(bestLoc, /* avoidEnemies= */true, /*
+																		 * giveSpace
+																		 * =
+																		 */true);
+
+				if (Pathfinding.pathfindToward()) {
+					Clock.yield();
+					continue;
+				}
 			}
 
-			// 3. repair
-			RobotInfo[] allies = rc.senseNearbyRobots(ATTACK_RAD_SQ, us);
+			// 2. repair
+			RobotInfo[] allies = rc.senseNearbyRobots(RobotType.ARCHON.sensorRadiusSquared, us);
 			// pick the one with the most damage
 			int mostDamageIndex = -1;
 			double mostDamage = 0.0;
 			// protip: arranging your loop like this saves like 2 bytecodes
 			for (int i = allies.length; --i >= 0;) {
 				if (allies[i].type == RobotType.ARCHON) {
+					continue;
+				}
+				if (allies[i].location.distanceSquaredTo(curLoc) > atkRangeSq) {
 					continue;
 				}
 
@@ -96,15 +117,13 @@ public class Archon {
 				continue;
 			}
 
-			// 1.5 run away
-
-			MapLocation curLoc = rc.getLocation();
+			// 3 run away
 
 			// check for opponents and run away from them
 			RobotInfo[] nearZombies = rc.senseNearbyRobots(RobotType.ARCHON.sensorRadiusSquared, Team.ZOMBIE);
-			boolean[] isAwayFromZombie = dirsAwayFrom(nearZombies, curLoc);
+			boolean[] isAwayFromZombie = Util.dirsAwayFrom(nearZombies, curLoc);
 			RobotInfo[] nearEnemies = rc.senseNearbyRobots(RobotType.ARCHON.sensorRadiusSquared, them);
-			boolean[] isAwayFromEnemy = dirsAwayFrom(nearEnemies, curLoc);
+			boolean[] isAwayFromEnemy = Util.dirsAwayFrom(nearEnemies, curLoc);
 			{
 				Direction dirToMove = null;
 				Direction dirToDig = null;
@@ -112,9 +131,9 @@ public class Archon {
 				// tbh, for something like this, we should randomly permute
 				// the directions.
 				// meh.
-				for (int i = ACTUAL_DIRECTIONS.length; --i >= 0;) {
+				for (int i = Util.ACTUAL_DIRECTIONS.length; --i >= 0;) {
 					if (isAwayFromEnemy[i] || isAwayFromZombie[i]) {
-						Direction d = ACTUAL_DIRECTIONS[i];
+						Direction d = Util.ACTUAL_DIRECTIONS[i];
 						MapLocation next = curLoc.add(d);
 						double rubble = rc.senseRubble(next);
 						if (rubble >= GameConstants.RUBBLE_OBSTRUCTION_THRESH
@@ -139,21 +158,19 @@ public class Archon {
 					} else {
 						rc.clearRubble(dirToDig);
 					}
+
 					Clock.yield();
 					continue;
 				}
 			}
 
-			// 2. build
+			// 4. build
 			// TODO(daniel): greedily building things seems like a bad idea,
-			// because the archon with the lowest ID will always get to
-			// build first. Building should probably be distributed where
+			// because the archon with the earliest spawn time will always get
+			// to build first. Building should probably be distributed where
 			// it's most helpful, or something.
-
-			// do we need to check rc.hasBuildRequirements()? or check the
-			// core delay? the docs mention rc.isBuildReady(), but that
-			// isn't a real method
-			if (rc.hasBuildRequirements(buildOrder[nextToBuild])) {
+			RobotType nextToBuild = getNextToBuild(allies);
+			if (rc.hasBuildRequirements(nextToBuild)) {
 				boolean built = false;
 
 				// checkerboard placement, so shit doesn't get stuck
@@ -162,30 +179,29 @@ public class Archon {
 
 				Direction[] dirs;
 				if (((curLoc.x ^ curLoc.y) & 1) > 0) {
-					dirs = CARDINAL_DIRECTIONS;
+					dirs = Util.CARDINAL_DIRECTIONS;
 				} else {
-					dirs = UN_CARDINAL_DIRECTIONS;
+					dirs = Util.UN_CARDINAL_DIRECTIONS;
 				}
 				for (Direction d : dirs) {
-					if (rc.canBuild(d, buildOrder[nextToBuild])) {
-						rc.build(d, buildOrder[nextToBuild]);
-						nextToBuild++;
-						nextToBuild %= buildOrder.length;
+					if (rc.canBuild(d, nextToBuild)) {
+						rc.build(d, nextToBuild);
 						built = true;
 						break;
 					}
 				}
 
 				if (built) {
+					incrementNextToBuild();
 					Clock.yield();
 					continue;
 				}
 			}
 
-			// 4. move
+			// 5. move one nearby parts + 6. move toward allied archons
+			// TODO(daniel): seek out visible parts, instead of only considering
+			// adjacent parts
 
-			// this just choses a random direction, which is dumb shit. what we
-			// should do is move toward friendly archons
 			Direction dirToMove = null;
 			// TODO(daniel): the math for time to clear rubble is pretty
 			// approachable. we should calculate the optimal level at
@@ -207,94 +223,83 @@ public class Archon {
 					}
 				}
 			}
-			if (dirToMove == null) {
-				dirToMove = Direction.values()[gen.nextInt(8)];
-				rubble = rc.senseRubble(curLoc.add(dirToMove));
+			if (dirToMove != null) {
+				if (rubble >= GameConstants.RUBBLE_OBSTRUCTION_THRESH) {
+					rc.clearRubble(dirToMove);
+				} else if (rc.canMove(dirToMove)) {
+					rc.move(dirToMove);
+				}
+				Clock.yield();
+				continue;
 			}
-			if (rubble >= GameConstants.RUBBLE_OBSTRUCTION_THRESH) {
-				rc.clearRubble(dirToMove);
-			} else if (rc.canMove(dirToMove)) {
-				rc.move(dirToMove);
+
+			if (isFirstArchon) {
+				// reasons to generate a new gathering spot:
+				// -old one is unsafe
+				// -everyone's already at old one (this is actually tricky to
+				// tell, because we have to count archons and record ones who
+				// die)
+				// -the old one is stale/unreachable/too far away
+
+				boolean shouldMakeNewSpot = false;
+				if (rc.getRoundNum() - gatheringSpotTimestamp > GATHERING_SPOT_EXPIRATION) {
+					shouldMakeNewSpot = true;
+				} else {
+					// TODO: also check broadcasts
+					RobotInfo[] nearbyEnemies = rc.senseHostileRobots(gatheringSpot, sensorRangeSq);
+					for (int i = nearbyEnemies.length; --i >= 0;) {
+						if (nearbyEnemies[i].location.distanceSquaredTo(gatheringSpot) <= nearbyEnemies[i].type.attackRadiusSquared) {
+							shouldMakeNewSpot = true;
+							break;
+						}
+					}
+				}
+
+				if (shouldMakeNewSpot) {
+					Direction randomDir = Util.ACTUAL_DIRECTIONS[gen.nextInt(8)];
+					gatheringSpot = curLoc.add(randomDir, GATHERING_SPOT_DISTANCE);
+					gatheringSpotTimestamp = rc.getRoundNum();
+					Messaging.setArchonGatheringSpot(gatheringSpot);
+				}
+			} else {
+				MapLocation newGatheringSpot = Messaging.getArchonGatheringSpot();
+				if (newGatheringSpot != null) {
+					gatheringSpot = newGatheringSpot;
+				}
 			}
+
+			Pathfinding.setTarget(gatheringSpot, true, true);
+			Pathfinding.pathfindToward();
 
 			Clock.yield();
 		}
 	}
 
-	private static boolean[] dirsAwayFrom(RobotInfo[] nearbyRobots, MapLocation curLoc) {
-		final int size = ACTUAL_DIRECTIONS.length;
-		if (nearbyRobots.length == 0) {
-			return new boolean[size];
-		}
-
-		boolean[] result = new boolean[size];
-		int total = 0; // checksum for early termination
-
-		for (int i = nearbyRobots.length; --i >= 0;) {
-			// ignore scouts for archon behavior
-			if (nearbyRobots[i].type == RobotType.SCOUT) {
-				continue;
-			}
-			// also ignore enemies too far away
-			if (nearbyRobots[i].location.distanceSquaredTo(curLoc) > 25) {
-				continue;
-			}
-
-			Direction dir = nearbyRobots[i].location.directionTo(curLoc);
-			int asInt = dirToInt(dir);
-			// cw and ccw might be reversed here, but the effect is the same
-			int ccw, cw;
-			if (asInt == 0) {
-				ccw = size - 1;
-				cw = 1;
-			} else if (asInt == size - 1) {
-				ccw = size - 2;
-				cw = 0;
-			} else {
-				ccw = asInt - 1;
-				cw = asInt + 1;
-			}
-
-			if (!result[ccw]) {
-				total++;
-			}
-			if (!result[asInt]) {
-				total++;
-			}
-			if (!result[cw]) {
-				total++;
-			}
-
-			result[ccw] = result[asInt] = result[cw] = true;
-
-			if (total == size) {
-				break;
+	private static RobotType getNextToBuild(RobotInfo[] allies) {
+		if (Messaging.areMapDimensionsKnown()) {
+			int area = Messaging.getMapHeight() * Messaging.getMapWidth();
+			if (area <= 1600) {
+				for (int i = allies.length; --i >= 0;) {
+					if (allies[i].type == RobotType.SCOUT) {
+						return RobotType.TURRET;
+					}
+				}
+				return RobotType.SCOUT;
 			}
 		}
-		return result;
-	}
-
-	private static int dirToInt(Direction dir) {
-		switch (dir) {
-		case NORTH:
-			return 0;
-		case NORTH_EAST:
-			return 1;
-		case EAST:
-			return 2;
-		case SOUTH_EAST:
-			return 3;
-		case SOUTH:
-			return 4;
-		case SOUTH_WEST:
-			return 5;
-		case WEST:
-			return 6;
-		case NORTH_WEST:
-			return 7;
-		default:
-			return -1;
+		if (shouldBuildScout) {
+			return RobotType.SCOUT;
+		} else {
+			return buildOrder[nextToBuild];
 		}
 	}
 
+	private static void incrementNextToBuild() {
+		if (shouldBuildScout) {
+			shouldBuildScout = false;
+		} else {
+			nextToBuild++;
+			nextToBuild %= buildOrder.length;
+		}
+	}
 }

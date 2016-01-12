@@ -1,4 +1,4 @@
-package dk006;
+package team292;
 
 import battlecode.common.GameActionException;
 import battlecode.common.GameConstants;
@@ -321,8 +321,7 @@ public class Messaging extends BaseHandler {
 		int locOffsetX = gatheringSpot.x - curLoc.x + GameConstants.MAP_MAX_WIDTH;
 		int locOffsetY = gatheringSpot.y - curLoc.y + GameConstants.MAP_MAX_HEIGHT;
 		rc.broadcastMessageSignal((locOffsetX * MAX_Y_OFFSET + locOffsetY) * NUM_MESSAGE_TYPES + ARCHON_GATHER_MESSAGE,
-				0, GameConstants.MAP_MAX_HEIGHT * GameConstants.MAP_MAX_HEIGHT + GameConstants.MAP_MAX_WIDTH
-						* GameConstants.MAP_MAX_WIDTH);
+				0, RobotType.ARCHON.sensorRadiusSquared);
 	}
 
 	public static MapLocation getArchonGatheringSpot() {
