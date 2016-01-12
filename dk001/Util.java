@@ -95,7 +95,7 @@ public class Util {
 
 		int numFromUs = 0;
 		for (int i = 0; i < signals.length; i++) {
-			if (signals[i].getTeam() != them) {
+			if (signals[i].getTeam() != them && signals[i].getMessage() != null) {
 				numFromUs++;
 			}
 		}
@@ -104,6 +104,9 @@ public class Util {
 		int messageNum = 0;
 		for (int i = 0; i < signals.length; i++) {
 			if (signals[i].getTeam() == them) {
+				continue;
+			}
+			if (signals[i].getMessage() == null) {
 				continue;
 			}
 

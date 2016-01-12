@@ -2,6 +2,7 @@ package dk006;
 
 import battlecode.common.GameActionException;
 import battlecode.common.GameConstants;
+import battlecode.common.MapLocation;
 
 public class MapEdges extends BaseHandler {
 
@@ -119,5 +120,21 @@ public class MapEdges extends BaseHandler {
 		}
 
 		return messageSent;
+	}
+
+	public static MapLocation clampWithKnownBounds(MapLocation loc) {
+		if (MapEdges.minCol != null) {
+			loc = new MapLocation(Math.max(loc.x, MapEdges.minCol), loc.y);
+		}
+		if (MapEdges.maxCol != null) {
+			loc = new MapLocation(Math.min(loc.x, MapEdges.maxCol), loc.y);
+		}
+		if (MapEdges.minRow != null) {
+			loc = new MapLocation(loc.x, Math.max(loc.y, MapEdges.minRow));
+		}
+		if (MapEdges.maxRow != null) {
+			loc = new MapLocation(loc.x, Math.min(loc.y, MapEdges.maxRow));
+		}
+		return loc;
 	}
 }

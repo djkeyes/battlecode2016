@@ -407,7 +407,10 @@ public class Messaging extends BaseHandler {
 		// only send it as far as the sight of the result unit
 		// that way whatever gets built will likely be able to find the
 		// requestor
-		rc.broadcastMessageSignal(UNIT_REQUEST_MESSAGE, requestType.ordinal(), requestType.sensorRadiusSquared);
+		// rc.broadcastMessageSignal(UNIT_REQUEST_MESSAGE,
+		// requestType.ordinal(), requestType.sensorRadiusSquared);
+
+		rc.broadcastMessageSignal(UNIT_REQUEST_MESSAGE, requestType.ordinal(), 100);
 	}
 
 }

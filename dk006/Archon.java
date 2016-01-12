@@ -64,6 +64,9 @@ public class Archon extends BaseHandler {
 			MapEdges.checkMapEdges(decodedSignals);
 			rc.setIndicatorDot(gatheringSpot, 0, 255, 0);
 
+			RobotInfo[] nearZombies = rc.senseNearbyRobots(RobotType.ARCHON.sensorRadiusSquared, Team.ZOMBIE);
+			updateGatheringSpot(nearZombies, decodedSignals);
+
 			if (!rc.isCoreReady()) {
 				Clock.yield();
 				continue;
@@ -131,7 +134,6 @@ public class Archon extends BaseHandler {
 			// 3 run away
 
 			// check for opponents and run away from them
-			RobotInfo[] nearZombies = rc.senseNearbyRobots(RobotType.ARCHON.sensorRadiusSquared, Team.ZOMBIE);
 			boolean[] isAwayFromZombie = Util.dirsAwayFrom(nearZombies, curLoc);
 			RobotInfo[] nearEnemies = rc.senseNearbyRobots(RobotType.ARCHON.sensorRadiusSquared, them);
 			boolean[] isAwayFromEnemy = Util.dirsAwayFrom(nearEnemies, curLoc);
@@ -248,96 +250,86 @@ public class Archon extends BaseHandler {
 				continue;
 			}
 
-			if (isFirstArchon) {
-				// reasons to generate a new gathering spot:
-				// -old one is unsafe
-				// -everyone's already at old one (this is actually tricky to
-				// tell, because we have to count archons and record ones who
-				// die)
-				// -the old one is stale/unreachable/too far away
-				// -also if we see somewhere good nearby (eg an empty zombie
-				// den)
-
-				boolean shouldMakeNewSpot = false;
-
-				MapLocation nearbyDen = null;
-				for (int i = nearZombies.length; --i >= 0;) {
-					if (nearZombies[i].type == RobotType.ZOMBIEDEN) {
-						nearbyDen = nearZombies[i].location;
-						break;
-					}
-				}
-				if (nearbyDen == null) {
-					for (int i = decodedSignals.length; --i >= 0;) {
-						if (decodedSignals[i].type == RobotType.ZOMBIEDEN) {
-							MapLocation loc = new MapLocation(decodedSignals[i].x, decodedSignals[i].y);
-							nearbyDen = loc;
-							break;
-						}
-					}
-				}
-				if (nearbyDen != null) {
-					shouldMakeNewSpot = true;
-				} else {
-					if (rc.getRoundNum() - gatheringSpotTimestamp > GATHERING_SPOT_EXPIRATION) {
-						shouldMakeNewSpot = true;
-					} else {
-						// TODO: also check broadcasts
-						RobotInfo[] nearbyEnemies = rc.senseHostileRobots(gatheringSpot, sensorRangeSq);
-						for (int i = nearbyEnemies.length; --i >= 0;) {
-							if (nearbyEnemies[i].type == RobotType.SCOUT || nearbyEnemies[i].type == RobotType.ARCHON
-									|| nearbyEnemies[i].type == RobotType.ZOMBIEDEN) {
-								continue;
-							}
-							if (nearbyEnemies[i].location.distanceSquaredTo(gatheringSpot) <= nearbyEnemies[i].type.attackRadiusSquared) {
-								shouldMakeNewSpot = true;
-								break;
-							}
-						}
-					}
-				}
-
-				if (shouldMakeNewSpot) {
-					if (nearbyDen != null) {
-						gatheringSpot = nearbyDen;
-					} else {
-						scoutingDirection = scoutingDirection.rotateLeft();
-						if (pathLength < 15) {
-							pathLength *= 1.2;
-						}
-						gatheringSpot = curLoc.add(scoutingDirection, pathLength);
-					}
-					gatheringSpotTimestamp = rc.getRoundNum();
-
-					if (MapEdges.minCol != null) {
-						gatheringSpot = new MapLocation(Math.max(gatheringSpot.x, MapEdges.minCol), gatheringSpot.y);
-					}
-					if (MapEdges.maxCol != null) {
-						gatheringSpot = new MapLocation(Math.min(gatheringSpot.x, MapEdges.maxCol), gatheringSpot.y);
-					}
-					if (MapEdges.minRow != null) {
-						gatheringSpot = new MapLocation(gatheringSpot.x, Math.max(gatheringSpot.y, MapEdges.minRow));
-					}
-					if (MapEdges.maxRow != null) {
-						gatheringSpot = new MapLocation(gatheringSpot.x, Math.min(gatheringSpot.y, MapEdges.maxRow));
-					}
-
-					Messaging.setArchonGatheringSpot(gatheringSpot);
-					Clock.yield();
-					continue;
-				}
-			} else {
-				MapLocation newGatheringSpot = Messaging.getArchonGatheringSpot();
-				if (newGatheringSpot != null) {
-					gatheringSpot = newGatheringSpot;
-				}
-			}
-
 			if (rc.isCoreReady()) {
 				Pathfinding.setTarget(gatheringSpot, true, true);
 				Pathfinding.pathfindToward();
 
 				Clock.yield();
+			}
+		}
+	}
+
+	private static void updateGatheringSpot(RobotInfo[] nearZombies, SignalContents[] decodedSignals)
+			throws GameActionException {
+		if (isFirstArchon) {
+			// reasons to generate a new gathering spot:
+			// -old one is unsafe
+			// -everyone's already at old one (this is actually tricky to
+			// tell, because we have to count archons and record ones who
+			// die)
+			// -the old one is stale/unreachable/too far away
+			// -also if we see somewhere good nearby (eg an empty zombie
+			// den)
+
+			boolean shouldMakeNewSpot = false;
+
+			MapLocation nearbyDen = null;
+			for (int i = nearZombies.length; --i >= 0;) {
+				if (nearZombies[i].type == RobotType.ZOMBIEDEN) {
+					nearbyDen = nearZombies[i].location;
+					break;
+				}
+			}
+			if (nearbyDen == null) {
+				for (int i = decodedSignals.length; --i >= 0;) {
+					if (decodedSignals[i].type == RobotType.ZOMBIEDEN) {
+						MapLocation loc = new MapLocation(decodedSignals[i].x, decodedSignals[i].y);
+						nearbyDen = loc;
+						break;
+					}
+				}
+			}
+			if (nearbyDen != null) {
+				shouldMakeNewSpot = true;
+			} else {
+				if (rc.getRoundNum() - gatheringSpotTimestamp > GATHERING_SPOT_EXPIRATION) {
+					shouldMakeNewSpot = true;
+				} else {
+					// TODO: also check broadcasts
+					RobotInfo[] nearbyEnemies = rc.senseHostileRobots(gatheringSpot, sensorRangeSq);
+					for (int i = nearbyEnemies.length; --i >= 0;) {
+						if (nearbyEnemies[i].type == RobotType.SCOUT || nearbyEnemies[i].type == RobotType.ARCHON
+								|| nearbyEnemies[i].type == RobotType.ZOMBIEDEN) {
+							continue;
+						}
+						if (nearbyEnemies[i].location.distanceSquaredTo(gatheringSpot) <= nearbyEnemies[i].type.attackRadiusSquared) {
+							shouldMakeNewSpot = true;
+							break;
+						}
+					}
+				}
+			}
+
+			if (shouldMakeNewSpot) {
+				if (nearbyDen != null) {
+					gatheringSpot = nearbyDen;
+				} else {
+					scoutingDirection = scoutingDirection.rotateLeft();
+					if (pathLength < 15) {
+						pathLength *= 1.2;
+					}
+					gatheringSpot = curLoc.add(scoutingDirection, pathLength);
+				}
+				gatheringSpotTimestamp = rc.getRoundNum();
+
+				gatheringSpot = MapEdges.clampWithKnownBounds(gatheringSpot);
+
+				Messaging.setArchonGatheringSpot(gatheringSpot);
+			}
+		} else {
+			MapLocation newGatheringSpot = Messaging.getArchonGatheringSpot();
+			if (newGatheringSpot != null) {
+				gatheringSpot = newGatheringSpot;
 			}
 		}
 	}
@@ -367,7 +359,7 @@ public class Archon extends BaseHandler {
 				}
 			}
 		}
-		
+
 		if (smallMap) {
 			for (int i = allies.length; --i >= 0;) {
 				if (allies[i].type == RobotType.SCOUT) {

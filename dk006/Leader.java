@@ -21,21 +21,21 @@ public class Leader extends BaseHandler {
 
 	public static final int MAX_KAMAKAZE_DISTANCE = 12;
 
-	private static BattlePlan curPlan = BattlePlan.Scout;
+	private static BattlePlan curPlan = BattlePlan.Assemble;
 
 	private static int numScouts, numVipers;
 
 	private enum BattlePlan {
-		Scout, Return, Lead, PrepareForAttack, Attack
+		Assemble, Lead, PrepareForAttack, Attack
 	}
 
-	private static MapLocation enemyArchonLoc = null;
 	private static MapLocation alliedArchonLoc = null;
+	private static MapLocation enemyLoc;
 
 	private static Direction scoutingDirection = null;
 	private static int pathLength = 10;
 	private static MapLocation scoutingTarget = null;
-	private static boolean scoutCW = false;
+	private static boolean scoutCW = true;
 
 	public static void run() throws GameActionException {
 		// TODO: some of this code is very scout-specific, but we could rewite
@@ -49,7 +49,6 @@ public class Leader extends BaseHandler {
 		Mapping.initMap();
 		rc.setIndicatorString(0, "?");
 		scoutingDirection = Util.ACTUAL_DIRECTIONS[gen.nextInt(8)];
-		scoutCW = gen.nextBoolean();
 		final int broadcastRadiusSq = RobotType.SCOUT.sensorRadiusSquared;
 		// just record the start location, there has to be an archon around here
 		alliedArchonLoc = rc.getLocation();
@@ -69,71 +68,7 @@ public class Leader extends BaseHandler {
 				continue;
 			}
 
-			if (curPlan == BattlePlan.Scout) {
-				// check for enemy archons
-				RobotInfo[] nearEnemies = rc.senseNearbyRobots(sensorRangeSq, them);
-				int minArchonDist = Integer.MAX_VALUE;
-				for (int i = nearEnemies.length; --i >= 0;) {
-					if (nearEnemies[i].type == RobotType.ARCHON) {
-						int dist = nearEnemies[i].location.distanceSquaredTo(curLoc);
-						if (dist < minArchonDist) {
-							minArchonDist = dist;
-							enemyArchonLoc = nearEnemies[i].location;
-						}
-					}
-				}
-				if (enemyArchonLoc == null) {
-					for (int i = decodedSignals.length; --i >= 0;) {
-						if (decodedSignals[i].type == RobotType.ARCHON) {
-							MapLocation loc = new MapLocation(decodedSignals[i].x, decodedSignals[i].y);
-							int dist = loc.distanceSquaredTo(curLoc);
-							if (dist < minArchonDist) {
-								minArchonDist = dist;
-								enemyArchonLoc = loc;
-							}
-						}
-					}
-				}
-				if (enemyArchonLoc != null) {
-					curPlan = BattlePlan.Return;
-				} else {
-					// travel outward in a spiral
-					if (scoutingTarget == null || curLoc.distanceSquaredTo(scoutingTarget) <= 13) {
-						scoutingTarget = curLoc.add(pathLength * scoutingDirection.dx, pathLength
-								* scoutingDirection.dy);
-						rc.setIndicatorString(1, scoutingTarget.toString());
-
-						pathLength *= 1.2;
-						if (scoutCW) {
-							scoutingDirection = scoutingDirection.rotateRight();
-						} else {
-							scoutingDirection = scoutingDirection.rotateLeft();
-						}
-					}
-
-					if (rc.isCoreReady()) {
-						// move in the straightest-line path
-						// TODO: we should probably use bug pathfinding here,
-						// since we want to path around enemies
-						Direction dir = curLoc.directionTo(scoutingTarget);
-						if (!rc.onTheMap(curLoc.add(dir))) {
-							scoutingTarget = null;
-							scoutingDirection = scoutingDirection.opposite();
-						} else {
-							Direction[] dirs = Util.getDirectionsToward(dir);
-							for (Direction d : dirs) {
-								if (rc.canMove(d)) {
-									rc.move(d);
-									break;
-								}
-							}
-						}
-					}
-					Clock.yield();
-					continue;
-				}
-			}
-			if (curPlan == BattlePlan.Return) {
+			if (curPlan == BattlePlan.Assemble) {
 				RobotInfo[] nearAllies = rc.senseNearbyRobots(sensorRangeSq, us);
 				if (shouldDepart(nearAllies)) {
 					curPlan = BattlePlan.Lead;
@@ -174,47 +109,151 @@ public class Leader extends BaseHandler {
 
 			if (curPlan == BattlePlan.Lead) {
 				Messaging.followMe();
-				// TODO: once we've arried at the supposed locating, we should
+				// TODO: once we've arrived at the supposed locating, we should
 				// probably spend some time to hone in on the actual location
 				// plus we don't have to target archons--we can just target big
 				// groups of enemies
 				RobotInfo[] nearbyEnemies = rc.senseNearbyRobots(sensorRangeSq, them);
-				if (curLoc.distanceSquaredTo(enemyArchonLoc) < sensorRangeSq || nearbyEnemies.length >= 1) {
+				if (shouldPrepareToAttack(nearbyEnemies, decodedSignals)) {
 					curPlan = BattlePlan.PrepareForAttack;
 				} else {
-					// move forward if everyone is still behind us
+
+					// scout outward if everyone is still behind us
 					// if the count has decreased (they died or got lost),
 					// backtrack
 					// here we're using a slightly smaller sensor range, to make
 					// sure everyone stays close
 					RobotInfo[] nearbyAllies = rc.senseNearbyRobots(RobotType.SOLDIER.sensorRadiusSquared, us);
 					if (!shouldDepart(nearbyAllies)) {
-						// curPlan = BattlePlan.Return;
+						// pause
 						Clock.yield();
 						continue;
 					} else {
-						AStarPathing.aStarToward(enemyArchonLoc);
+
+						// first move away from everyone else, then travel
+						// outward in a spiral
+						MapLocation gatheringLoc = Messaging.getArchonGatheringSpot();
+						if (curLoc.distanceSquaredTo(gatheringLoc) < 225) {
+							scoutingTarget = null;
+							if (curLoc.equals(gatheringLoc)) {
+								scoutingDirection = Direction.NORTH;
+							} else {
+								scoutingDirection = curLoc.directionTo(gatheringLoc).opposite();
+							}
+							pathLength = 5;
+						} else {
+							Direction enemyDir = Util.getEstimatedEnemyDirectionWithEnemyMessages(nearbyEnemies,
+									decodedSignals, signals, curLoc, true, them);
+							if (enemyDir != null) {
+								scoutingDirection = enemyDir;
+								pathLength = 5;
+							}
+						}
+
+						if (scoutingTarget == null || curLoc.distanceSquaredTo(scoutingTarget) <= 9) {
+							scoutingTarget = curLoc.add(scoutingDirection, pathLength);
+							scoutingTarget = MapEdges.clampWithKnownBounds(scoutingTarget);
+							rc.setIndicatorString(1, scoutingTarget.toString());
+							rc.setIndicatorDot(scoutingTarget, 255, 0, 0);
+
+							if (pathLength < 15) {
+								pathLength *= 1.2;
+							}
+
+							if (scoutCW) {
+								scoutingDirection = scoutingDirection.rotateRight();
+							} else {
+								scoutingDirection = scoutingDirection.rotateLeft();
+							}
+						}
+
+						if (rc.isCoreReady()) {
+							// move in the straightest-line path
+							// TODO: we should probably use bug pathfinding
+							// here,
+							// since we want to path around enemies
+							Direction dir = curLoc.directionTo(scoutingTarget);
+							if (!rc.onTheMap(curLoc.add(dir))) {
+								scoutingTarget = curLoc.add(scoutingDirection, pathLength);
+								scoutingDirection = scoutingDirection.opposite();
+							}
+
+							if (rc.isCoreReady()) {
+								Pathfinding.setTarget(scoutingTarget, true, false);
+								Pathfinding.pathfindToward();
+							}
+						}
 						Clock.yield();
 						continue;
+
 					}
 				}
 			}
 
 			if (curPlan == BattlePlan.PrepareForAttack) {
-				Messaging.prepareForAttack(enemyArchonLoc);
+				Messaging.prepareForAttack(enemyLoc);
 
 				if (readyToCharge()) {
 					curPlan = BattlePlan.Attack;
 				}
 			}
 			if (curPlan == BattlePlan.Attack) {
-				Messaging.charge(enemyArchonLoc);
+				Messaging.charge(enemyLoc);
 			}
 		}
 	}
 
 	// TODO: it might be appropriate to create a Strategy class and make it
 	// provide these methods
+
+	private static boolean shouldPrepareToAttack(RobotInfo[] nearbyEnemies, SignalContents[] decodedSignals) {
+		int distThresh = 100;
+		int numThreateningEnemiesNearby = 0;
+		MapLocation closestArchon = null;
+		int closestArchonDistSq = Integer.MAX_VALUE;
+
+		for (int i = nearbyEnemies.length; --i >= 0;) {
+			if (nearbyEnemies[i].type != RobotType.SCOUT) {
+				if (nearbyEnemies[i].type == RobotType.ARCHON) {
+					int distSq = curLoc.distanceSquaredTo(nearbyEnemies[i].location);
+					if (distSq < closestArchonDistSq) {
+						closestArchon = nearbyEnemies[i].location;
+						closestArchonDistSq = distSq;
+					}
+				}
+				numThreateningEnemiesNearby++;
+			}
+		}
+		for (int i = decodedSignals.length; --i >= 0;) {
+			if (!decodedSignals[i].isZombie) {
+				if (decodedSignals[i].type != RobotType.SCOUT) {
+					MapLocation enemyLoc = new MapLocation(decodedSignals[i].x, decodedSignals[i].y);
+					int distSq = curLoc.distanceSquaredTo(enemyLoc);
+					if (distSq < distThresh) {
+						if (decodedSignals[i].type == RobotType.ARCHON) {
+							if (distSq < closestArchonDistSq) {
+								closestArchon = enemyLoc;
+								closestArchonDistSq = distSq;
+							}
+						}
+						numThreateningEnemiesNearby++;
+					}
+				}
+			}
+		}
+
+		if (numThreateningEnemiesNearby > 0) {
+			if (closestArchon != null) {
+				enemyLoc = closestArchon;
+			} else {
+				Direction dir = Util.getEstimatedEnemyDirection(nearbyEnemies, decodedSignals, curLoc, true);
+				enemyLoc = curLoc.add(dir, 7);
+			}
+			return true;
+		}
+
+		return false;
+	}
 
 	private static boolean readyToCharge() {
 		RobotInfo[] nearAllies = rc.senseNearbyRobots(sensorRangeSq, us);
