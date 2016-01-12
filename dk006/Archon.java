@@ -1,6 +1,5 @@
 package dk006;
 
-import dk006.Messaging.SignalContents;
 import battlecode.common.Clock;
 import battlecode.common.Direction;
 import battlecode.common.GameActionException;
@@ -10,9 +9,11 @@ import battlecode.common.RobotInfo;
 import battlecode.common.RobotType;
 import battlecode.common.Signal;
 import battlecode.common.Team;
+import dk006.Messaging.SignalContents;
 
 public class Archon extends BaseHandler {
 
+	public static RobotType[] buildOrder = { RobotType.GUARD, RobotType.SOLDIER, RobotType.SOLDIER, RobotType.SOLDIER };
 	public static int nextToBuild = 0;
 
 	public static MapLocation oldNearArchonLoc = null;
@@ -289,13 +290,16 @@ public class Archon extends BaseHandler {
 		if (shouldBuildScout) {
 			return RobotType.SCOUT;
 		} else {
-			return RobotType.SOLDIER;
+			return buildOrder[nextToBuild];
 		}
 	}
 
 	private static void incrementNextToBuild() {
 		if (shouldBuildScout) {
 			shouldBuildScout = false;
+		} else {
+			nextToBuild++;
+			nextToBuild %= buildOrder.length;
 		}
 	}
 }
