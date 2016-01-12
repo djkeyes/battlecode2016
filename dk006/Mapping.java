@@ -12,7 +12,7 @@ import battlecode.common.MapLocation;
 // Designating one robot to run this and playing follow-the-leader might be
 // smart. Or designating scouts to do this and issuing queries would also work
 // (though that would req lots of queries, which is tough given the limit).
-public class Mapping extends BaseHandler {
+public class Mapping extends MapEdges {
 
 	// (row, col) coords. Otherwise known as (y, x).
 	// entry (0,0) corrosponds to the robot's starting position (these are
@@ -22,21 +22,12 @@ public class Mapping extends BaseHandler {
 	// starting row (y) and column (x), in game coordinates
 	public static int startRow, startCol;
 
-	public static int maxHorizontalSight;
-
-	// map boundaries, in game coordinates.
-	public static Integer minRow, maxRow, minCol, maxCol;
-	public static Integer mapWidth, mapHeight;
-
 	public static void initMap() {
-
 		map = new double[GameConstants.MAP_MAX_HEIGHT][GameConstants.MAP_MAX_WIDTH];
 
 		MapLocation startLoc = rc.getLocation();
 		startRow = startLoc.y;
 		startCol = startLoc.x;
-
-		maxHorizontalSight = Util.sqrt(sensorRangeSq);
 	}
 
 	public static void updateMap() throws GameActionException {
@@ -46,65 +37,7 @@ public class Mapping extends BaseHandler {
 		// -our own encoded broadcasts
 		// -enemy broadcasts
 
-		checkMapEdges();
 		checkVisibleTiles();
-	}
-
-	private static void checkMapEdges() throws GameActionException {
-		// for each of these, start at the furthest visible loc and linear
-		// search inward.
-		// idt binary search would be any fast for such small sight ranges
-		// TODO: is it worth it to check our map first, before checking rc?
-		if (minRow == null) {
-			if (!rc.onTheMap(curLoc.add(0, -maxHorizontalSight))) {
-				for (int r = -maxHorizontalSight + 1; r < 0; r++) {
-					if (rc.onTheMap(curLoc.add(0, r))) {
-						minRow = curLoc.y + r;
-						break;
-					}
-				}
-			}
-		}
-
-		if (minCol == null) {
-			if (!rc.onTheMap(curLoc.add(-maxHorizontalSight, 0))) {
-				for (int c = -maxHorizontalSight + 1; c < 0; c++) {
-					if (rc.onTheMap(curLoc.add(c, 0))) {
-						minCol = curLoc.x + c;
-						break;
-					}
-				}
-			}
-		}
-
-		if (maxRow == null) {
-			if (!rc.onTheMap(curLoc.add(0, maxHorizontalSight))) {
-				for (int r = maxHorizontalSight - 1; r > 0; r--) {
-					if (rc.onTheMap(curLoc.add(0, r))) {
-						maxRow = curLoc.y + r;
-						break;
-					}
-				}
-			}
-		}
-
-		if (maxCol == null) {
-			if (!rc.onTheMap(curLoc.add(maxHorizontalSight, 0))) {
-				for (int c = maxHorizontalSight - 1; c > 0; c--) {
-					if (rc.onTheMap(curLoc.add(c, 0))) {
-						maxCol = curLoc.x + c;
-						break;
-					}
-				}
-			}
-		}
-
-		if (mapHeight == null && (minRow != null && maxRow != null)) {
-			mapHeight = maxRow - minRow + 1;
-		}
-		if (mapWidth == null && (maxCol != null && minCol != null)) {
-			mapWidth = maxCol - minCol + 1;
-		}
 	}
 
 	public static void checkVisibleTiles() {

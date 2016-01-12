@@ -27,7 +27,7 @@ public class Messaging extends BaseHandler {
 	public final static int PREP_ATTACK_MESSAGE = 2;
 	public final static int CHARGE_MESSAGE = 3;
 	public final static int ARCHON_GATHER_MESSAGE = 4;
-	public final static int MAP_SIZE_MESSAGE = 5;
+	public final static int MAP_BOUNDS_MESSAGE = 5;
 
 	public static MapLocation closestFollowMe = null;
 	public static MapLocation closestPrepAttackTarget = null;
@@ -37,8 +37,8 @@ public class Messaging extends BaseHandler {
 
 	public static int minDistSqFollowMe, minDistSqPrepAtk, minDistSqCharge;
 
-	public static boolean areMapDimensionsKnown;
-	public static int mapHeight, mapWidth;
+	public static Integer minRow, maxRow, minCol, maxCol;
+	public static Integer mapWidth, mapHeight;
 
 	public static void observeAndBroadcast(int broadcastRadiusSq, double maxCoreDelay) throws GameActionException {
 		RobotInfo[] nearby = rc.senseHostileRobots(curLoc, sensorRangeSq);
@@ -192,17 +192,37 @@ public class Messaging extends BaseHandler {
 			case ARCHON_GATHER_MESSAGE:
 				parseGather(first, signals[i].getLocation());
 				break;
-			case MAP_SIZE_MESSAGE:
-				areMapDimensionsKnown = true;
-				first /= NUM_MESSAGE_TYPES;
-				mapHeight = first % (GameConstants.MAP_MAX_HEIGHT + 1);
-				first /= (GameConstants.MAP_MAX_HEIGHT + 1);
-				mapWidth = first;
+			case MAP_BOUNDS_MESSAGE:
+				parseMapStatistic(first, part1[1]);
 				break;
 			}
 
 		}
 		return result;
+	}
+
+	private static void parseMapStatistic(int first, int second) {
+		first /= NUM_MESSAGE_TYPES;
+		switch (first) {
+		case 0:
+			minRow = second;
+			break;
+		case 1:
+			maxRow = second;
+			break;
+		case 2:
+			minCol = second;
+			break;
+		case 3:
+			maxCol = second;
+			break;
+		case 4:
+			mapWidth = second;
+			break;
+		case 5:
+			mapHeight = second;
+			break;
+		}
 	}
 
 	private static void parsePrepAtk(int first, MapLocation baseLoc) {
@@ -329,20 +349,33 @@ public class Messaging extends BaseHandler {
 		return latestArchonGatherSpot;
 	}
 
-	public static void mapDimensions(int width, int height, int broadcastRadiusSq) throws GameActionException {
-		rc.broadcastMessageSignal((width * (GameConstants.MAP_MAX_HEIGHT + 1) + height) * NUM_MESSAGE_TYPES
-				+ MAP_SIZE_MESSAGE, 0, broadcastRadiusSq);
+	public static void mapMinRowMessage(int minRow, int broadcastRadiusSq) throws GameActionException {
+		mapStatisticMessage(minRow, 0, broadcastRadiusSq);
 	}
 
-	public static boolean areMapDimensionsKnown() {
-		return areMapDimensionsKnown;
+	public static void mapMaxRowMessage(int maxRow, int broadcastRadiusSq) throws GameActionException {
+		mapStatisticMessage(maxRow, 1, broadcastRadiusSq);
 	}
 
-	public static int getMapHeight() {
-		return mapHeight;
+	public static void mapMinColMessage(int minCol, int broadcastRadiusSq) throws GameActionException {
+		mapStatisticMessage(minCol, 2, broadcastRadiusSq);
 	}
 
-	public static int getMapWidth() {
-		return mapWidth;
+	public static void mapMaxColMessage(int maxCol, int broadcastRadiusSq) throws GameActionException {
+		mapStatisticMessage(maxCol, 3, broadcastRadiusSq);
 	}
+
+	public static void mapMapWidthMessage(int mapWidth, int broadcastRadiusSq) throws GameActionException {
+		mapStatisticMessage(mapWidth, 4, broadcastRadiusSq);
+	}
+
+	public static void mapMapHeightMessage(int mapHeight, int broadcastRadiusSq) throws GameActionException {
+		mapStatisticMessage(mapHeight, 5, broadcastRadiusSq);
+	}
+
+	private static void mapStatisticMessage(int statistic, int ordinal, int broadcastRadiusSq)
+			throws GameActionException {
+		rc.broadcastMessageSignal(ordinal * NUM_MESSAGE_TYPES + MAP_BOUNDS_MESSAGE, statistic, broadcastRadiusSq);
+	}
+
 }

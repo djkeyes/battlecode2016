@@ -36,6 +36,8 @@ public class Archon extends BaseHandler {
 		signals = Messaging.concatArray(signals, rc.emptySignalQueue());
 		gatheringSpot = Messaging.readArchonLocations(signals);
 
+		MapEdges.initMapEdges();
+
 		while (true) {
 			beginningOfLoop();
 
@@ -43,6 +45,7 @@ public class Archon extends BaseHandler {
 
 			signals = rc.emptySignalQueue();
 			SignalContents[] decodedSignals = Messaging.receiveBroadcasts(signals);
+			MapEdges.checkMapEdges(decodedSignals);
 			rc.setIndicatorDot(gatheringSpot, 0, 255, 0);
 
 			if (!rc.isCoreReady()) {
@@ -306,8 +309,15 @@ public class Archon extends BaseHandler {
 	}
 
 	private static RobotType getNextToBuild(RobotInfo[] allies) {
-		if (Messaging.areMapDimensionsKnown()) {
-			int area = Messaging.getMapHeight() * Messaging.getMapWidth();
+		if (MapEdges.mapHeight != null || MapEdges.mapWidth != null) {
+			int dim;
+			// for this assume square maps, because the devs are lazy
+			if (MapEdges.mapHeight != null) {
+				dim = MapEdges.mapHeight;
+			} else {
+				dim = MapEdges.mapWidth;
+			}
+			int area = dim * dim;
 			if (area <= 1600) {
 				for (int i = allies.length; --i >= 0;) {
 					if (allies[i].type == RobotType.SCOUT) {

@@ -56,15 +56,19 @@ public class Leader extends BaseHandler {
 		alliedArchonLoc = rc.getLocation();
 		while (true) {
 			beginningOfLoop();
-			Mapping.updateMap();
-
-			checkMapDimensions();
 
 			rc.setIndicatorString(2, "" + curPlan.ordinal());
 
 			Signal[] signals = rc.emptySignalQueue();
 			SignalContents[] decodedSignals = Messaging.receiveBroadcasts(signals);
 			Messaging.observeAndBroadcast(broadcastRadiusSq, 0.5);
+
+			Mapping.updateMap();
+
+			if (MapEdges.checkMapEdges(decodedSignals)) {
+				Clock.yield();
+				continue;
+			}
 
 			if (curPlan == BattlePlan.Scout) {
 				// check for enemy archons
@@ -205,26 +209,6 @@ public class Leader extends BaseHandler {
 			}
 			if (curPlan == BattlePlan.Attack) {
 				Messaging.charge(enemyArchonLoc);
-			}
-		}
-	}
-
-	private static void checkMapDimensions() throws GameActionException {
-		if (!sentMapMessage) {
-			if (Mapping.mapHeight != null || Mapping.mapWidth != null) {
-				// right now, our scouts aren't very thorough, so they're
-				// unlikely to get both the height AND the width. so for now,
-				// assume square maps, and do fucky things with the broacast
-				// radius.
-				int dim;
-				if (Mapping.mapHeight != null) {
-					dim = Mapping.mapHeight;
-				} else {
-					dim = Mapping.mapWidth;
-				}
-				int broadcastRadiusSq = dim * dim + GameConstants.MAP_MAX_HEIGHT * GameConstants.MAP_MAX_HEIGHT;
-				Messaging.mapDimensions(dim, dim, broadcastRadiusSq);
-				sentMapMessage = true;
 			}
 		}
 	}
