@@ -42,18 +42,19 @@ public class Scout extends BaseHandler {
 
 		MapEdges.initMapEdges();
 
-		boolean shouldScout = rc.getRoundNum() < 50;
-		if (!shouldScout) {
-			RobotInfo[] allies = rc.senseNearbyRobots(sensorRangeSq, us);
-			boolean scoutsNearby = false;
-			for (int i = allies.length; --i >= 0;) {
-				if (allies[i].type == RobotType.SCOUT) {
-					scoutsNearby = true;
-					break;
-				}
-			}
-			shouldScout = !scoutsNearby;
-		}
+		// boolean shouldScout = rc.getRoundNum() < 50;
+		// if (!shouldScout) {
+		// RobotInfo[] allies = rc.senseNearbyRobots(sensorRangeSq, us);
+		// boolean scoutsNearby = false;
+		// for (int i = allies.length; --i >= 0;) {
+		// if (allies[i].type == RobotType.SCOUT) {
+		// scoutsNearby = true;
+		// break;
+		// }
+		// }
+		// shouldScout = !scoutsNearby;
+		// }
+		boolean shouldScout = Messaging.checkChosenStatus();
 		if (shouldScout) {
 			// SCOUT MODE
 			Leader.run();
@@ -166,6 +167,11 @@ public class Scout extends BaseHandler {
 		MapLocation squadronLeaderLoc = Messaging.getFollowMe();
 		if (squadronLeaderLoc != null) {
 			return lastLeader = squadronLeaderLoc;
+		}
+
+		// check for draft officers
+		if (Messaging.lastUnitRequestLocation != null && rc.getRoundNum() - Messaging.lastUnitRequestTimestamp < 50) {
+			return Messaging.lastUnitRequestLocation;
 		}
 
 		RobotInfo[] allies = rc.senseNearbyRobots(RobotType.SCOUT.sensorRadiusSquared, us);

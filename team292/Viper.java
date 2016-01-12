@@ -8,7 +8,6 @@ import battlecode.common.RobotInfo;
 import battlecode.common.RobotType;
 import battlecode.common.Signal;
 import battlecode.common.Team;
-import team292.Messaging.SignalContents;
 
 public class Viper extends BaseHandler {
 

@@ -7,7 +7,6 @@ import battlecode.common.MapLocation;
 import battlecode.common.RobotInfo;
 import battlecode.common.RobotType;
 import battlecode.common.Signal;
-import team292.Messaging.SignalContents;
 
 public class Scout extends BaseHandler {
 
@@ -40,6 +39,8 @@ public class Scout extends BaseHandler {
 		// Math.sqrt(RobotType.SCOUT.sensorRadiusSquared), 2));
 		// for vipers, smaller range
 		final int broadcastRadiusSq = RobotType.SCOUT.sensorRadiusSquared;
+
+		MapEdges.initMapEdges();
 
 		boolean shouldScout = rc.getRoundNum() < 50;
 		if (!shouldScout) {
@@ -93,7 +94,10 @@ public class Scout extends BaseHandler {
 				// 3. find the nearest viper and follow it.
 				MapLocation leader = trackViperOrLeader();
 				if (leader != null) {
-					Pathfinding.setTarget(leader, /* avoidEnemies= */true, /*giveSpace=*/ true);
+					Pathfinding.setTarget(leader, /* avoidEnemies= */true, /*
+																		 * giveSpace
+																		 * =
+																		 */true);
 					Pathfinding.pathfindToward();
 					Clock.yield();
 					continue;
@@ -123,7 +127,10 @@ public class Scout extends BaseHandler {
 					if (roughEnemyDir != null) {
 						lastEnemyDir = roughEnemyDir;
 						MapLocation target = curLoc.add(roughEnemyDir).add(roughEnemyDir).add(roughEnemyDir);
-						Pathfinding.setTarget(target, /* avoidEnemies= */false, /*giveSpace=*/ false);
+						Pathfinding.setTarget(target, /* avoidEnemies= */false, /*
+																			 * giveSpace
+																			 * =
+																			 */false);
 						Pathfinding.pathfindToward();
 						Clock.yield();
 						continue;
@@ -136,7 +143,10 @@ public class Scout extends BaseHandler {
 					// 2. Otherwise, find nearest viper and follow it
 					MapLocation leader = trackViperOrLeader();
 					if (leader != null) {
-						Pathfinding.setTarget(leader, /* avoidEnemies= */true, /*giveSpace=*/ true);
+						Pathfinding.setTarget(leader, /* avoidEnemies= */true, /*
+																			 * giveSpace
+																			 * =
+																			 */true);
 						Pathfinding.pathfindToward();
 						Clock.yield();
 						continue;

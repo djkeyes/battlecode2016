@@ -1,6 +1,5 @@
 package team292;
 
-import team292.Messaging.SignalContents;
 import battlecode.common.Clock;
 import battlecode.common.GameActionException;
 import battlecode.common.MapLocation;

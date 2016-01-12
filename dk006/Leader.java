@@ -23,6 +23,8 @@ public class Leader extends BaseHandler {
 
 	private static BattlePlan curPlan = BattlePlan.Scout;
 
+	private static int numScouts, numVipers;
+
 	private enum BattlePlan {
 		Scout, Return, Lead, PrepareForAttack, Attack
 	}
@@ -34,8 +36,6 @@ public class Leader extends BaseHandler {
 	private static int pathLength = 10;
 	private static MapLocation scoutingTarget = null;
 	private static boolean scoutCW = false;
-
-	private static boolean sentMapMessage = false;
 
 	public static void run() throws GameActionException {
 		// TODO: some of this code is very scout-specific, but we could rewite
@@ -134,17 +134,14 @@ public class Leader extends BaseHandler {
 				}
 			}
 			if (curPlan == BattlePlan.Return) {
-				// if there's a viper ready to move, lead it
-				// else if there's a viper, path toward it
-				// else if there's an archon path toward it
 				RobotInfo[] nearAllies = rc.senseNearbyRobots(sensorRangeSq, us);
-				RobotInfo closestAllyViper = getClosest(nearAllies, RobotType.VIPER);
 				if (shouldDepart(nearAllies)) {
 					curPlan = BattlePlan.Lead;
 				} else {
 					MapLocation allyTarget = null;
-					if (closestAllyViper != null) {
-						allyTarget = closestAllyViper.location;
+					MapLocation archonGathering = Messaging.getArchonGatheringSpot();
+					if (archonGathering != null) {
+						allyTarget = archonGathering;
 					} else {
 						RobotInfo closestAllyArchon = getClosest(nearAllies, RobotType.ARCHON);
 						if (closestAllyArchon != null) {
@@ -155,15 +152,19 @@ public class Leader extends BaseHandler {
 							allyTarget = alliedArchonLoc;
 						}
 					}
+					// broadcast requests for the things we need
+					// (counts were filled by shouldDepart())
+					int vipersNeeded = VIPER_COUNT_TO_ATTACK - numVipers;
+					int scoutsNeeded = SCOUT_COUNT_TO_ATTACK - numScouts;
+
+					if (vipersNeeded > 0) {
+						Messaging.requestUnits(RobotType.VIPER);
+					} else if (scoutsNeeded > 0) {
+						Messaging.requestUnits(RobotType.SCOUT);
+					}
 
 					if (rc.isCoreReady()) {
-						// move in the straightest-line path
-						// TODO: we should probably use bug pathfinding
-						// here, since we want to path around enemies
-						Pathfinding.setTarget(allyTarget, /* avoidEnemies= */true, /*
-																				 * giveSpace
-																				 * =
-																				 */false);
+						Pathfinding.setTarget(allyTarget, true, false);
 						Pathfinding.pathfindToward();
 					}
 					Clock.yield();
@@ -246,8 +247,8 @@ public class Leader extends BaseHandler {
 
 	public static boolean shouldDepart(RobotInfo[] nearbyAllies) {
 		// to do different strategies, just change these numbers a little
-		int numScouts = 0;
-		int numVipers = 0;
+		numScouts = 0;
+		numVipers = 0;
 
 		for (int i = nearbyAllies.length; --i >= 0;) {
 			if (nearbyAllies[i].type == RobotType.SCOUT) {

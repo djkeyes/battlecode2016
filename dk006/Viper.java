@@ -49,30 +49,43 @@ public class Viper extends BaseHandler {
 					}
 
 					if (rc.isCoreReady()) {
-						// path toward allied archons
-						int minArchonDistSq = Integer.MAX_VALUE;
-						RobotInfo[] nearbyAllies = rc.senseNearbyRobots(curLoc, sensorRangeSq, us);
-						MapLocation nearestArchon = null;
-						for (int i = nearbyAllies.length; --i >= 0;) {
-							if (nearbyAllies[i].type == RobotType.ARCHON) {
-								int distSq = nearbyAllies[i].location.distanceSquaredTo(curLoc);
-								if (distSq < minArchonDistSq) {
-									minArchonDistSq = distSq;
-									nearestArchon = nearbyAllies[i].location;
-								}
-							}
-						}
+						// path toward the draft officer, if he's there
+						if (Messaging.lastUnitRequestLocation != null
+								&& rc.getRoundNum() - Messaging.lastUnitRequestTimestamp < 50) {
 
-						// don't get too close
-						rc.setIndicatorString(1, String.format("%s", nearestArchon));
-						if (nearestArchon != null && minArchonDistSq > 2) {
-							Pathfinding.setTarget(nearestArchon, /* avoidEnemies= */true, /*
-																						 * giveSpace
-																						 * =
-																						 */true);
+							rc.setIndicatorString(1, String.format("%s", Messaging.lastUnitRequestLocation));
+							Pathfinding.setTarget(Messaging.lastUnitRequestLocation, true, false);
 							Pathfinding.pathfindToward();
 							Clock.yield();
 							continue;
+						} else {
+							// path toward allied archons
+							int minArchonDistSq = Integer.MAX_VALUE;
+							RobotInfo[] nearbyAllies = rc.senseNearbyRobots(curLoc, sensorRangeSq, us);
+							MapLocation nearestArchon = null;
+							for (int i = nearbyAllies.length; --i >= 0;) {
+								if (nearbyAllies[i].type == RobotType.ARCHON) {
+									int distSq = nearbyAllies[i].location.distanceSquaredTo(curLoc);
+									if (distSq < minArchonDistSq) {
+										minArchonDistSq = distSq;
+										nearestArchon = nearbyAllies[i].location;
+									}
+								}
+							}
+
+							// don't get too close
+							rc.setIndicatorString(1, String.format("%s", nearestArchon));
+							if (nearestArchon != null && minArchonDistSq > 2) {
+								Pathfinding.setTarget(nearestArchon, /*
+																	 * avoidEnemies=
+																	 */true, /*
+																			 * giveSpace
+																			 * =
+																			 */true);
+								Pathfinding.pathfindToward();
+								Clock.yield();
+								continue;
+							}
 						}
 					}
 				}

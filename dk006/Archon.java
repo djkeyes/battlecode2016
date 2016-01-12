@@ -12,16 +12,24 @@ import battlecode.common.Team;
 
 public class Archon extends BaseHandler {
 
-	public static RobotType[] buildOrder = { RobotType.GUARD, RobotType.SOLDIER, RobotType.SOLDIER, RobotType.SOLDIER };
+	public static RobotType[] buildOrder = { RobotType.GUARD, RobotType.SOLDIER, RobotType.SOLDIER, RobotType.SOLDIER,
+			RobotType.SOLDIER, RobotType.SOLDIER, RobotType.SOLDIER };
 	public static int nextToBuild = 0;
 
 	public static MapLocation oldNearArchonLoc = null;
 	public static MapLocation gatheringSpot;
 	public static int gatheringSpotTimestamp = 0;
 	public static boolean isFirstArchon = false;
-	public static boolean shouldBuildScout = true;
+	public static boolean shouldBuildLeaderScout = false;
+	public static boolean isBuildingLeaderScout = false;
+	public static boolean builtLeaderScout = false;
+	public static final int LEADER_SCOUT_TURN = 6000; // CHANGE TO LIKE 600 TO
+														// ENABLE
 
-	public static final int GATHERING_SPOT_DISTANCE = 10;
+	public static boolean smallMap = false;
+
+	private static Direction scoutingDirection = Direction.NORTH;
+	private static int pathLength = 5;
 	public static final int GATHERING_SPOT_EXPIRATION = 50;
 
 	public static void run() throws GameActionException {
@@ -35,10 +43,18 @@ public class Archon extends BaseHandler {
 		signals = Messaging.concatArray(signals, rc.emptySignalQueue());
 		gatheringSpot = Messaging.readArchonLocations(signals);
 
+		shouldBuildLeaderScout = isFirstArchon;
+
 		MapEdges.initMapEdges();
 
 		while (true) {
 			beginningOfLoop();
+
+			if (builtLeaderScout) {
+				Messaging.theChosenOne();
+				isBuildingLeaderScout = false;
+				builtLeaderScout = false;
+			}
 
 			Messaging.observeAndBroadcast(broadcastRadiusSq, 0.5);
 
@@ -51,8 +67,6 @@ public class Archon extends BaseHandler {
 				Clock.yield();
 				continue;
 			}
-
-			MapLocation curLoc = rc.getLocation();
 
 			// 1. activate
 			// senseNearbyRobots() is pretty expensive, might be cheaper to call
@@ -83,10 +97,9 @@ public class Archon extends BaseHandler {
 																		 * =
 																		 */true);
 
-				if (Pathfinding.pathfindToward()) {
-					Clock.yield();
-					continue;
-				}
+				Pathfinding.pathfindToward();
+				Clock.yield();
+				continue;
 			}
 
 			// 2. repair
@@ -111,9 +124,7 @@ public class Archon extends BaseHandler {
 			}
 			if (mostDamageIndex >= 0) {
 				rc.repair(allies[mostDamageIndex].location);
-
-				Clock.yield();
-				continue;
+				// repair doesn't increase delays
 			}
 
 			// 3 run away
@@ -169,7 +180,7 @@ public class Archon extends BaseHandler {
 			// to build first. Building should probably be distributed where
 			// it's most helpful, or something.
 			RobotType nextToBuild = getNextToBuild(allies);
-			if (rc.hasBuildRequirements(nextToBuild)) {
+			if (nextToBuild != null && rc.hasBuildRequirements(nextToBuild)) {
 				boolean built = false;
 
 				// checkerboard placement, so shit doesn't get stuck
@@ -177,10 +188,14 @@ public class Archon extends BaseHandler {
 				// least move blocking turrets out of the way.
 
 				Direction[] dirs;
-				if (((curLoc.x ^ curLoc.y) & 1) > 0) {
-					dirs = Util.CARDINAL_DIRECTIONS;
+				if (nextToBuild == RobotType.TURRET) {
+					if (((curLoc.x ^ curLoc.y) & 1) > 0) {
+						dirs = Util.CARDINAL_DIRECTIONS;
+					} else {
+						dirs = Util.UN_CARDINAL_DIRECTIONS;
+					}
 				} else {
-					dirs = Util.UN_CARDINAL_DIRECTIONS;
+					dirs = Util.ACTUAL_DIRECTIONS;
 				}
 				for (Direction d : dirs) {
 					if (rc.canBuild(d, nextToBuild)) {
@@ -201,28 +216,28 @@ public class Archon extends BaseHandler {
 			// TODO(daniel): seek out visible parts, instead of only considering
 			// adjacent parts
 
+			int closestPartsDistSq = Integer.MAX_VALUE;
+
 			Direction dirToMove = null;
 			// TODO(daniel): the math for time to clear rubble is pretty
 			// approachable. we should calculate the optimal level at
 			// which to clear rubble or not
-			double mostParts = 0;
-			double rubble = 0;
-			for (Direction d : Direction.values()) {
-				MapLocation next = curLoc.add(d);
-				double parts = rc.senseParts(next);
-				if (parts > mostParts) {
-					rubble = rc.senseRubble(curLoc.add(d));
-					// it takes about 15 turns to clear this much rubble
-					// TODO(daniel): might want to implement these
-					// formulas in code, esp since these constants might
-					// change
-					if (rubble < 450) {
-						mostParts = parts;
-						dirToMove = d;
+			MapLocation[] partsLocs = rc.sensePartLocations(sensorRangeSq);
+			for (int i = partsLocs.length; --i >= 0;) {
+				int distSq = curLoc.distanceSquaredTo(partsLocs[i]);
+				if (distSq < closestPartsDistSq) {
+					double rubble = rc.senseRubble(partsLocs[i]);
+					// TODO: we really need to add an options to bugging that
+					// makes it avoid enemies but dig through rubble
+					if (rubble < GameConstants.RUBBLE_SLOW_THRESH) {
+						closestPartsDistSq = distSq;
+						dirToMove = curLoc.directionTo(partsLocs[i]);
 					}
 				}
 			}
+
 			if (dirToMove != null) {
+				double rubble = rc.senseRubble(curLoc.add(dirToMove));
 				if (rubble >= GameConstants.RUBBLE_OBSTRUCTION_THRESH) {
 					rc.clearRubble(dirToMove);
 				} else if (rc.canMove(dirToMove)) {
@@ -285,10 +300,27 @@ public class Archon extends BaseHandler {
 					if (nearbyDen != null) {
 						gatheringSpot = nearbyDen;
 					} else {
-						Direction randomDir = Util.ACTUAL_DIRECTIONS[gen.nextInt(8)];
-						gatheringSpot = curLoc.add(randomDir, GATHERING_SPOT_DISTANCE);
+						scoutingDirection = scoutingDirection.rotateLeft();
+						if (pathLength < 15) {
+							pathLength *= 1.2;
+						}
+						gatheringSpot = curLoc.add(scoutingDirection, pathLength);
 					}
 					gatheringSpotTimestamp = rc.getRoundNum();
+
+					if (MapEdges.minCol != null) {
+						gatheringSpot = new MapLocation(Math.max(gatheringSpot.x, MapEdges.minCol), gatheringSpot.y);
+					}
+					if (MapEdges.maxCol != null) {
+						gatheringSpot = new MapLocation(Math.min(gatheringSpot.x, MapEdges.maxCol), gatheringSpot.y);
+					}
+					if (MapEdges.minRow != null) {
+						gatheringSpot = new MapLocation(gatheringSpot.x, Math.max(gatheringSpot.y, MapEdges.minRow));
+					}
+					if (MapEdges.maxRow != null) {
+						gatheringSpot = new MapLocation(gatheringSpot.x, Math.min(gatheringSpot.y, MapEdges.maxRow));
+					}
+
 					Messaging.setArchonGatheringSpot(gatheringSpot);
 					Clock.yield();
 					continue;
@@ -300,33 +332,53 @@ public class Archon extends BaseHandler {
 				}
 			}
 
-			Pathfinding.setTarget(gatheringSpot, true, true);
-			Pathfinding.pathfindToward();
+			if (rc.isCoreReady()) {
+				Pathfinding.setTarget(gatheringSpot, true, true);
+				Pathfinding.pathfindToward();
 
-			Clock.yield();
+				Clock.yield();
+			}
 		}
 	}
 
 	private static RobotType getNextToBuild(RobotInfo[] allies) {
-		if (MapEdges.mapHeight != null || MapEdges.mapWidth != null) {
-			int dim;
-			// for this assume square maps, because the devs are lazy
-			if (MapEdges.mapHeight != null) {
-				dim = MapEdges.mapHeight;
-			} else {
-				dim = MapEdges.mapWidth;
-			}
-			int area = dim * dim;
-			if (area <= 1600) {
-				for (int i = allies.length; --i >= 0;) {
-					if (allies[i].type == RobotType.SCOUT) {
-						return RobotType.TURRET;
-					}
+		if (!isFirstArchon && rc.getTeamParts() < 165 && rc.getRoundNum() > LEADER_SCOUT_TURN
+				&& rc.getRoundNum() < LEADER_SCOUT_TURN + 50) {
+			return null;
+		}
+		if (Messaging.lastUnitRequested != null && rc.getRoundNum() - Messaging.lastUnitRequestTimestamp < 50) {
+			return Messaging.lastUnitRequested;
+		}
+
+		if (!smallMap) {
+			if (MapEdges.mapHeight != null || MapEdges.mapWidth != null) {
+				int dim;
+				// for this assume square maps, because the devs are lazy
+				if (MapEdges.mapHeight != null) {
+					dim = MapEdges.mapHeight;
+				} else {
+					dim = MapEdges.mapWidth;
 				}
-				return RobotType.SCOUT;
+				int area = dim * dim;
+				if (area <= 1600 && rc.getRoundNum() > 50) {
+					smallMap = true;
+					pathLength = 3;
+				}
 			}
 		}
-		if (shouldBuildScout) {
+		
+		if (smallMap) {
+			for (int i = allies.length; --i >= 0;) {
+				if (allies[i].type == RobotType.SCOUT) {
+					return RobotType.TURRET;
+				}
+			}
+			isBuildingLeaderScout = false;
+			return RobotType.SCOUT;
+		}
+
+		if (rc.getRoundNum() > LEADER_SCOUT_TURN && shouldBuildLeaderScout) {
+			isBuildingLeaderScout = true;
 			return RobotType.SCOUT;
 		} else {
 			return buildOrder[nextToBuild];
@@ -334,11 +386,11 @@ public class Archon extends BaseHandler {
 	}
 
 	private static void incrementNextToBuild() {
-		if (shouldBuildScout) {
-			shouldBuildScout = false;
-		} else {
-			nextToBuild++;
-			nextToBuild %= buildOrder.length;
+		if (isBuildingLeaderScout) {
+			isBuildingLeaderScout = false;
+			builtLeaderScout = true;
 		}
+		nextToBuild++;
+		nextToBuild %= buildOrder.length;
 	}
 }

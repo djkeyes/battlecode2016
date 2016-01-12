@@ -9,7 +9,6 @@ import battlecode.common.RobotInfo;
 import battlecode.common.RobotType;
 import battlecode.common.Signal;
 import battlecode.common.Team;
-import team292.Messaging.SignalContents;
 
 public class Archon extends BaseHandler {
 
@@ -20,10 +19,10 @@ public class Archon extends BaseHandler {
 	public static MapLocation gatheringSpot;
 	public static int gatheringSpotTimestamp = 0;
 	public static boolean isFirstArchon = false;
-	public static boolean shouldBuildScout = false;
+	public static boolean shouldBuildScout = true;
 
 	public static final int GATHERING_SPOT_DISTANCE = 10;
-	public static final int GATHERING_SPOT_EXPIRATION = 300;
+	public static final int GATHERING_SPOT_EXPIRATION = 50;
 
 	public static void run() throws GameActionException {
 
@@ -36,9 +35,7 @@ public class Archon extends BaseHandler {
 		signals = Messaging.concatArray(signals, rc.emptySignalQueue());
 		gatheringSpot = Messaging.readArchonLocations(signals);
 
-		if (isFirstArchon) {
-			shouldBuildScout = true;
-		}
+		MapEdges.initMapEdges();
 
 		while (true) {
 			beginningOfLoop();
@@ -47,6 +44,8 @@ public class Archon extends BaseHandler {
 
 			signals = rc.emptySignalQueue();
 			SignalContents[] decodedSignals = Messaging.receiveBroadcasts(signals);
+			MapEdges.checkMapEdges(decodedSignals);
+			rc.setIndicatorDot(gatheringSpot, 0, 255, 0);
 
 			if (!rc.isCoreReady()) {
 				Clock.yield();
@@ -240,26 +239,59 @@ public class Archon extends BaseHandler {
 				// tell, because we have to count archons and record ones who
 				// die)
 				// -the old one is stale/unreachable/too far away
+				// -also if we see somewhere good nearby (eg an empty zombie
+				// den)
 
 				boolean shouldMakeNewSpot = false;
-				if (rc.getRoundNum() - gatheringSpotTimestamp > GATHERING_SPOT_EXPIRATION) {
+
+				MapLocation nearbyDen = null;
+				for (int i = nearZombies.length; --i >= 0;) {
+					if (nearZombies[i].type == RobotType.ZOMBIEDEN) {
+						nearbyDen = nearZombies[i].location;
+						break;
+					}
+				}
+				if (nearbyDen == null) {
+					for (int i = decodedSignals.length; --i >= 0;) {
+						if (decodedSignals[i].type == RobotType.ZOMBIEDEN) {
+							MapLocation loc = new MapLocation(decodedSignals[i].x, decodedSignals[i].y);
+							nearbyDen = loc;
+							break;
+						}
+					}
+				}
+				if (nearbyDen != null) {
 					shouldMakeNewSpot = true;
 				} else {
-					// TODO: also check broadcasts
-					RobotInfo[] nearbyEnemies = rc.senseHostileRobots(gatheringSpot, sensorRangeSq);
-					for (int i = nearbyEnemies.length; --i >= 0;) {
-						if (nearbyEnemies[i].location.distanceSquaredTo(gatheringSpot) <= nearbyEnemies[i].type.attackRadiusSquared) {
-							shouldMakeNewSpot = true;
-							break;
+					if (rc.getRoundNum() - gatheringSpotTimestamp > GATHERING_SPOT_EXPIRATION) {
+						shouldMakeNewSpot = true;
+					} else {
+						// TODO: also check broadcasts
+						RobotInfo[] nearbyEnemies = rc.senseHostileRobots(gatheringSpot, sensorRangeSq);
+						for (int i = nearbyEnemies.length; --i >= 0;) {
+							if (nearbyEnemies[i].type == RobotType.SCOUT || nearbyEnemies[i].type == RobotType.ARCHON
+									|| nearbyEnemies[i].type == RobotType.ZOMBIEDEN) {
+								continue;
+							}
+							if (nearbyEnemies[i].location.distanceSquaredTo(gatheringSpot) <= nearbyEnemies[i].type.attackRadiusSquared) {
+								shouldMakeNewSpot = true;
+								break;
+							}
 						}
 					}
 				}
 
 				if (shouldMakeNewSpot) {
-					Direction randomDir = Util.ACTUAL_DIRECTIONS[gen.nextInt(8)];
-					gatheringSpot = curLoc.add(randomDir, GATHERING_SPOT_DISTANCE);
+					if (nearbyDen != null) {
+						gatheringSpot = nearbyDen;
+					} else {
+						Direction randomDir = Util.ACTUAL_DIRECTIONS[gen.nextInt(8)];
+						gatheringSpot = curLoc.add(randomDir, GATHERING_SPOT_DISTANCE);
+					}
 					gatheringSpotTimestamp = rc.getRoundNum();
 					Messaging.setArchonGatheringSpot(gatheringSpot);
+					Clock.yield();
+					continue;
 				}
 			} else {
 				MapLocation newGatheringSpot = Messaging.getArchonGatheringSpot();
@@ -276,8 +308,15 @@ public class Archon extends BaseHandler {
 	}
 
 	private static RobotType getNextToBuild(RobotInfo[] allies) {
-		if (Messaging.areMapDimensionsKnown()) {
-			int area = Messaging.getMapHeight() * Messaging.getMapWidth();
+		if (MapEdges.mapHeight != null || MapEdges.mapWidth != null) {
+			int dim;
+			// for this assume square maps, because the devs are lazy
+			if (MapEdges.mapHeight != null) {
+				dim = MapEdges.mapHeight;
+			} else {
+				dim = MapEdges.mapWidth;
+			}
+			int area = dim * dim;
 			if (area <= 1600) {
 				for (int i = allies.length; --i >= 0;) {
 					if (allies[i].type == RobotType.SCOUT) {
