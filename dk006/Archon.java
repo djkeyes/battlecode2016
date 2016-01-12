@@ -23,7 +23,7 @@ public class Archon extends BaseHandler {
 	public static boolean shouldBuildLeaderScout = false;
 	public static boolean isBuildingLeaderScout = false;
 	public static boolean builtLeaderScout = false;
-	public static final int LEADER_SCOUT_TURN = 6000; // CHANGE TO LIKE 600 TO
+	public static final int LEADER_SCOUT_TURN = 600; // CHANGE TO LIKE 600 TO
 														// ENABLE
 
 	public static boolean smallMap = false;
@@ -54,9 +54,10 @@ public class Archon extends BaseHandler {
 				Messaging.theChosenOne();
 				isBuildingLeaderScout = false;
 				builtLeaderScout = false;
+				shouldBuildLeaderScout = false;
 			}
 
-			Messaging.observeAndBroadcast(broadcastRadiusSq, 0.5);
+			Messaging.observeAndBroadcast(broadcastRadiusSq, 0.5, true);
 
 			signals = rc.emptySignalQueue();
 			SignalContents[] decodedSignals = Messaging.receiveBroadcasts(signals);

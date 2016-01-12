@@ -60,7 +60,7 @@ public class Leader extends BaseHandler {
 
 			Signal[] signals = rc.emptySignalQueue();
 			SignalContents[] decodedSignals = Messaging.receiveBroadcasts(signals);
-			Messaging.observeAndBroadcast(broadcastRadiusSq, 0.5);
+			Messaging.observeAndBroadcast(broadcastRadiusSq, 0.5, false);
 
 			Mapping.updateMap();
 

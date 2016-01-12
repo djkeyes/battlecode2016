@@ -46,7 +46,8 @@ public class Messaging extends BaseHandler {
 	public static MapLocation lastUnitRequestLocation;
 	public static int lastUnitRequestTimestamp;
 
-	public static void observeAndBroadcast(int broadcastRadiusSq, double maxCoreDelay) throws GameActionException {
+	public static void observeAndBroadcast(int broadcastRadiusSq, double maxCoreDelay, boolean okayToShoutDens)
+			throws GameActionException {
 		RobotInfo[] nearby = rc.senseHostileRobots(curLoc, sensorRangeSq);
 
 		double coreDelayIncrement = BROADCASTS_PER_MESSAGE
@@ -98,7 +99,7 @@ public class Messaging extends BaseHandler {
 			// integer overflow.
 			int second = (health * (MAX_CORE_DELAY + 1) + coreDelay) * (roundLimit + 1) + curTurn;
 
-			if (cur.type == RobotType.ZOMBIEDEN) {
+			if (okayToShoutDens && cur.type == RobotType.ZOMBIEDEN) {
 				rc.broadcastMessageSignal(first, second, GameConstants.MAP_MAX_HEIGHT * GameConstants.MAP_MAX_HEIGHT
 						+ GameConstants.MAP_MAX_WIDTH * GameConstants.MAP_MAX_WIDTH);
 			} else {

@@ -81,8 +81,6 @@ public class Scout extends BaseHandler {
 			}
 
 			if (isChill) {
-				// 2. broadcast some shit. Especially if we're near a turret.
-				Messaging.observeAndBroadcast(broadcastRadiusSq, 0.5);
 
 				// 2.5 also keep track of enemies, in case we need to go
 				// kamakaze on short notice
@@ -93,22 +91,22 @@ public class Scout extends BaseHandler {
 				}
 
 				// 3. find the nearest viper and follow it.
-				MapLocation leader = trackViperOrLeader();
+				MapLocation leader = trackLeader();
 				if (leader != null) {
-					Pathfinding.setTarget(leader, /* avoidEnemies= */true, /*
-																		 * giveSpace
-																		 * =
-																		 */true);
+					Pathfinding.setTarget(leader, true, true);
 					Pathfinding.pathfindToward();
 					Clock.yield();
 					continue;
 				}
 
+				// 2. broadcast some shit. Especially if we're near a turret.
+				Messaging.observeAndBroadcast(broadcastRadiusSq, 0.5, true);
+
 				Clock.yield();
 				continue;
 			} else {
 				// 0. still broadcast shit. broadcasting is great.
-				Messaging.observeAndBroadcast(broadcastRadiusSq, 0.5);
+				Messaging.observeAndBroadcast(broadcastRadiusSq, 0.5, false);
 
 				RobotInfo[] nearEnemies = rc.senseNearbyRobots(RobotType.SCOUT.sensorRadiusSquared, them);
 				// TODO: in the future, there might be more kinds of signals
@@ -142,7 +140,7 @@ public class Scout extends BaseHandler {
 
 				} else {
 					// 2. Otherwise, find nearest viper and follow it
-					MapLocation leader = trackViperOrLeader();
+					MapLocation leader = trackLeader();
 					if (leader != null) {
 						Pathfinding.setTarget(leader, /* avoidEnemies= */true, /*
 																			 * giveSpace
@@ -161,7 +159,7 @@ public class Scout extends BaseHandler {
 		}
 	}
 
-	private static MapLocation trackViperOrLeader() {
+	private static MapLocation trackLeader() {
 		rc.setIndicatorString(1, String.format("%s", lastLeader));
 
 		MapLocation squadronLeaderLoc = Messaging.getFollowMe();
@@ -171,33 +169,10 @@ public class Scout extends BaseHandler {
 
 		// check for draft officers
 		if (Messaging.lastUnitRequestLocation != null && rc.getRoundNum() - Messaging.lastUnitRequestTimestamp < 50) {
-			return Messaging.lastUnitRequestLocation;
+			return lastLeader = Messaging.lastUnitRequestLocation;
 		}
 
-		RobotInfo[] allies = rc.senseNearbyRobots(RobotType.SCOUT.sensorRadiusSquared, us);
-		MapLocation closestViper = null;
-		int minDistSq = Integer.MAX_VALUE;
-		for (int i = allies.length; --i >= 0;) {
-			if (allies[i].type == RobotType.VIPER) {
-				int distSq = curLoc.distanceSquaredTo(allies[i].location);
-				if (distSq < minDistSq) {
-					minDistSq = distSq;
-					closestViper = allies[i].location;
-				}
-			}
-		}
-		// don't want to move too close and obstruct viper pathing
-		if (closestViper != null) {
-			lastLeader = closestViper;
-		} else {
-			closestViper = lastLeader;
-		}
-
-		if (minDistSq > 2) {
-			return closestViper;
-		} else {
-			return null;
-		}
+		return null;
 	}
 
 }

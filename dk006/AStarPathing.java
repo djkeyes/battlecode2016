@@ -121,7 +121,7 @@ public class AStarPathing extends Mapping {
 			// re-running move() code.
 			// what if someone accidentally runs A*, but then doesn't use it
 			// at all?
-			runAStar();
+			// runAStar();
 			return false;
 		}
 		return false;
