@@ -216,7 +216,10 @@ public class Messaging extends BaseHandler {
 		}
 	}
 
-	public static void broadcastArchonLocations() {
+	public static void broadcastArchonLocations() throws GameActionException {
+		rc.broadcastSignal(GameConstants.MAP_MAX_HEIGHT * GameConstants.MAP_MAX_HEIGHT + GameConstants.MAP_MAX_WIDTH
+				* GameConstants.MAP_MAX_WIDTH);
+
 		// actually don't do this. It would be nice to unite archons at the
 		// start of a match, but if you shout out your location, your enemy will
 		// be able to find you, too.
@@ -224,7 +227,22 @@ public class Messaging extends BaseHandler {
 		// in fact, we should write code that listens for wide-range enemy
 		// broadcasts at the beginning of the match, and then attacks those
 		// locations.
+	}
 
+	public static MapLocation readArchonLocations() {
+		// precondition: the only messages in the queue are archon locs
+		Signal[] signals = rc.emptySignalQueue();
+		MapLocation myLoc = rc.getLocation();
+		int totalX = myLoc.x, totalY = myLoc.y;
+		int numArchons = 1;
+		for (Signal s : signals) {
+			if (s.getTeam() == us) {
+				totalX += s.getLocation().x;
+				totalY += s.getLocation().y;
+				numArchons++;
+			}
+		}
+		return new MapLocation(totalX / numArchons, totalY / numArchons);
 	}
 
 	public static void followMe() throws GameActionException {

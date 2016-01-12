@@ -16,6 +16,7 @@ public class Pathfinding extends BaseHandler {
 	// necessary
 
 	private static boolean avoidEnemies;
+	private static boolean giveSpace;
 	private static MapLocation target;
 
 	// bug mode state
@@ -27,26 +28,29 @@ public class Pathfinding extends BaseHandler {
 	private static int turnsSinceBlocked = 0;
 	private static int numTurns = 0;
 
+	private static int PATIENCE = 3;
+
 	private static Direction lastMoveDir;
 
 	private static RobotInfo[] nearbyEnemies;
 
-	public static void setTarget(MapLocation target, boolean avoidEnemies) {
+	public static void setTarget(MapLocation target, boolean avoidEnemies, boolean giveSpace) {
 		if (!target.equals(Pathfinding.target) || Pathfinding.avoidEnemies != avoidEnemies) {
 			Pathfinding.target = target;
 			inBugMode = false;
 			Pathfinding.avoidEnemies = avoidEnemies;
+			Pathfinding.giveSpace = giveSpace;
 		}
 	}
 
 	// precondition to this method: rc.isCoreReady() should return true
 	public static boolean pathfindToward() throws GameActionException {
-		if (curLoc.equals(target)) {
+		if (curLoc.equals(target) || (giveSpace && curLoc.distanceSquaredTo(target) <= 2)) {
 			return false;
 		}
 
 		if (inBugMode) {
-			if ((turnsSinceBlocked >= 50)
+			if ((turnsSinceBlocked >= PATIENCE)
 					|| ((numTurns <= 0 || numTurns >= 8) && curLoc.distanceSquaredTo(target) <= distSqToTargetAtBugModeStart)) {
 				inBugMode = false;
 			}
@@ -154,6 +158,10 @@ public class Pathfinding extends BaseHandler {
 
 	private static boolean canMove(Direction dir) {
 		if (!rc.canMove(dir)) {
+			return false;
+		}
+
+		if (giveSpace && target.distanceSquaredTo(curLoc.add(dir)) <= 1) {
 			return false;
 		}
 

@@ -148,7 +148,7 @@ public class Leader extends BaseHandler {
 						// move in the straightest-line path
 						// TODO: we should probably use bug pathfinding
 						// here, since we want to path around enemies
-						Pathfinding.setTarget(allyTarget, /*avoidEnemies=*/true);
+						Pathfinding.setTarget(allyTarget, /*avoidEnemies=*/true, /*giveSpace=*/ false);
 						Pathfinding.pathfindToward();
 					}
 					Clock.yield();

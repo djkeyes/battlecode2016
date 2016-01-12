@@ -67,7 +67,10 @@ public class Viper extends BaseHandler {
 						// don't get too close
 						rc.setIndicatorString(1, String.format("%s", nearestArchon));
 						if (nearestArchon != null && minArchonDistSq > 2) {
-							Pathfinding.setTarget(nearestArchon, /* avoidEnemies= */true);
+							Pathfinding.setTarget(nearestArchon, /* avoidEnemies= */true, /*
+																						 * giveSpace
+																						 * =
+																						 */true);
 							Pathfinding.pathfindToward();
 							Clock.yield();
 							continue;
@@ -93,7 +96,10 @@ public class Viper extends BaseHandler {
 					if (rc.isCoreReady()) {
 						MapLocation leader = Messaging.getFollowMe();
 						if (leader != null) {
-							Pathfinding.setTarget(leader, /* avoidEnemies= */true);
+							Pathfinding.setTarget(leader, /* avoidEnemies= */true, /*
+																				 * giveSpace
+																				 * =
+																				 */true);
 							Pathfinding.pathfindToward();
 							Clock.yield();
 							continue;
@@ -138,7 +144,7 @@ public class Viper extends BaseHandler {
 									}
 
 									if (enemyTarget != null) {
-										Pathfinding.setTarget(enemyTarget, avoidEnemies);
+										Pathfinding.setTarget(enemyTarget, avoidEnemies, false);
 										Pathfinding.pathfindToward();
 										Clock.yield();
 									}

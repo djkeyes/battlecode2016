@@ -21,13 +21,16 @@ public class Archon extends BaseHandler {
 	// RobotType.TURRET, RobotType.TURRET };
 	public static int nextToBuild = 0;
 
-	public static MapLocation randomTarget = null;
-
 	public static MapLocation oldNearArchonLoc = null;
+	public static MapLocation archonCentroid = null;
 
 	public static void run() throws GameActionException {
 
 		final int broadcastRadiusSq = RobotType.ARCHON.sensorRadiusSquared;
+
+		Messaging.broadcastArchonLocations();
+		Clock.yield();
+		archonCentroid = Messaging.readArchonLocations();
 
 		while (true) {
 			beginningOfLoop();
@@ -65,7 +68,10 @@ public class Archon extends BaseHandler {
 
 				// hmm, changing targets on the fly like this sounds like a good
 				// way to fuck up bug-pathfinding. oh well.
-				Pathfinding.setTarget(bestLoc, /* avoidEnemies= */true);
+				Pathfinding.setTarget(bestLoc, /* avoidEnemies= */true, /*
+																		 * giveSpace
+																		 * =
+																		 */true);
 
 				if (Pathfinding.pathfindToward()) {
 					Clock.yield();
@@ -141,9 +147,6 @@ public class Archon extends BaseHandler {
 					} else {
 						rc.clearRubble(dirToDig);
 					}
-
-					// clear out stored movement plans
-					randomTarget = null;
 
 					Clock.yield();
 					continue;
@@ -239,20 +242,14 @@ public class Archon extends BaseHandler {
 			}
 			if (closestArchon != null) {
 				oldNearArchonLoc = closestArchon;
-				Pathfinding.setTarget(closestArchon, /* avoidEnemies= */true);
+				Pathfinding.setTarget(closestArchon, true, true);
 				Pathfinding.pathfindToward();
 				Clock.yield();
 				continue;
 			}
 
-			// pick a random (nearby) location, so we don't look too drunk.
-			if (randomTarget == null) {
-				randomTarget = curLoc.add(gen.nextInt(13) - 6, gen.nextInt(13) - 6);
-			}
-			Pathfinding.setTarget(randomTarget, /* avoidEnemies= */true);
-			if (!Pathfinding.pathfindToward()) {
-				randomTarget = null;
-			}
+			Pathfinding.setTarget(archonCentroid, true, true);
+			Pathfinding.pathfindToward();
 
 			Clock.yield();
 		}
