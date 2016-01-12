@@ -146,7 +146,8 @@ public class Leader extends BaseHandler {
 									decodedSignals, signals, curLoc, true, them);
 							if (enemyDir != null) {
 								scoutingDirection = enemyDir;
-								pathLength = 5;
+								pathLength = 10;
+								scoutingTarget = null;
 							}
 						}
 

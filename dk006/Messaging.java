@@ -34,6 +34,7 @@ public class Messaging extends BaseHandler {
 	public static MapLocation closestFollowMe = null;
 	public static MapLocation closestPrepAttackTarget = null;
 	public static MapLocation closestChargeTarget = null;
+	public static int chargeTimestamp = -1;
 
 	public static MapLocation latestArchonGatherSpot = null;
 
@@ -259,6 +260,7 @@ public class Messaging extends BaseHandler {
 			minDistSqCharge = dist;
 			closestChargeTarget = target;
 		}
+		chargeTimestamp = rc.getRoundNum();
 	}
 
 	private static void parseGather(int first, MapLocation baseLoc) {
@@ -314,7 +316,8 @@ public class Messaging extends BaseHandler {
 		int locOffsetX = enemyArchonLoc.x - curLoc.x + GameConstants.MAP_MAX_WIDTH;
 		int locOffsetY = enemyArchonLoc.y - curLoc.y + GameConstants.MAP_MAX_HEIGHT;
 		rc.broadcastMessageSignal((locOffsetX * MAX_Y_OFFSET + locOffsetY) * NUM_MESSAGE_TYPES + CHARGE_MESSAGE, 0,
-				RobotType.SCOUT.sensorRadiusSquared);
+				GameConstants.MAP_MAX_HEIGHT * GameConstants.MAP_MAX_HEIGHT + GameConstants.MAP_MAX_WIDTH
+						* GameConstants.MAP_MAX_WIDTH);
 	}
 
 	public static MapLocation getFollowMe() {

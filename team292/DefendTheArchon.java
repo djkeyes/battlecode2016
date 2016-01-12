@@ -1,6 +1,7 @@
 package team292;
 
 import battlecode.common.Clock;
+import battlecode.common.Direction;
 import battlecode.common.GameActionException;
 import battlecode.common.MapLocation;
 import battlecode.common.RobotInfo;
@@ -31,23 +32,39 @@ public class DefendTheArchon extends BaseHandler {
 			}
 
 			if (rc.isCoreReady()) {
-				// path toward allied archons
-				int minArchonDistSq = Integer.MAX_VALUE;
-				MapLocation nearestArchon = null;
-				for (int i = nearbyAllies.length; --i >= 0;) {
-					if (nearbyAllies[i].type == RobotType.ARCHON) {
-						int distSq = nearbyAllies[i].location.distanceSquaredTo(curLoc);
-						if (distSq < minArchonDistSq) {
-							minArchonDistSq = distSq;
-							nearestArchon = nearbyAllies[i].location;
+
+				if (rc.senseNearbyRobots(2, us).length >= 4) {
+					boolean moved = false;
+					for (Direction d : Util.ACTUAL_DIRECTIONS) {
+						if (rc.canMove(d)) {
+							rc.move(d);
+							moved = true;
+							break;
 						}
+					}
+
+					if (moved) {
+						Clock.yield();
+						continue;
 					}
 				}
 
+				// if we're lucky, we might have heard where archons are
+				// gathering
+				MapLocation nearestArchon = Messaging.getArchonGatheringSpot();
+
 				if (nearestArchon == null) {
-					// if we're lucky, we might have heard where archons are
-					// gathering
-					nearestArchon = Messaging.getArchonGatheringSpot();
+					// path toward allied archons
+					int minArchonDistSq = Integer.MAX_VALUE;
+					for (int i = nearbyAllies.length; --i >= 0;) {
+						if (nearbyAllies[i].type == RobotType.ARCHON) {
+							int distSq = nearbyAllies[i].location.distanceSquaredTo(curLoc);
+							if (distSq < minArchonDistSq) {
+								minArchonDistSq = distSq;
+								nearestArchon = nearbyAllies[i].location;
+							}
+						}
+					}
 				}
 
 				if (nearestArchon == null) {

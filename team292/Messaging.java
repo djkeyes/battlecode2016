@@ -21,13 +21,15 @@ public class Messaging extends BaseHandler {
 	// if the core delay is really big, no need to broadcast exact numbers
 	public static final int MAX_CORE_DELAY = 100;
 
-	public final static int NUM_MESSAGE_TYPES = 6;
+	public final static int NUM_MESSAGE_TYPES = 8;
 	public final static int ENEMY_UNIT_MESSAGE = 0;
 	public final static int FOLLOW_ME_MESSAGE = 1;
 	public final static int PREP_ATTACK_MESSAGE = 2;
 	public final static int CHARGE_MESSAGE = 3;
 	public final static int ARCHON_GATHER_MESSAGE = 4;
 	public final static int MAP_BOUNDS_MESSAGE = 5;
+	public final static int THE_CHOSEN_ONE_MESSAGE = 6;
+	public final static int UNIT_REQUEST_MESSAGE = 7;
 
 	public static MapLocation closestFollowMe = null;
 	public static MapLocation closestPrepAttackTarget = null;
@@ -40,7 +42,12 @@ public class Messaging extends BaseHandler {
 	public static Integer minRow, maxRow, minCol, maxCol;
 	public static Integer mapWidth, mapHeight;
 
-	public static void observeAndBroadcast(int broadcastRadiusSq, double maxCoreDelay) throws GameActionException {
+	public static RobotType lastUnitRequested;
+	public static MapLocation lastUnitRequestLocation;
+	public static int lastUnitRequestTimestamp;
+
+	public static void observeAndBroadcast(int broadcastRadiusSq, double maxCoreDelay, boolean okayToShoutDens)
+			throws GameActionException {
 		RobotInfo[] nearby = rc.senseHostileRobots(curLoc, sensorRangeSq);
 
 		double coreDelayIncrement = BROADCASTS_PER_MESSAGE
@@ -92,7 +99,12 @@ public class Messaging extends BaseHandler {
 			// integer overflow.
 			int second = (health * (MAX_CORE_DELAY + 1) + coreDelay) * (roundLimit + 1) + curTurn;
 
-			rc.broadcastMessageSignal(first, second, broadcastRadiusSq);
+			if (okayToShoutDens && cur.type == RobotType.ZOMBIEDEN) {
+				rc.broadcastMessageSignal(first, second, GameConstants.MAP_MAX_HEIGHT * GameConstants.MAP_MAX_HEIGHT
+						+ GameConstants.MAP_MAX_WIDTH * GameConstants.MAP_MAX_WIDTH);
+			} else {
+				rc.broadcastMessageSignal(first, second, broadcastRadiusSq);
+			}
 		}
 
 	}
@@ -185,6 +197,11 @@ public class Messaging extends BaseHandler {
 				break;
 			case MAP_BOUNDS_MESSAGE:
 				parseMapStatistic(first, part1[1]);
+				break;
+			case UNIT_REQUEST_MESSAGE:
+				lastUnitRequested = RobotType.values()[part1[1]];
+				lastUnitRequestLocation = signals[i].getLocation();
+				lastUnitRequestTimestamp = rc.getRoundNum();
 				break;
 			}
 
@@ -367,6 +384,33 @@ public class Messaging extends BaseHandler {
 	private static void mapStatisticMessage(int statistic, int ordinal, int broadcastRadiusSq)
 			throws GameActionException {
 		rc.broadcastMessageSignal(ordinal * NUM_MESSAGE_TYPES + MAP_BOUNDS_MESSAGE, statistic, broadcastRadiusSq);
+	}
+
+	public static void theChosenOne() throws GameActionException {
+		rc.broadcastMessageSignal(THE_CHOSEN_ONE_MESSAGE, 0, 2);
+	}
+
+	public static boolean checkChosenStatus() {
+		Signal s;
+		while ((s = rc.readSignal()) != null && s.getTeam() != us)
+			;
+		if (s == null) {
+			return false;
+		}
+		if (s.getMessage() != null && s.getMessage()[0] == THE_CHOSEN_ONE_MESSAGE) {
+			return true;
+		}
+		return false;
+	}
+
+	public static void requestUnits(RobotType requestType) throws GameActionException {
+		// only send it as far as the sight of the result unit
+		// that way whatever gets built will likely be able to find the
+		// requestor
+		// rc.broadcastMessageSignal(UNIT_REQUEST_MESSAGE,
+		// requestType.ordinal(), requestType.sensorRadiusSquared);
+
+		rc.broadcastMessageSignal(UNIT_REQUEST_MESSAGE, requestType.ordinal(), 100);
 	}
 
 }

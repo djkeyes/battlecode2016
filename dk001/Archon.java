@@ -72,12 +72,12 @@ public class Archon {
 				continue;
 			}
 
-			if (gen.nextDouble() < 0.1) {
-				rc.broadcastSignal(GameConstants.MAP_MAX_HEIGHT * GameConstants.MAP_MAX_HEIGHT
-						+ GameConstants.MAP_MAX_WIDTH * GameConstants.MAP_MAX_WIDTH);
-				Clock.yield();
-				continue;
-			}
+//			if (gen.nextDouble() < 0.1) {
+//				rc.broadcastSignal(GameConstants.MAP_MAX_HEIGHT * GameConstants.MAP_MAX_HEIGHT
+//						+ GameConstants.MAP_MAX_WIDTH * GameConstants.MAP_MAX_WIDTH);
+//				Clock.yield();
+//				continue;
+//			}
 
 			// 3. repair
 			RobotInfo[] allies = rc.senseNearbyRobots(ATTACK_RAD_SQ, us);

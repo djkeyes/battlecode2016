@@ -7,6 +7,7 @@ import battlecode.common.MapLocation;
 import battlecode.common.RobotInfo;
 import battlecode.common.RobotType;
 import battlecode.common.Signal;
+import battlecode.common.Team;
 
 // a lot of this seems to be direction manipulation functions
 // maybe make a class for that
@@ -108,7 +109,8 @@ public class Util {
 
 		for (int i = nearbyRobots.length; --i >= 0;) {
 			// ignore non-lethal for archon behavior
-			if (nearbyRobots[i].type == RobotType.SCOUT || nearbyRobots[i].type == RobotType.ARCHON || nearbyRobots[i].type == RobotType.ZOMBIEDEN) {
+			if (nearbyRobots[i].type == RobotType.SCOUT || nearbyRobots[i].type == RobotType.ARCHON
+					|| nearbyRobots[i].type == RobotType.ZOMBIEDEN) {
 				continue;
 			}
 			// also ignore enemies too far away
@@ -148,6 +150,44 @@ public class Util {
 			}
 		}
 		return result;
+	}
+
+	public static Direction getEstimatedEnemyDirectionWithEnemyMessages(RobotInfo[] nearbyEnemies,
+			SignalContents[] decodedSignals, Signal[] rawSignals, MapLocation curLoc, boolean ignoreZombies, Team them) {
+		int[] enemyCount = new int[8];
+		for (int i = nearbyEnemies.length; --i >= 0;) {
+			enemyCount[Util.dirToInt(curLoc.directionTo(nearbyEnemies[i].location))]++;
+		}
+		// also check broadcasted results
+		for (int i = decodedSignals.length; --i >= 0;) {
+			if (!ignoreZombies || !decodedSignals[i].isZombie) {
+				// TODO: might want to add a threshold to this distance, since
+				// broadcasts can come from far and wide.
+				// ...or maybe weight by inverse distance. idk.
+				MapLocation enemyLoc = new MapLocation(decodedSignals[i].x, decodedSignals[i].y);
+				enemyCount[Util.dirToInt(curLoc.directionTo(enemyLoc))]++;
+			}
+		}
+		// also check for enemies who speak loudly
+		for (int i = rawSignals.length; --i >= 0;) {
+			if (rawSignals[i].getTeam() == them) {
+				enemyCount[Util.dirToInt(curLoc.directionTo(rawSignals[i].getLocation()))]++;
+			}
+		}
+
+		int maxDir = 0;
+		int maxCount = 0;
+		for (int i = enemyCount.length; --i >= 0;) {
+			if (enemyCount[i] > maxCount) {
+				maxCount = enemyCount[i];
+				maxDir = i;
+			}
+		}
+		if (maxCount == 0) {
+			return null;
+		}
+		BaseHandler.rc.setIndicatorString(2, Arrays.toString(enemyCount));
+		return Util.ACTUAL_DIRECTIONS[maxDir];
 	}
 
 }

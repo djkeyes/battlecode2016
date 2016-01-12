@@ -59,6 +59,12 @@ public class Archon extends BaseHandler {
 
 			Messaging.observeAndBroadcast(broadcastRadiusSq, 0.5, true);
 
+			if (isFirstArchon) {
+				if (Messaging.chargeTimestamp >= 0 && rc.getRoundNum() - Messaging.chargeTimestamp < 20) {
+					shouldBuildLeaderScout = true;
+				}
+			}
+
 			signals = rc.emptySignalQueue();
 			SignalContents[] decodedSignals = Messaging.receiveBroadcasts(signals);
 			MapEdges.checkMapEdges(decodedSignals);
