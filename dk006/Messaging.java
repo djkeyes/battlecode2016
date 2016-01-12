@@ -97,15 +97,6 @@ public class Messaging extends BaseHandler {
 
 	}
 
-	public static class SignalContents {
-		public int x, y;
-		public int health;
-		public int coreDelay;
-		public int timestamp;
-		public RobotType type;
-		boolean isZombie;
-	}
-
 	public static SignalContents[] receiveBroadcasts(Signal[] signals) {
 		int roundLimit = rc.getRoundLimit();
 

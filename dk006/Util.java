@@ -7,7 +7,6 @@ import battlecode.common.MapLocation;
 import battlecode.common.RobotInfo;
 import battlecode.common.RobotType;
 import battlecode.common.Signal;
-import dk006.Messaging.SignalContents;
 
 // a lot of this seems to be direction manipulation functions
 // maybe make a class for that

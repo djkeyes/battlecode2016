@@ -7,7 +7,6 @@ import battlecode.common.MapLocation;
 import battlecode.common.RobotInfo;
 import battlecode.common.RobotType;
 import battlecode.common.Signal;
-import dk006.Messaging.SignalContents;
 
 public class Scout extends BaseHandler {
 

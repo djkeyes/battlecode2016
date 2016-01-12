@@ -1,6 +1,5 @@
 package dk006;
 
-import dk006.Messaging.SignalContents;
 import battlecode.common.GameActionException;
 import battlecode.common.GameConstants;
 
