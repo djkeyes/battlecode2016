@@ -217,10 +217,9 @@ public class Archon extends BaseHandler {
 			for (int i = allies.length; --i >= 0;) {
 				if (allies[i].type == RobotType.ARCHON) {
 					Pathfinding.setTarget(allies[i].location, /* avoidEnemies= */true);
-					if (Pathfinding.pathfindToward()) {
-						archonNearby = true;
-						break;
-					}
+					Pathfinding.pathfindToward();
+					archonNearby = true;
+					break;
 				}
 			}
 			if (archonNearby) {

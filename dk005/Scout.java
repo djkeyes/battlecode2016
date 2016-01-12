@@ -4,11 +4,9 @@ import battlecode.common.Clock;
 import battlecode.common.Direction;
 import battlecode.common.GameActionException;
 import battlecode.common.MapLocation;
-import battlecode.common.RobotController;
 import battlecode.common.RobotInfo;
 import battlecode.common.RobotType;
 import battlecode.common.Signal;
-import battlecode.common.Team;
 import dk005.Messaging.SignalContents;
 
 public class Scout extends BaseHandler {
@@ -16,6 +14,7 @@ public class Scout extends BaseHandler {
 	public static boolean isChill = true;
 
 	public static Direction lastEnemyDir = null;
+	public static MapLocation lastLeader = null;
 
 	public static void run() throws GameActionException {
 		// priorities:
@@ -68,7 +67,7 @@ public class Scout extends BaseHandler {
 			// 1. check if we've received a kill signal. If so, switch to KILL
 			// MODE.
 			if (isChill) {
-				isChill = !Messaging.isKillSignalSent(signals);
+				isChill = (Messaging.getPrepAttack() == null && Messaging.getCharge() == null);
 				if (!isChill) {
 					rc.setIndicatorString(0, ">BD");
 				}
@@ -91,15 +90,17 @@ public class Scout extends BaseHandler {
 					rc.setIndicatorString(1, "rough enemy dir: " + lastEnemyDir);
 				}
 
-				// 3. find the nearest viper and follow it. 4. Or move randomly.
-				Direction dirToMove = trackViperOrLeader(rc, us, signals);
-				if (dirToMove != null) {
-					rc.move(dirToMove);
+				// 3. find the nearest viper and follow it.
+				MapLocation leader = trackViperOrLeader();
+				if (leader != null) {
+					Pathfinding.setTarget(leader, /* avoidEnemies= */true);
+					Pathfinding.pathfindToward();
 					Clock.yield();
 					continue;
 				}
 
 				Clock.yield();
+				continue;
 			} else {
 				// 0. still broadcast shit. broadcasting is great.
 				Messaging.observeAndBroadcast(broadcastRadiusSq, 0.5);
@@ -121,34 +122,11 @@ public class Scout extends BaseHandler {
 				if (rc.isInfected()) {
 					if (roughEnemyDir != null) {
 						lastEnemyDir = roughEnemyDir;
-
-						Direction[] dirs = Util.getDirectionsToward(roughEnemyDir);
-						Direction enemyDir = null;
-						for (Direction d : dirs) {
-							if (rc.canMove(d)) {
-								enemyDir = d;
-								break;
-							}
-						}
-
-						int infectedTurns = rc.getInfectedTurns();
-						if (infectedTurns >= 1 && infectedTurns < 10) {
-							// optional: kamakaze if we're not dying fast enough
-							RobotInfo[] reallyNearAllies = rc.senseNearbyRobots(8, us);
-							if (reallyNearAllies.length == 0) { // maybe play
-																// with this
-																// number.
-								rc.disintegrate();
-								Clock.yield(); // haha, is this line even run?
-								continue;
-							}
-						}
-
-						if (enemyDir != null) {
-							rc.move(enemyDir);
-							Clock.yield();
-							continue;
-						}
+						MapLocation target = curLoc.add(roughEnemyDir).add(roughEnemyDir).add(roughEnemyDir);
+						Pathfinding.setTarget(target, /* avoidEnemies= */false);
+						Pathfinding.pathfindToward();
+						Clock.yield();
+						continue;
 					} else {
 						// 1b. TODO else move away from zombies, so we don't die
 						// prematurely
@@ -156,9 +134,10 @@ public class Scout extends BaseHandler {
 
 				} else {
 					// 2. Otherwise, find nearest viper and follow it
-					Direction dirToMove = trackViperOrLeader(rc, us, signals);
-					if (dirToMove != null) {
-						rc.move(dirToMove);
+					MapLocation leader = trackViperOrLeader();
+					if (leader != null) {
+						Pathfinding.setTarget(leader, /* avoidEnemies= */true);
+						Pathfinding.pathfindToward();
 						Clock.yield();
 						continue;
 					}
@@ -171,53 +150,38 @@ public class Scout extends BaseHandler {
 		}
 	}
 
-	private static Direction trackViperOrLeader(RobotController rc, Team us, Signal[] signals) {
-		Direction dirToMove = null;
+	private static MapLocation trackViperOrLeader() {
+		rc.setIndicatorString(1, String.format("%s", lastLeader));
 
-		MapLocation squadronLeaderLoc = Messaging.readFollowMe(signals);
+		MapLocation squadronLeaderLoc = Messaging.getFollowMe();
 		if (squadronLeaderLoc != null) {
-			Direction dir = curLoc.directionTo(squadronLeaderLoc);
-			Direction[] dirs = Util.getDirectionsToward(dir);
-			for (int j = 0; j < dirs.length; j++) {
-				if (rc.canMove(dirs[j])) {
-					dirToMove = dirs[j];
-					break;
+			return lastLeader = squadronLeaderLoc;
+		}
+
+		RobotInfo[] allies = rc.senseNearbyRobots(RobotType.SCOUT.sensorRadiusSquared, us);
+		MapLocation closestViper = null;
+		int minDistSq = Integer.MAX_VALUE;
+		for (int i = allies.length; --i >= 0;) {
+			if (allies[i].type == RobotType.VIPER) {
+				int distSq = curLoc.distanceSquaredTo(allies[i].location);
+				if (distSq < minDistSq) {
+					minDistSq = distSq;
+					closestViper = allies[i].location;
 				}
 			}
 		}
-
-		if (dirToMove == null) {
-			RobotInfo[] allies = rc.senseNearbyRobots(RobotType.SCOUT.sensorRadiusSquared, us);
-			MapLocation curLoc = rc.getLocation();
-			int minDistSq = Integer.MAX_VALUE;
-			for (int i = allies.length; --i >= 0;) {
-				if (allies[i].type == RobotType.VIPER) {
-					Direction dir = curLoc.directionTo(allies[i].location);
-					Direction[] dirs = Util.getDirectionsToward(dir);
-					Direction traversableDir = null;
-					for (int j = 0; j < dirs.length; j++) {
-						// don't want to move too close and obstruct viper
-						// pathing
-						int nextDistSq = curLoc.add(dirs[j]).distanceSquaredTo(allies[i].location);
-						if (nextDistSq <= 2) {
-							continue;
-						}
-
-						if (rc.canMove(dirs[j])) {
-							traversableDir = dirs[j];
-							break;
-						}
-					}
-					if (traversableDir != null) {
-						int distSq = curLoc.distanceSquaredTo(allies[i].location);
-						if (distSq < minDistSq) {
-							minDistSq = distSq;
-							dirToMove = traversableDir;
-						}
-					}
-				}
-			}
+		// don't want to move too close and obstruct viper pathing
+		if (closestViper != null) {
+			lastLeader = closestViper;
+		} else {
+			closestViper = lastLeader;
 		}
-		return dirToMove;
+
+		if (minDistSq > 8) {
+			return closestViper;
+		} else {
+			return null;
+		}
 	}
+
 }

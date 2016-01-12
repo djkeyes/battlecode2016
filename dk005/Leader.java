@@ -11,9 +11,19 @@ import dk005.Messaging.SignalContents;
 
 public class Leader extends BaseHandler {
 
-	private static boolean isScouting = true;
-	private static boolean isReturning = false;
-	private static boolean isLeading = false;
+	public static final int SCOUT_COUNT_TO_ATTACK = 10;
+	public static final int VIPER_COUNT_TO_ATTACK = 2;
+	public static final int INFECTED_COUNT_TO_CHARGE = 3;
+	// seeing an archon also triggers this
+	public static final int ENEMY_COUNT_TO_KAMAKAZE = 2;
+
+	public static final int MAX_KAMAKAZE_DISTANCE = 12;
+
+	private static BattlePlan curPlan = BattlePlan.Scout;
+
+	private enum BattlePlan {
+		Scout, Return, Lead, PrepareForAttack, Attack
+	}
 
 	private static MapLocation enemyArchonLoc = null;
 	private static MapLocation alliedArchonLoc = null;
@@ -22,9 +32,6 @@ public class Leader extends BaseHandler {
 	private static int pathLength = 10;
 	private static MapLocation scoutingTarget = null;
 	private static boolean scoutCW = false;
-
-	private static final int FOLLOW_DISTANCE_SQ = 9;
-	private static int followerId;
 
 	public static void run() throws GameActionException {
 		// TODO: some of this code is very scout-specific, but we could rewite
@@ -43,7 +50,6 @@ public class Leader extends BaseHandler {
 		// just record the start location, there has to be an archon around here
 		alliedArchonLoc = rc.getLocation();
 		while (true) {
-			rc.setIndicatorString(1, String.format("%b %b %b", isScouting, isReturning, isLeading));
 			beginningOfLoop();
 			Mapping.updateMap();
 
@@ -51,7 +57,7 @@ public class Leader extends BaseHandler {
 			SignalContents[] decodedSignals = Messaging.receiveBroadcasts(signals);
 			Messaging.observeAndBroadcast(broadcastRadiusSq, 0.5);
 
-			if (isScouting) {
+			if (curPlan == BattlePlan.Scout) {
 				// check for enemy archons
 				RobotInfo[] nearEnemies = rc.senseNearbyRobots(sensorRangeSq, them);
 				int minArchonDist = Integer.MAX_VALUE;
@@ -77,8 +83,7 @@ public class Leader extends BaseHandler {
 					}
 				}
 				if (enemyArchonLoc != null) {
-					isScouting = false;
-					isReturning = true;
+					curPlan = BattlePlan.Return;
 				} else {
 					// travel outward in a spiral
 					if (scoutingTarget == null || curLoc.distanceSquaredTo(scoutingTarget) <= 13) {
@@ -116,30 +121,26 @@ public class Leader extends BaseHandler {
 					continue;
 				}
 			}
-			if (isReturning) {
+			if (curPlan == BattlePlan.Return) {
 				// if there's a viper ready to move, lead it
 				// else if there's a viper, path toward it
 				// else if there's an archon path toward it
 				RobotInfo[] nearAllies = rc.senseNearbyRobots(sensorRangeSq, us);
 				RobotInfo closestAllyViper = getClosest(nearAllies, RobotType.VIPER);
-				if (closestAllyViper != null
-						&& curLoc.distanceSquaredTo(closestAllyViper.location) <= FOLLOW_DISTANCE_SQ
-						&& Viper.shouldAttack(closestAllyViper.location, Viper.SENSOR_RADIUS_SQUARED)) {
-					isReturning = false;
-					isLeading = true;
-					followerId = closestAllyViper.ID;
+				if (shouldDepart(nearAllies)) {
+					curPlan = BattlePlan.Lead;
 				} else {
-					MapLocation target = null;
+					MapLocation allyTarget = null;
 					if (closestAllyViper != null) {
-						target = closestAllyViper.location;
+						allyTarget = closestAllyViper.location;
 					} else {
 						RobotInfo closestAllyArchon = getClosest(nearAllies, RobotType.ARCHON);
 						if (closestAllyArchon != null) {
-							target = closestAllyArchon.location;
+							allyTarget = closestAllyArchon.location;
 						} else {
 							// fallback: return to where we were originally
 							// built
-							target = alliedArchonLoc;
+							allyTarget = alliedArchonLoc;
 						}
 					}
 
@@ -147,57 +148,69 @@ public class Leader extends BaseHandler {
 						// move in the straightest-line path
 						// TODO: we should probably use bug pathfinding
 						// here, since we want to path around enemies
-						Direction dir = curLoc.directionTo(target);
-						rc.setIndicatorString(2, String.format("%s %s %s", curLoc, target, dir));
-						Direction[] dirs = Util.getDirectionsToward(dir);
-						for (Direction d : dirs) {
-							if (rc.canMove(d)) {
-								rc.move(d);
-								break;
-							}
-						}
+						Pathfinding.setTarget(allyTarget, /*avoidEnemies=*/true);
+						Pathfinding.pathfindToward();
 					}
 					Clock.yield();
 					continue;
 				}
 			}
 
-			if (isLeading) {
-				// TODO: we should add some kind of ack to make sure the viper
-				// we've selected actually knows to follow us.
-				// On a related note, maybe this scout should send the
-				// attack/suicide signals, since it has more expressive power.
+			if (curPlan == BattlePlan.Lead) {
 				Messaging.followMe();
 				// TODO: once we've arried at the supposed locating, we should
 				// probably spend some time to hone in on the actual location
+				// plus we don't have to target archons--we can just target big
+				// groups of enemies
 				if (curLoc.distanceSquaredTo(enemyArchonLoc) < sensorRangeSq) {
-					isLeading = false;
-					isScouting = true;
-				}
-
-				// move forward if the follower is close enough
-				RobotInfo follower = null;
-				// the follower may have died, so try-catch this to prevent
-				// exceptions.
-				try {
-					follower = rc.senseRobot(followerId);
-				} catch (GameActionException ex) {
-				}
-				if (follower == null) {
-					// TODO: is it better to return, or to scout again and get
-					// updated information?
-					// maybe decide based on the distance to either goal?
-					isLeading = false;
-					isReturning = true;
+					curPlan = BattlePlan.PrepareForAttack;
 				} else {
-					if (follower.location.distanceSquaredTo(curLoc) <= FOLLOW_DISTANCE_SQ) {
+					// move forward if everyone is still behind us
+					// if the count has decreased (they died or got lost),
+					// backtrack
+					// here we're using a slightly smaller sensor range, to make
+					// sure everyone stays close
+					RobotInfo[] nearbyAllies = rc.senseNearbyRobots(RobotType.SOLDIER.sensorRadiusSquared, us);
+					if (shouldDepart(nearbyAllies)) {
+						curPlan = BattlePlan.Return;
+						Clock.yield();
+						continue;
+					} else {
 						AStarPathing.aStarToward(enemyArchonLoc);
+						Clock.yield();
+						continue;
 					}
-					Clock.yield();
-					continue;
 				}
 			}
+
+			if (curPlan == BattlePlan.PrepareForAttack) {
+				Messaging.prepareForAttack(enemyArchonLoc);
+
+				if (readyToCharge()) {
+					curPlan = BattlePlan.Attack;
+				}
+			}
+			if (curPlan == BattlePlan.Attack) {
+				Messaging.charge(enemyArchonLoc);
+			}
 		}
+	}
+
+	// TODO: it might be appropriate to create a Strategy class and make it
+	// provide these methods
+
+	private static boolean readyToCharge() {
+		RobotInfo[] nearAllies = rc.senseNearbyRobots(sensorRangeSq, us);
+		// for the vipers strategy, check for viper infections
+		// otherwise use some other metric (check everyone gathered close
+		// enough? use a timer? just go without checking?)
+		int numInfected = 0;
+		for (int i = nearAllies.length; --i >= 0;) {
+			if (nearAllies[i].type == RobotType.SCOUT && nearAllies[i].viperInfectedTurns > 0) {
+				numInfected++;
+			}
+		}
+		return numInfected > INFECTED_COUNT_TO_CHARGE;
 	}
 
 	private static RobotInfo getClosest(RobotInfo[] nearby, RobotType type) {
@@ -213,5 +226,26 @@ public class Leader extends BaseHandler {
 			}
 		}
 		return result;
+	}
+
+	public static boolean shouldDepart(RobotInfo[] nearbyAllies) {
+		// to do different strategies, just change these numbers a little
+		int numScouts = 0;
+		int numVipers = 0;
+
+		for (int i = nearbyAllies.length; --i >= 0;) {
+			if (nearbyAllies[i].type == RobotType.SCOUT) {
+				numScouts++;
+			} else if (nearbyAllies[i].type == RobotType.VIPER) {
+				numVipers++;
+			}
+		}
+		return numScouts >= SCOUT_COUNT_TO_ATTACK && numVipers > VIPER_COUNT_TO_ATTACK;
+	}
+
+	public static boolean shouldReturnHome(RobotInfo[] nearbyAllies) {
+		// for this viper build, we should probably never return (b/c zombies)
+		// for other strats, maybe check the ally count.
+		return false;
 	}
 }

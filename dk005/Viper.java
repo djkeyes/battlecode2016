@@ -12,14 +12,6 @@ import battlecode.common.Team;
 
 public class Viper extends BaseHandler {
 
-	public static final int ATTACK_RADIUS_SQUARED = RobotType.VIPER.attackRadiusSquared;
-	public static final int SENSOR_RADIUS_SQUARED = RobotType.VIPER.sensorRadiusSquared;
-	public static final int SCOUT_COUNT_TO_ATTACK = 10;
-	// seeing an archon also triggers this
-	public static final int ENEMY_COUNT_TO_KAMAKAZE = 2;
-
-	public static final int MAX_KAMAKAZE_DISTANCE = 12;
-
 	public static void run() throws GameActionException {
 		// wait until critical mass of scouts, then go
 
@@ -39,68 +31,58 @@ public class Viper extends BaseHandler {
 			SignalContents[] decodedSignals = Messaging.receiveBroadcasts(signals);
 
 			if (!attack) {
-				// TODO(daniel): should probably scout or something, instead of
-				// standing still...
-
-				if (shouldAttack(curLoc, atkRangeSq)) {
+				rc.setIndicatorString(0, ":)");
+				MapLocation leader = Messaging.getFollowMe();
+				if (leader != null) {
+					rc.setIndicatorString(0, ">:D");
 					attack = true;
-					rc.setIndicatorString(0, ">:)");
 				} else {
 					if (rc.isWeaponReady()) {
 						// defend, but only against zombies (don't want to spawn
 						// more enemies)
-						RobotInfo[] nearbyEnemies = rc.senseNearbyRobots(curLoc, ATTACK_RADIUS_SQUARED, zombies);
+						RobotInfo[] nearbyEnemies = rc.senseNearbyRobots(curLoc, atkRangeSq, zombies);
 						if (nearbyEnemies.length > 0) {
 							RobotInfo target = getWeakest(nearbyEnemies);
 							rc.attackLocation(target.location);
+							Clock.yield();
+							continue;
+						}
+					}
+
+					if (rc.isCoreReady()) {
+						// path toward allied archons
+						int minArchonDistSq = Integer.MAX_VALUE;
+						RobotInfo[] nearbyAllies = rc.senseNearbyRobots(curLoc, atkRangeSq, us);
+						MapLocation nearestArchon = null;
+						for (int i = nearbyAllies.length; --i >= 0;) {
+							if (nearbyAllies[i].type == RobotType.ARCHON) {
+								int distSq = nearbyAllies[i].location.distanceSquaredTo(curLoc);
+								if (distSq < minArchonDistSq) {
+									minArchonDistSq = distSq;
+									nearestArchon = nearbyAllies[i].location;
+								}
+							}
+						}
+
+						// don't get too close
+						rc.setIndicatorString(1, String.format("%s", nearestArchon));
+						if (nearestArchon != null && minArchonDistSq > 2) {
+							Pathfinding.setTarget(nearestArchon, /* avoidEnemies= */true);
+							Pathfinding.pathfindToward();
+							Clock.yield();
+							continue;
 						}
 					}
 				}
 			}
 
 			if (attack) {
-				RobotInfo[] nearbyEnemies = rc.senseNearbyRobots(curLoc, SENSOR_RADIUS_SQUARED, them);
+				RobotInfo[] nearbyEnemies = rc.senseNearbyRobots(curLoc, sensorRangeSq, them);
 
 				if (!kamakaze) {
-					// TODO: we should also check enemy broadcasts for this
-					// condition. we can dedup these from our own broadcasts
-					// using robot id, I think.
-					boolean hasArchon = false;
-					for (int i = nearbyEnemies.length; --i >= 0;) {
-						if (nearbyEnemies[i].type == RobotType.ARCHON) {
-							hasArchon = true;
-							break;
-						}
-					}
-
-					// kamakaze scouts can move pretty far--20 viper spell turns
-					// / 1.4 MD ~= 14 tiles.
-					int broadcastedEnemies = 0;
-					// TODO: dedup signals sent by different scouts about the
-					// same robot
-					for (int i = decodedSignals.length; --i >= 0;) {
-						if (decodedSignals[i].isZombie) {
-							continue;
-						}
-						if (decodedSignals[i].type == RobotType.ARCHON) {
-							hasArchon = true;
-							break;
-						}
-
-						int dx = Math.abs(decodedSignals[i].x - curLoc.x);
-						int dy = Math.abs(decodedSignals[i].y - curLoc.y);
-						int dist = Math.max(dx, dy);
-						if (dist <= MAX_KAMAKAZE_DISTANCE) {
-							// dedup things that are already visible, so we
-							// don't double count
-							int squareDist = dx * dx + dy * dy;
-							if (squareDist > SENSOR_RADIUS_SQUARED) {
-								broadcastedEnemies++;
-							}
-						}
-					}
-
-					if (nearbyEnemies.length + broadcastedEnemies > ENEMY_COUNT_TO_KAMAKAZE || hasArchon) {
+					MapLocation prepTarget = Messaging.getPrepAttack();
+					MapLocation target = Messaging.getCharge();
+					if (prepTarget != null || target != null) {
 						kamakaze = true;
 						rc.setIndicatorString(0, "}:D>");
 					}
@@ -109,18 +91,15 @@ public class Viper extends BaseHandler {
 				if (!kamakaze) {
 					// we aren't near enemies yet, so find a scout to follow
 					if (rc.isCoreReady()) {
-						MapLocation leader = Messaging.readFollowMe(signals);
+						MapLocation leader = Messaging.getFollowMe();
 						if (leader != null) {
-							Pathfinding.setTarget(leader, true);
+							Pathfinding.setTarget(leader, /* avoidEnemies= */true);
 							Pathfinding.pathfindToward();
 							Clock.yield();
 							continue;
 						}
 					}
-
 				} else {
-					Messaging.sendKillSignal();
-
 					if (rc.isWeaponReady()) {
 						// for micro purposes, it helps to have a sense of where
 						// the enemy is (since we want most zombies to end up
@@ -133,14 +112,30 @@ public class Viper extends BaseHandler {
 
 						// not sure whether it's more efficient to call this
 						// again, or filter the old list.
-						RobotInfo[] reallyNearbyEnemies = rc.senseNearbyRobots(curLoc, ATTACK_RADIUS_SQUARED, them);
-						RobotInfo[] nearbyAllies = rc.senseNearbyRobots(curLoc, ATTACK_RADIUS_SQUARED, us);
+						RobotInfo[] reallyNearbyEnemies = rc.senseNearbyRobots(curLoc, atkRangeSq, them);
+						RobotInfo[] nearbyAllies = rc.senseNearbyRobots(curLoc, atkRangeSq, us);
 						RobotInfo target = findBestViperTarget(reallyNearbyEnemies, nearbyAllies, dirToBias);
 
 						if (target != null) {
 							rc.attackLocation(target.location);
 							Clock.yield();
 							continue;
+						} else {
+							if (rc.isCoreReady()) {
+								// advance toward opponent
+								MapLocation enemyTarget = Messaging.getCharge();
+								boolean avoidEnemies = false;
+								if (enemyTarget == null) {
+									enemyTarget = Messaging.getPrepAttack();
+									avoidEnemies = true;
+								}
+
+								if (enemyTarget != null) {
+									Pathfinding.setTarget(enemyTarget, avoidEnemies);
+									Pathfinding.pathfindToward();
+									Clock.yield();
+								}
+							}
 						}
 					}
 				}
@@ -154,20 +149,6 @@ public class Viper extends BaseHandler {
 			Clock.yield();
 		}
 
-	}
-
-	// this is also used by other classes, so don't depend on the static values
-	// of curLoc and sensorRangeSq
-	public static boolean shouldAttack(MapLocation curLoc, int sensorRangeSq) {
-		RobotInfo[] nearbyAllies = rc.senseNearbyRobots(curLoc, sensorRangeSq, us);
-		int numScouts = 0;
-
-		for (int i = nearbyAllies.length; --i >= 0;) {
-			if (nearbyAllies[i].type == RobotType.SCOUT) {
-				numScouts++;
-			}
-		}
-		return numScouts >= SCOUT_COUNT_TO_ATTACK;
 	}
 
 	private static RobotInfo findBestViperTarget(RobotInfo[] nearbyEnemies, RobotInfo[] nearbyAllies,

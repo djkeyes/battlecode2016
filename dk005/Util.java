@@ -26,7 +26,7 @@ public class Util {
 			Direction.WEST, };
 	public static final Direction[] UN_CARDINAL_DIRECTIONS = { Direction.NORTH_EAST, Direction.SOUTH_EAST,
 			Direction.SOUTH_WEST, Direction.NORTH_WEST, };
-	
+
 	public static int dirToInt(Direction dir) {
 		switch (dir) {
 		case NORTH:
@@ -72,6 +72,9 @@ public class Util {
 				maxCount = enemyCount[i];
 				maxDir = i;
 			}
+		}
+		if (maxCount == 0) {
+			return null;
 		}
 		return Util.ACTUAL_DIRECTIONS[maxDir];
 	}

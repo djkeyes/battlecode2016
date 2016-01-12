@@ -21,9 +21,17 @@ public class Messaging extends BaseHandler {
 	// if the core delay is really big, no need to broadcast exact numbers
 	public static final int MAX_CORE_DELAY = 100;
 
-	public final static int NUM_MESSAGE_TYPES = 2;
+	public final static int NUM_MESSAGE_TYPES = 4;
 	public final static int ENEMY_UNIT_MESSAGE = 0;
 	public final static int FOLLOW_ME_MESSAGE = 1;
+	public final static int PREP_ATTACK_MESSAGE = 2;
+	public final static int CHARGE_MESSAGE = 3;
+
+	public static MapLocation closestFollowMe = null;
+	public static MapLocation closestPrepAttackTarget = null;
+	public static MapLocation closestChargeTarget = null;
+
+	public static int minDistSqFollowMe, minDistSqPrepAtk, minDistSqCharge;
 
 	public static void observeAndBroadcast(int broadcastRadiusSq, double maxCoreDelay) throws GameActionException {
 		RobotInfo[] nearby = rc.senseHostileRobots(curLoc, sensorRangeSq);
@@ -94,6 +102,15 @@ public class Messaging extends BaseHandler {
 	public static SignalContents[] receiveBroadcasts(Signal[] signals) {
 		int roundLimit = rc.getRoundLimit();
 
+		minDistSqFollowMe = Integer.MAX_VALUE;
+		minDistSqPrepAtk = Integer.MAX_VALUE;
+		minDistSqCharge = Integer.MAX_VALUE;
+		
+		// should we null these out to get rid of obscenely old values? is that worth it?
+		// closestFollowMe = null;
+		// closestPrepAttackTarget = null;
+		// closestChargeTarget = null;
+
 		int numFromUs = 0;
 		for (int i = 0; i < signals.length; i++) {
 			if (signals[i].getTeam() != them && signals[i].getMessage() != null) {
@@ -119,38 +136,83 @@ public class Messaging extends BaseHandler {
 
 			SignalContents cur = new SignalContents();
 
-			MapLocation baseLoc = signals[i].getLocation();
 			int first = part1[0];
 			int messageType = first % NUM_MESSAGE_TYPES;
-			if (messageType != ENEMY_UNIT_MESSAGE) {
-				continue;
+			switch (messageType) {
+			case ENEMY_UNIT_MESSAGE:
+				MapLocation baseLoc = signals[i].getLocation();
+				first /= NUM_MESSAGE_TYPES;
+				boolean isZombie = (first & 1) > 0;
+				first /= 2;
+				int locOffsetY = first % MAX_Y_OFFSET;
+				first /= MAX_Y_OFFSET;
+				int locOffsetX = first % MAX_X_OFFSET;
+				first /= MAX_X_OFFSET;
+				int robotType = first;
+				cur.x = locOffsetX + baseLoc.x - GameConstants.MAP_MAX_WIDTH;
+				cur.y = locOffsetY + baseLoc.y - GameConstants.MAP_MAX_HEIGHT;
+				cur.type = RobotType.values()[robotType];
+
+				int second = part1[1];
+				cur.isZombie = isZombie;
+				cur.timestamp = second % (roundLimit + 1);
+				second /= (roundLimit + 1);
+				cur.coreDelay = second % (MAX_CORE_DELAY + 1);
+				cur.health = second / (MAX_CORE_DELAY + 1);
+				result[messageNum++] = cur;
+
+				// even though we know the core delay and the broadcast
+				// timestamp,
+				// we still don't know the execution order of the robots. as a
+				// result, a robot could still move, if its core delay was low
+				// enough and the broadcast was recieved very late.
+				break;
+			case FOLLOW_ME_MESSAGE:
+				MapLocation loc = signals[i].getLocation();
+				int dist = curLoc.distanceSquaredTo(loc);
+				if (dist < minDistSqFollowMe) {
+					minDistSqFollowMe = dist;
+					closestFollowMe = loc;
+				}
+				break;
+			case PREP_ATTACK_MESSAGE:
+				parsePrepAtk(first, signals[i].getLocation());
+				break;
+			case CHARGE_MESSAGE:
+				parseCharge(first, signals[i].getLocation());
+				break;
 			}
-			first /= NUM_MESSAGE_TYPES;
-			boolean isZombie = (first & 1) > 0;
-			first /= 2;
-			int locOffsetY = first % MAX_Y_OFFSET;
-			first /= MAX_Y_OFFSET;
-			int locOffsetX = first % MAX_X_OFFSET;
-			first /= MAX_X_OFFSET;
-			int robotType = first;
-			cur.x = locOffsetX + baseLoc.x - GameConstants.MAP_MAX_WIDTH;
-			cur.y = locOffsetY + baseLoc.y - GameConstants.MAP_MAX_HEIGHT;
-			cur.type = RobotType.values()[robotType];
 
-			int second = part1[1];
-			cur.isZombie = isZombie;
-			cur.timestamp = second % (roundLimit + 1);
-			second /= (roundLimit + 1);
-			cur.coreDelay = second % (MAX_CORE_DELAY + 1);
-			cur.health = second / (MAX_CORE_DELAY + 1);
-			result[messageNum++] = cur;
-
-			// even though we know the core delay and the broadcast timestamp,
-			// we still don't know the execution order of the robots. as a
-			// result, a robot could still move, if its core delay was low
-			// enough and the broadcast was recieved very late.
 		}
 		return result;
+	}
+
+	private static void parsePrepAtk(int first, MapLocation baseLoc) {
+		first /= NUM_MESSAGE_TYPES;
+		int locOffsetY = first % MAX_Y_OFFSET;
+		first /= MAX_Y_OFFSET;
+		int locOffsetX = first;
+		MapLocation target = new MapLocation(locOffsetX + baseLoc.x - GameConstants.MAP_MAX_WIDTH, locOffsetY
+				+ baseLoc.y - GameConstants.MAP_MAX_HEIGHT);
+		int dist = curLoc.distanceSquaredTo(target);
+		if (dist < minDistSqPrepAtk) {
+			minDistSqPrepAtk = dist;
+			closestPrepAttackTarget = target;
+		}
+	}
+
+	private static void parseCharge(int first, MapLocation baseLoc) {
+		first /= NUM_MESSAGE_TYPES;
+		int locOffsetY = first % MAX_Y_OFFSET;
+		first /= MAX_Y_OFFSET;
+		int locOffsetX = first;
+		MapLocation target = new MapLocation(locOffsetX + baseLoc.x - GameConstants.MAP_MAX_WIDTH, locOffsetY
+				+ baseLoc.y - GameConstants.MAP_MAX_HEIGHT);
+		int dist = curLoc.distanceSquaredTo(target);
+		if (dist < minDistSqCharge) {
+			minDistSqCharge = dist;
+			closestChargeTarget = target;
+		}
 	}
 
 	public static void broadcastArchonLocations() {
@@ -164,38 +226,33 @@ public class Messaging extends BaseHandler {
 
 	}
 
-	public static void sendKillSignal() throws GameActionException {
-		rc.broadcastSignal(RobotType.SCOUT.sensorRadiusSquared);
-	}
-
-	public static boolean isKillSignalSent(Signal[] signals) {
-		for (int i = 0; i < signals.length; i++) {
-			if (signals[i].getTeam() == rc.getTeam() && signals[i].getMessage() == null) {
-				return true;
-			}
-		}
-		return false;
-	}
-
 	public static void followMe() throws GameActionException {
-		rc.broadcastMessageSignal(FOLLOW_ME_MESSAGE, 0, RobotType.VIPER.sensorRadiusSquared);
+		rc.broadcastMessageSignal(FOLLOW_ME_MESSAGE, 0, RobotType.SCOUT.sensorRadiusSquared);
 	}
 
-	public static MapLocation readFollowMe(Signal[] signals) {
-		int minDistSq = Integer.MAX_VALUE;
-		MapLocation closest = null;
-		for (int i = 0; i < signals.length; i++) {
-			if (signals[i].getTeam() == rc.getTeam() && signals[i].getMessage() != null) {
-				if (signals[i].getMessage()[0] == FOLLOW_ME_MESSAGE) {
-					MapLocation loc = signals[i].getLocation();
-					int dist = curLoc.distanceSquaredTo(loc);
-					if (dist < minDistSq) {
-						minDistSq = dist;
-						closest = loc;
-					}
-				}
-			}
-		}
-		return closest;
+	public static void prepareForAttack(MapLocation enemyArchonLoc) throws GameActionException {
+		int locOffsetX = enemyArchonLoc.x - curLoc.x + GameConstants.MAP_MAX_WIDTH;
+		int locOffsetY = enemyArchonLoc.y - curLoc.y + GameConstants.MAP_MAX_HEIGHT;
+		rc.broadcastMessageSignal((locOffsetX * MAX_Y_OFFSET + locOffsetY) * NUM_MESSAGE_TYPES + PREP_ATTACK_MESSAGE,
+				0, RobotType.SCOUT.sensorRadiusSquared);
+	}
+
+	public static void charge(MapLocation enemyArchonLoc) throws GameActionException {
+		int locOffsetX = enemyArchonLoc.x - curLoc.x + GameConstants.MAP_MAX_WIDTH;
+		int locOffsetY = enemyArchonLoc.y - curLoc.y + GameConstants.MAP_MAX_HEIGHT;
+		rc.broadcastMessageSignal((locOffsetX * MAX_Y_OFFSET + locOffsetY) * NUM_MESSAGE_TYPES + CHARGE_MESSAGE, 0,
+				RobotType.SCOUT.sensorRadiusSquared);
+	}
+
+	public static MapLocation getFollowMe() {
+		return closestFollowMe;
+	}
+
+	public static MapLocation getPrepAttack() {
+		return closestPrepAttackTarget;
+	}
+
+	public static MapLocation getCharge() {
+		return closestChargeTarget;
 	}
 }
