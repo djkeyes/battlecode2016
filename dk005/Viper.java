@@ -52,7 +52,7 @@ public class Viper extends BaseHandler {
 					if (rc.isCoreReady()) {
 						// path toward allied archons
 						int minArchonDistSq = Integer.MAX_VALUE;
-						RobotInfo[] nearbyAllies = rc.senseNearbyRobots(curLoc, atkRangeSq, us);
+						RobotInfo[] nearbyAllies = rc.senseNearbyRobots(curLoc, sensorRangeSq, us);
 						MapLocation nearestArchon = null;
 						for (int i = nearbyAllies.length; --i >= 0;) {
 							if (nearbyAllies[i].type == RobotType.ARCHON) {

@@ -161,7 +161,7 @@ public class Pathfinding extends BaseHandler {
 			return false;
 		}
 
-		if (giveSpace && target.distanceSquaredTo(curLoc.add(dir)) <= 1) {
+		if (giveSpace && target.distanceSquaredTo(curLoc.add(dir)) <= 2) {
 			return false;
 		}
 

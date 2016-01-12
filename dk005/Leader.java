@@ -11,8 +11,8 @@ import dk005.Messaging.SignalContents;
 
 public class Leader extends BaseHandler {
 
-	public static final int SCOUT_COUNT_TO_ATTACK = 10;
-	public static final int VIPER_COUNT_TO_ATTACK = 2;
+	public static final int SCOUT_COUNT_TO_ATTACK = 5;
+	public static final int VIPER_COUNT_TO_ATTACK = 1;
 	public static final int INFECTED_COUNT_TO_CHARGE = 3;
 	// seeing an archon also triggers this
 	public static final int ENEMY_COUNT_TO_KAMAKAZE = 2;
@@ -52,6 +52,8 @@ public class Leader extends BaseHandler {
 		while (true) {
 			beginningOfLoop();
 			Mapping.updateMap();
+
+			rc.setIndicatorString(2, "" + curPlan.ordinal());
 
 			Signal[] signals = rc.emptySignalQueue();
 			SignalContents[] decodedSignals = Messaging.receiveBroadcasts(signals);
@@ -148,7 +150,10 @@ public class Leader extends BaseHandler {
 						// move in the straightest-line path
 						// TODO: we should probably use bug pathfinding
 						// here, since we want to path around enemies
-						Pathfinding.setTarget(allyTarget, /*avoidEnemies=*/true, /*giveSpace=*/ false);
+						Pathfinding.setTarget(allyTarget, /* avoidEnemies= */true, /*
+																				 * giveSpace
+																				 * =
+																				 */false);
 						Pathfinding.pathfindToward();
 					}
 					Clock.yield();
@@ -162,7 +167,8 @@ public class Leader extends BaseHandler {
 				// probably spend some time to hone in on the actual location
 				// plus we don't have to target archons--we can just target big
 				// groups of enemies
-				if (curLoc.distanceSquaredTo(enemyArchonLoc) < sensorRangeSq) {
+				RobotInfo[] nearbyEnemies = rc.senseNearbyRobots(sensorRangeSq, them);
+				if (curLoc.distanceSquaredTo(enemyArchonLoc) < sensorRangeSq || nearbyEnemies.length >= 1) {
 					curPlan = BattlePlan.PrepareForAttack;
 				} else {
 					// move forward if everyone is still behind us
@@ -171,8 +177,8 @@ public class Leader extends BaseHandler {
 					// here we're using a slightly smaller sensor range, to make
 					// sure everyone stays close
 					RobotInfo[] nearbyAllies = rc.senseNearbyRobots(RobotType.SOLDIER.sensorRadiusSquared, us);
-					if (shouldDepart(nearbyAllies)) {
-						curPlan = BattlePlan.Return;
+					if (!shouldDepart(nearbyAllies)) {
+						// curPlan = BattlePlan.Return;
 						Clock.yield();
 						continue;
 					} else {

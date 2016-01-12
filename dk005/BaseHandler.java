@@ -55,13 +55,13 @@ public class BaseHandler {
 			Archon.run();
 			break;
 		case GUARD:
-			Noop.run();
+			DefendTheArchon.run();
 			break;
 		case SCOUT:
 			Scout.run();
 			break;
 		case SOLDIER:
-			Noop.run();
+			DefendTheArchon.run();
 			break;
 		case TTM:
 			Noop.run();

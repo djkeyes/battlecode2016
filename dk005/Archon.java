@@ -11,10 +11,9 @@ import battlecode.common.Team;
 
 public class Archon extends BaseHandler {
 
-	public static final RobotType[] buildOrder = { RobotType.SCOUT, RobotType.VIPER, RobotType.SCOUT, RobotType.SCOUT,
-			RobotType.SCOUT, RobotType.SCOUT, RobotType.SCOUT, RobotType.SCOUT, RobotType.SCOUT, RobotType.SCOUT,
-			RobotType.SCOUT, RobotType.SCOUT, RobotType.SCOUT, RobotType.SCOUT, RobotType.SCOUT, RobotType.SCOUT,
-			RobotType.SCOUT };
+	public static final RobotType[] buildOrder = { RobotType.SCOUT, RobotType.SOLDIER, RobotType.SOLDIER, RobotType.SOLDIER,
+			RobotType.SOLDIER, RobotType.VIPER, RobotType.SCOUT, RobotType.SCOUT, RobotType.SCOUT, RobotType.SCOUT,
+			RobotType.SCOUT, RobotType.SCOUT, RobotType.SCOUT, RobotType.SCOUT };
 	// public static final RobotType[] buildOrder = { RobotType.SCOUT,
 	// RobotType.VIPER, RobotType.SCOUT, RobotType.SCOUT,
 	// RobotType.SCOUT, RobotType.SCOUT, RobotType.TURRET, RobotType.TURRET,
