@@ -1,0 +1,475 @@
+<object-stream>
+  <game-map width="30" height="30" origin="421,144" seed="1337" rounds="2000" mapName="DEATHCIRCLE">
+    <initialRubble>
+      <double-array>0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0</double-array>
+      <double-array>0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0</double-array>
+      <double-array>0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0</double-array>
+      <double-array>0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0</double-array>
+      <double-array>0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,10.0,10.0,0.0,10.0,10.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0</double-array>
+      <double-array>0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,10.0,10.0,10.0,0.0,0.0,10.0,10.0,10.0,10.0,10.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0</double-array>
+      <double-array>0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,10.0,10.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,10.0,10.0,10.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0</double-array>
+      <double-array>0.0,0.0,0.0,0.0,0.0,0.0,10.0,10.0,10.0,10.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0</double-array>
+      <double-array>0.0,0.0,0.0,0.0,0.0,0.0,10.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,10.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0</double-array>
+      <double-array>0.0,0.0,0.0,0.0,0.0,10.0,10.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,10.0,10.0,0.0,0.0,0.0,0.0,0.0,0.0</double-array>
+      <double-array>0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,10.0,10.0,0.0,0.0,0.0,0.0,0.0</double-array>
+      <double-array>0.0,0.0,0.0,0.0,10.0,10.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,10.0,0.0,0.0,0.0,0.0,0.0</double-array>
+      <double-array>0.0,0.0,0.0,0.0,10.0,10.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,10.0,0.0,0.0,0.0,0.0,0.0</double-array>
+      <double-array>0.0,0.0,0.0,0.0,10.0,10.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,10.0,0.0,0.0,0.0,0.0,0.0</double-array>
+      <double-array>0.0,0.0,0.0,0.0,0.0,10.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,10.0,0.0,0.0,0.0,0.0,0.0</double-array>
+      <double-array>0.0,0.0,0.0,0.0,0.0,10.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,10.0,0.0,0.0,0.0,0.0,0.0</double-array>
+      <double-array>0.0,0.0,0.0,0.0,0.0,10.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,10.0,10.0,0.0,0.0,0.0,0.0</double-array>
+      <double-array>0.0,0.0,0.0,0.0,0.0,10.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,10.0,10.0,0.0,0.0,0.0,0.0</double-array>
+      <double-array>0.0,0.0,0.0,0.0,0.0,10.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,10.0,10.0,0.0,0.0,0.0,0.0</double-array>
+      <double-array>0.0,0.0,0.0,0.0,0.0,10.0,10.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0</double-array>
+      <double-array>0.0,0.0,0.0,0.0,0.0,0.0,10.0,10.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,10.0,10.0,0.0,0.0,0.0,0.0,0.0</double-array>
+      <double-array>0.0,0.0,0.0,0.0,0.0,0.0,0.0,10.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,10.0,0.0,0.0,0.0,0.0,0.0,0.0</double-array>
+      <double-array>0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,10.0,10.0,10.0,10.0,0.0,0.0,0.0,0.0,0.0,0.0</double-array>
+      <double-array>0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,10.0,10.0,10.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,10.0,10.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0</double-array>
+      <double-array>0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,10.0,10.0,10.0,10.0,10.0,0.0,0.0,10.0,10.0,10.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0</double-array>
+      <double-array>0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,10.0,10.0,0.0,10.0,10.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0</double-array>
+      <double-array>0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0</double-array>
+      <double-array>0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0</double-array>
+      <double-array>0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0</double-array>
+      <double-array>0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0</double-array>
+    </initialRubble>
+    <initialParts>
+      <double-array>0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0</double-array>
+      <double-array>0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0</double-array>
+      <double-array>0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0</double-array>
+      <double-array>0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0</double-array>
+      <double-array>0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0</double-array>
+      <double-array>0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0</double-array>
+      <double-array>0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0</double-array>
+      <double-array>0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,10.0,10.0,10.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0</double-array>
+      <double-array>0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,10.0,10.0,10.0,10.0,10.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0</double-array>
+      <double-array>0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,10.0,10.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0</double-array>
+      <double-array>0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,10.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0</double-array>
+      <double-array>0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0</double-array>
+      <double-array>0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0</double-array>
+      <double-array>0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,10.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0</double-array>
+      <double-array>0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,10.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0</double-array>
+      <double-array>0.0,0.0,0.0,0.0,0.0,0.0,0.0,10.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0</double-array>
+      <double-array>0.0,0.0,0.0,0.0,0.0,0.0,0.0,10.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0</double-array>
+      <double-array>0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0</double-array>
+      <double-array>0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0</double-array>
+      <double-array>0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,10.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0</double-array>
+      <double-array>0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,10.0,10.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0</double-array>
+      <double-array>0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,10.0,10.0,10.0,10.0,10.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0</double-array>
+      <double-array>0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,10.0,10.0,10.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0</double-array>
+      <double-array>0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0</double-array>
+      <double-array>0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0</double-array>
+      <double-array>0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0</double-array>
+      <double-array>0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0</double-array>
+      <double-array>0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0</double-array>
+      <double-array>0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0</double-array>
+      <double-array>0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0</double-array>
+    </initialParts>
+    <zombieSpawnSchedule/>
+    <initialRobots>
+      <initial-robot originOffsetX="0" originOffsetY="10" type="STANDARDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="0" originOffsetY="11" type="STANDARDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="0" originOffsetY="12" type="STANDARDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="1" originOffsetY="0" type="ZOMBIEDEN" team="NEUTRAL"/>
+      <initial-robot originOffsetX="1" originOffsetY="4" type="FASTZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="1" originOffsetY="5" type="FASTZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="1" originOffsetY="6" type="FASTZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="1" originOffsetY="7" type="FASTZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="1" originOffsetY="8" type="FASTZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="1" originOffsetY="9" type="FASTZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="1" originOffsetY="10" type="FASTZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="1" originOffsetY="12" type="STANDARDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="1" originOffsetY="13" type="RANGEDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="1" originOffsetY="14" type="RANGEDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="1" originOffsetY="15" type="RANGEDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="1" originOffsetY="16" type="RANGEDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="1" originOffsetY="17" type="RANGEDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="1" originOffsetY="18" type="RANGEDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="1" originOffsetY="19" type="STANDARDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="1" originOffsetY="20" type="STANDARDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="1" originOffsetY="21" type="STANDARDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="1" originOffsetY="22" type="STANDARDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="1" originOffsetY="28" type="ZOMBIEDEN" team="NEUTRAL"/>
+      <initial-robot originOffsetX="2" originOffsetY="3" type="FASTZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="2" originOffsetY="4" type="FASTZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="2" originOffsetY="6" type="STANDARDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="2" originOffsetY="7" type="STANDARDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="2" originOffsetY="8" type="STANDARDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="2" originOffsetY="10" type="FASTZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="2" originOffsetY="11" type="FASTZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="2" originOffsetY="12" type="BIGZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="2" originOffsetY="13" type="BIGZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="2" originOffsetY="14" type="BIGZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="2" originOffsetY="15" type="FASTZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="2" originOffsetY="18" type="RANGEDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="2" originOffsetY="19" type="RANGEDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="2" originOffsetY="21" type="FASTZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="2" originOffsetY="22" type="FASTZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="2" originOffsetY="23" type="FASTZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="2" originOffsetY="24" type="FASTZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="2" originOffsetY="25" type="FASTZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="2" originOffsetY="26" type="FASTZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="2" originOffsetY="27" type="FASTZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="2" originOffsetY="28" type="FASTZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="2" originOffsetY="29" type="ZOMBIEDEN" team="ZOMBIE"/>
+      <initial-robot originOffsetX="3" originOffsetY="5" type="STANDARDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="3" originOffsetY="6" type="STANDARDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="3" originOffsetY="8" type="RANGEDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="3" originOffsetY="9" type="RANGEDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="3" originOffsetY="10" type="BIGZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="3" originOffsetY="11" type="BIGZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="3" originOffsetY="14" type="BIGZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="3" originOffsetY="15" type="BIGZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="3" originOffsetY="16" type="BIGZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="3" originOffsetY="17" type="FASTZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="3" originOffsetY="18" type="FASTZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="3" originOffsetY="19" type="FASTZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="3" originOffsetY="20" type="FASTZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="3" originOffsetY="21" type="FASTZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="3" originOffsetY="23" type="STANDARDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="3" originOffsetY="24" type="RANGEDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="3" originOffsetY="25" type="RANGEDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="3" originOffsetY="26" type="RANGEDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="3" originOffsetY="27" type="RANGEDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="4" originOffsetY="3" type="STANDARDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="4" originOffsetY="4" type="STANDARDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="4" originOffsetY="5" type="STANDARDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="4" originOffsetY="6" type="RANGEDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="4" originOffsetY="7" type="RANGEDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="4" originOffsetY="8" type="BIGZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="4" originOffsetY="9" type="BIGZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="4" originOffsetY="16" type="BIGZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="4" originOffsetY="17" type="BIGZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="4" originOffsetY="18" type="BIGZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="4" originOffsetY="19" type="BIGZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="4" originOffsetY="20" type="BIGZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="4" originOffsetY="21" type="RANGEDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="4" originOffsetY="22" type="RANGEDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="4" originOffsetY="23" type="RANGEDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="4" originOffsetY="25" type="STANDARDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="4" originOffsetY="26" type="STANDARDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="4" originOffsetY="27" type="RANGEDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="4" originOffsetY="28" type="RANGEDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="5" originOffsetY="2" type="STANDARDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="5" originOffsetY="3" type="STANDARDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="5" originOffsetY="5" type="RANGEDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="5" originOffsetY="6" type="RANGEDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="5" originOffsetY="7" type="BIGZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="5" originOffsetY="8" type="BIGZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="5" originOffsetY="23" type="RANGEDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="5" originOffsetY="24" type="RANGEDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="5" originOffsetY="27" type="STANDARDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="5" originOffsetY="28" type="RANGEDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="6" originOffsetY="2" type="STANDARDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="6" originOffsetY="5" type="RANGEDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="6" originOffsetY="7" type="BIGZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="6" originOffsetY="22" type="BIGZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="6" originOffsetY="24" type="RANGEDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="6" originOffsetY="28" type="RANGEDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="6" originOffsetY="29" type="STANDARDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="7" originOffsetY="1" type="STANDARDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="7" originOffsetY="2" type="STANDARDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="7" originOffsetY="5" type="RANGEDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="7" originOffsetY="6" type="BIGZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="7" originOffsetY="7" type="BIGZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="7" originOffsetY="10" type="SCOUT" team="A"/>
+      <initial-robot originOffsetX="7" originOffsetY="11" type="SCOUT" team="A"/>
+      <initial-robot originOffsetX="7" originOffsetY="22" type="BIGZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="7" originOffsetY="23" type="BIGZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="7" originOffsetY="24" type="RANGEDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="7" originOffsetY="25" type="RANGEDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="7" originOffsetY="28" type="RANGEDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="7" originOffsetY="29" type="RANGEDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="8" originOffsetY="0" type="STANDARDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="8" originOffsetY="1" type="STANDARDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="8" originOffsetY="4" type="RANGEDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="8" originOffsetY="5" type="BIGZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="8" originOffsetY="8" type="SCOUT" team="A"/>
+      <initial-robot originOffsetX="8" originOffsetY="9" type="SCOUT" team="A"/>
+      <initial-robot originOffsetX="8" originOffsetY="10" type="SCOUT" team="A"/>
+      <initial-robot originOffsetX="8" originOffsetY="19" type="SCOUT" team="A"/>
+      <initial-robot originOffsetX="8" originOffsetY="20" type="SCOUT" team="A"/>
+      <initial-robot originOffsetX="8" originOffsetY="23" type="BIGZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="8" originOffsetY="24" type="BIGZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="8" originOffsetY="25" type="RANGEDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="8" originOffsetY="26" type="RANGEDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="8" originOffsetY="29" type="RANGEDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="9" originOffsetY="0" type="STANDARDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="9" originOffsetY="4" type="BIGZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="9" originOffsetY="5" type="BIGZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="9" originOffsetY="8" type="SCOUT" team="A"/>
+      <initial-robot originOffsetX="9" originOffsetY="16" type="TURRET" team="A"/>
+      <initial-robot originOffsetX="9" originOffsetY="17" type="TURRET" team="A"/>
+      <initial-robot originOffsetX="9" originOffsetY="20" type="SCOUT" team="A"/>
+      <initial-robot originOffsetX="9" originOffsetY="21" type="SCOUT" team="A"/>
+      <initial-robot originOffsetX="9" originOffsetY="24" type="BIGZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="9" originOffsetY="25" type="BIGZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="9" originOffsetY="26" type="RANGEDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="9" originOffsetY="27" type="RANGEDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="9" originOffsetY="29" type="RANGEDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="10" originOffsetY="0" type="STANDARDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="10" originOffsetY="3" type="RANGEDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="10" originOffsetY="4" type="BIGZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="10" originOffsetY="13" type="TURRET" team="A"/>
+      <initial-robot originOffsetX="10" originOffsetY="21" type="SCOUT" team="A"/>
+      <initial-robot originOffsetX="10" originOffsetY="22" type="SCOUT" team="A"/>
+      <initial-robot originOffsetX="10" originOffsetY="25" type="BIGZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="10" originOffsetY="26" type="BIGZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="10" originOffsetY="27" type="RANGEDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="10" originOffsetY="28" type="RANGEDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="10" originOffsetY="29" type="RANGEDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="11" originOffsetY="0" type="STANDARDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="11" originOffsetY="2" type="RANGEDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="11" originOffsetY="3" type="BIGZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="11" originOffsetY="4" type="BIGZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="11" originOffsetY="11" type="VIPER" team="A"/>
+      <initial-robot originOffsetX="11" originOffsetY="13" type="ARCHON" team="A"/>
+      <initial-robot originOffsetX="11" originOffsetY="14" type="ARCHON" team="A"/>
+      <initial-robot originOffsetX="11" originOffsetY="15" type="ARCHON" team="A"/>
+      <initial-robot originOffsetX="11" originOffsetY="18" type="VIPER" team="A"/>
+      <initial-robot originOffsetX="11" originOffsetY="22" type="SCOUT" team="A"/>
+      <initial-robot originOffsetX="11" originOffsetY="26" type="BIGZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="11" originOffsetY="28" type="RANGEDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="11" originOffsetY="29" type="RANGEDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="12" originOffsetY="0" type="STANDARDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="12" originOffsetY="2" type="RANGEDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="12" originOffsetY="3" type="BIGZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="12" originOffsetY="13" type="ARCHON" team="A"/>
+      <initial-robot originOffsetX="12" originOffsetY="14" type="ARCHON" team="A"/>
+      <initial-robot originOffsetX="12" originOffsetY="15" type="ARCHON" team="A"/>
+      <initial-robot originOffsetX="12" originOffsetY="26" type="BIGZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="12" originOffsetY="29" type="RANGEDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="13" originOffsetY="0" type="STANDARDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="13" originOffsetY="1" type="RANGEDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="13" originOffsetY="2" type="BIGZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="13" originOffsetY="3" type="BIGZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="13" originOffsetY="11" type="SOLDIER" team="A"/>
+      <initial-robot originOffsetX="13" originOffsetY="12" type="SOLDIER" team="A"/>
+      <initial-robot originOffsetX="13" originOffsetY="13" type="SOLDIER" team="A"/>
+      <initial-robot originOffsetX="13" originOffsetY="14" type="SOLDIER" team="A"/>
+      <initial-robot originOffsetX="13" originOffsetY="15" type="SOLDIER" team="A"/>
+      <initial-robot originOffsetX="13" originOffsetY="16" type="SOLDIER" team="A"/>
+      <initial-robot originOffsetX="13" originOffsetY="17" type="SOLDIER" team="A"/>
+      <initial-robot originOffsetX="13" originOffsetY="18" type="SOLDIER" team="A"/>
+      <initial-robot originOffsetX="13" originOffsetY="26" type="BIGZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="13" originOffsetY="27" type="BIGZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="13" originOffsetY="28" type="RANGEDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="13" originOffsetY="29" type="RANGEDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="14" originOffsetY="0" type="STANDARDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="14" originOffsetY="1" type="RANGEDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="14" originOffsetY="2" type="BIGZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="14" originOffsetY="11" type="SOLDIER" team="A"/>
+      <initial-robot originOffsetX="14" originOffsetY="12" type="SOLDIER" team="A"/>
+      <initial-robot originOffsetX="14" originOffsetY="13" type="GUARD" team="A"/>
+      <initial-robot originOffsetX="14" originOffsetY="14" type="GUARD" team="A"/>
+      <initial-robot originOffsetX="14" originOffsetY="15" type="GUARD" team="A"/>
+      <initial-robot originOffsetX="14" originOffsetY="16" type="GUARD" team="A"/>
+      <initial-robot originOffsetX="14" originOffsetY="17" type="GUARD" team="A"/>
+      <initial-robot originOffsetX="14" originOffsetY="18" type="SOLDIER" team="A"/>
+      <initial-robot originOffsetX="14" originOffsetY="27" type="BIGZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="14" originOffsetY="28" type="RANGEDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="14" originOffsetY="29" type="STANDARDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="15" originOffsetY="0" type="STANDARDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="15" originOffsetY="1" type="RANGEDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="15" originOffsetY="2" type="BIGZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="15" originOffsetY="11" type="SOLDIER" team="B"/>
+      <initial-robot originOffsetX="15" originOffsetY="12" type="GUARD" team="B"/>
+      <initial-robot originOffsetX="15" originOffsetY="13" type="GUARD" team="B"/>
+      <initial-robot originOffsetX="15" originOffsetY="14" type="GUARD" team="B"/>
+      <initial-robot originOffsetX="15" originOffsetY="15" type="GUARD" team="B"/>
+      <initial-robot originOffsetX="15" originOffsetY="16" type="GUARD" team="B"/>
+      <initial-robot originOffsetX="15" originOffsetY="17" type="SOLDIER" team="B"/>
+      <initial-robot originOffsetX="15" originOffsetY="18" type="SOLDIER" team="B"/>
+      <initial-robot originOffsetX="15" originOffsetY="27" type="BIGZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="15" originOffsetY="28" type="RANGEDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="15" originOffsetY="29" type="STANDARDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="16" originOffsetY="0" type="RANGEDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="16" originOffsetY="1" type="RANGEDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="16" originOffsetY="2" type="BIGZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="16" originOffsetY="3" type="BIGZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="16" originOffsetY="11" type="SOLDIER" team="B"/>
+      <initial-robot originOffsetX="16" originOffsetY="12" type="SOLDIER" team="B"/>
+      <initial-robot originOffsetX="16" originOffsetY="13" type="SOLDIER" team="B"/>
+      <initial-robot originOffsetX="16" originOffsetY="14" type="SOLDIER" team="B"/>
+      <initial-robot originOffsetX="16" originOffsetY="15" type="SOLDIER" team="B"/>
+      <initial-robot originOffsetX="16" originOffsetY="16" type="SOLDIER" team="B"/>
+      <initial-robot originOffsetX="16" originOffsetY="17" type="SOLDIER" team="B"/>
+      <initial-robot originOffsetX="16" originOffsetY="18" type="SOLDIER" team="B"/>
+      <initial-robot originOffsetX="16" originOffsetY="26" type="BIGZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="16" originOffsetY="27" type="BIGZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="16" originOffsetY="28" type="RANGEDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="16" originOffsetY="29" type="STANDARDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="17" originOffsetY="0" type="RANGEDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="17" originOffsetY="3" type="BIGZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="17" originOffsetY="14" type="ARCHON" team="B"/>
+      <initial-robot originOffsetX="17" originOffsetY="15" type="ARCHON" team="B"/>
+      <initial-robot originOffsetX="17" originOffsetY="16" type="ARCHON" team="B"/>
+      <initial-robot originOffsetX="17" originOffsetY="26" type="BIGZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="17" originOffsetY="27" type="RANGEDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="17" originOffsetY="29" type="STANDARDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="18" originOffsetY="0" type="RANGEDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="18" originOffsetY="1" type="RANGEDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="18" originOffsetY="3" type="BIGZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="18" originOffsetY="7" type="SCOUT" team="B"/>
+      <initial-robot originOffsetX="18" originOffsetY="11" type="VIPER" team="B"/>
+      <initial-robot originOffsetX="18" originOffsetY="14" type="ARCHON" team="B"/>
+      <initial-robot originOffsetX="18" originOffsetY="15" type="ARCHON" team="B"/>
+      <initial-robot originOffsetX="18" originOffsetY="16" type="ARCHON" team="B"/>
+      <initial-robot originOffsetX="18" originOffsetY="18" type="VIPER" team="B"/>
+      <initial-robot originOffsetX="18" originOffsetY="25" type="BIGZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="18" originOffsetY="26" type="BIGZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="18" originOffsetY="27" type="RANGEDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="18" originOffsetY="29" type="STANDARDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="19" originOffsetY="0" type="RANGEDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="19" originOffsetY="1" type="RANGEDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="19" originOffsetY="2" type="RANGEDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="19" originOffsetY="3" type="BIGZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="19" originOffsetY="4" type="BIGZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="19" originOffsetY="7" type="SCOUT" team="B"/>
+      <initial-robot originOffsetX="19" originOffsetY="8" type="SCOUT" team="B"/>
+      <initial-robot originOffsetX="19" originOffsetY="16" type="TURRET" team="B"/>
+      <initial-robot originOffsetX="19" originOffsetY="25" type="BIGZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="19" originOffsetY="26" type="RANGEDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="19" originOffsetY="29" type="STANDARDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="20" originOffsetY="0" type="RANGEDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="20" originOffsetY="2" type="RANGEDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="20" originOffsetY="3" type="RANGEDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="20" originOffsetY="4" type="BIGZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="20" originOffsetY="5" type="BIGZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="20" originOffsetY="8" type="SCOUT" team="B"/>
+      <initial-robot originOffsetX="20" originOffsetY="9" type="SCOUT" team="B"/>
+      <initial-robot originOffsetX="20" originOffsetY="12" type="TURRET" team="B"/>
+      <initial-robot originOffsetX="20" originOffsetY="13" type="TURRET" team="B"/>
+      <initial-robot originOffsetX="20" originOffsetY="21" type="SCOUT" team="B"/>
+      <initial-robot originOffsetX="20" originOffsetY="24" type="BIGZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="20" originOffsetY="25" type="BIGZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="20" originOffsetY="29" type="STANDARDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="21" originOffsetY="0" type="RANGEDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="21" originOffsetY="3" type="RANGEDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="21" originOffsetY="4" type="RANGEDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="21" originOffsetY="5" type="BIGZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="21" originOffsetY="6" type="BIGZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="21" originOffsetY="9" type="SCOUT" team="B"/>
+      <initial-robot originOffsetX="21" originOffsetY="10" type="SCOUT" team="B"/>
+      <initial-robot originOffsetX="21" originOffsetY="19" type="SCOUT" team="B"/>
+      <initial-robot originOffsetX="21" originOffsetY="20" type="SCOUT" team="B"/>
+      <initial-robot originOffsetX="21" originOffsetY="21" type="SCOUT" team="B"/>
+      <initial-robot originOffsetX="21" originOffsetY="24" type="BIGZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="21" originOffsetY="25" type="RANGEDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="21" originOffsetY="28" type="STANDARDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="21" originOffsetY="29" type="STANDARDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="22" originOffsetY="0" type="RANGEDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="22" originOffsetY="1" type="RANGEDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="22" originOffsetY="4" type="RANGEDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="22" originOffsetY="5" type="RANGEDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="22" originOffsetY="6" type="BIGZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="22" originOffsetY="7" type="BIGZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="22" originOffsetY="18" type="SCOUT" team="B"/>
+      <initial-robot originOffsetX="22" originOffsetY="19" type="SCOUT" team="B"/>
+      <initial-robot originOffsetX="22" originOffsetY="22" type="BIGZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="22" originOffsetY="23" type="BIGZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="22" originOffsetY="24" type="RANGEDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="22" originOffsetY="27" type="STANDARDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="22" originOffsetY="28" type="STANDARDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="23" originOffsetY="0" type="STANDARDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="23" originOffsetY="1" type="RANGEDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="23" originOffsetY="5" type="RANGEDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="23" originOffsetY="7" type="BIGZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="23" originOffsetY="22" type="BIGZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="23" originOffsetY="24" type="RANGEDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="23" originOffsetY="27" type="STANDARDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="24" originOffsetY="1" type="RANGEDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="24" originOffsetY="2" type="STANDARDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="24" originOffsetY="5" type="RANGEDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="24" originOffsetY="6" type="RANGEDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="24" originOffsetY="21" type="BIGZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="24" originOffsetY="22" type="BIGZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="24" originOffsetY="23" type="RANGEDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="24" originOffsetY="24" type="RANGEDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="24" originOffsetY="26" type="STANDARDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="24" originOffsetY="27" type="STANDARDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="25" originOffsetY="1" type="RANGEDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="25" originOffsetY="2" type="RANGEDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="25" originOffsetY="3" type="STANDARDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="25" originOffsetY="4" type="STANDARDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="25" originOffsetY="6" type="RANGEDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="25" originOffsetY="7" type="RANGEDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="25" originOffsetY="8" type="RANGEDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="25" originOffsetY="9" type="BIGZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="25" originOffsetY="10" type="BIGZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="25" originOffsetY="11" type="BIGZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="25" originOffsetY="12" type="BIGZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="25" originOffsetY="13" type="BIGZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="25" originOffsetY="20" type="BIGZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="25" originOffsetY="21" type="BIGZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="25" originOffsetY="22" type="RANGEDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="25" originOffsetY="23" type="RANGEDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="25" originOffsetY="24" type="STANDARDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="25" originOffsetY="25" type="STANDARDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="25" originOffsetY="26" type="STANDARDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="26" originOffsetY="2" type="RANGEDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="26" originOffsetY="3" type="RANGEDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="26" originOffsetY="4" type="RANGEDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="26" originOffsetY="5" type="RANGEDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="26" originOffsetY="6" type="STANDARDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="26" originOffsetY="8" type="FASTZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="26" originOffsetY="9" type="FASTZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="26" originOffsetY="10" type="FASTZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="26" originOffsetY="11" type="FASTZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="26" originOffsetY="12" type="FASTZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="26" originOffsetY="13" type="BIGZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="26" originOffsetY="14" type="BIGZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="26" originOffsetY="15" type="BIGZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="26" originOffsetY="18" type="BIGZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="26" originOffsetY="19" type="BIGZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="26" originOffsetY="20" type="RANGEDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="26" originOffsetY="21" type="RANGEDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="26" originOffsetY="23" type="STANDARDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="26" originOffsetY="24" type="STANDARDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="27" originOffsetY="0" type="ZOMBIEDEN" team="ZOMBIE"/>
+      <initial-robot originOffsetX="27" originOffsetY="1" type="FASTZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="27" originOffsetY="2" type="FASTZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="27" originOffsetY="3" type="FASTZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="27" originOffsetY="4" type="FASTZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="27" originOffsetY="5" type="FASTZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="27" originOffsetY="6" type="FASTZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="27" originOffsetY="7" type="FASTZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="27" originOffsetY="8" type="FASTZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="27" originOffsetY="10" type="RANGEDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="27" originOffsetY="11" type="RANGEDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="27" originOffsetY="14" type="FASTZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="27" originOffsetY="15" type="BIGZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="27" originOffsetY="16" type="BIGZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="27" originOffsetY="17" type="BIGZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="27" originOffsetY="18" type="FASTZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="27" originOffsetY="19" type="FASTZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="27" originOffsetY="21" type="STANDARDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="27" originOffsetY="22" type="STANDARDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="27" originOffsetY="23" type="STANDARDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="27" originOffsetY="25" type="FASTZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="27" originOffsetY="26" type="FASTZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="28" originOffsetY="1" type="ZOMBIEDEN" team="NEUTRAL"/>
+      <initial-robot originOffsetX="28" originOffsetY="7" type="STANDARDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="28" originOffsetY="8" type="STANDARDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="28" originOffsetY="9" type="STANDARDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="28" originOffsetY="10" type="STANDARDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="28" originOffsetY="11" type="RANGEDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="28" originOffsetY="12" type="RANGEDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="28" originOffsetY="13" type="RANGEDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="28" originOffsetY="14" type="RANGEDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="28" originOffsetY="15" type="RANGEDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="28" originOffsetY="16" type="RANGEDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="28" originOffsetY="17" type="STANDARDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="28" originOffsetY="19" type="FASTZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="28" originOffsetY="20" type="FASTZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="28" originOffsetY="21" type="FASTZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="28" originOffsetY="22" type="FASTZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="28" originOffsetY="23" type="FASTZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="28" originOffsetY="24" type="FASTZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="28" originOffsetY="25" type="FASTZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="28" originOffsetY="29" type="ZOMBIEDEN" team="NEUTRAL"/>
+      <initial-robot originOffsetX="29" originOffsetY="17" type="STANDARDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="29" originOffsetY="18" type="STANDARDZOMBIE" team="ZOMBIE"/>
+      <initial-robot originOffsetX="29" originOffsetY="19" type="STANDARDZOMBIE" team="ZOMBIE"/>
+    </initialRobots>
+  </game-map>
+</object-stream>

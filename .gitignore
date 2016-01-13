@@ -1,0 +1,27 @@
+*.class
+
+# Package Files
+*.jar
+*.war
+*.ear
+
+# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
+hs_err_pid*
+
+# temporary folders
+lib/
+bin/
+
+# unneeded eclipse info
+.metadata/
+
+# match files
+*rms
+
+# battlecode scaffold folders--install these yourself
+bc.conf
+build.xml
+ide/
+ivy.xml
+.ivy/
+
