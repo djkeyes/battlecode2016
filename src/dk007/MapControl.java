@@ -107,7 +107,7 @@ public class MapControl extends BaseHandler {
 			}
 		}
 
-		Pathfinding.setTarget(nearestArchon, true, true);
+		Pathfinding.setTarget(nearestArchon, true, true, false);
 		Pathfinding.pathfindToward();
 		return;
 	}

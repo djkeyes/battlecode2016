@@ -2,6 +2,7 @@ package dk007;
 
 import battlecode.common.Direction;
 import battlecode.common.GameActionException;
+import battlecode.common.GameConstants;
 import battlecode.common.MapLocation;
 import battlecode.common.RobotInfo;
 import battlecode.common.RobotType;
@@ -17,6 +18,7 @@ public class Pathfinding extends BaseHandler {
 
 	private static boolean avoidEnemies;
 	private static boolean giveSpace;
+	private static boolean clearRubble;
 	private static MapLocation target;
 
 	// bug mode state
@@ -34,12 +36,13 @@ public class Pathfinding extends BaseHandler {
 
 	private static RobotInfo[] nearbyEnemies;
 
-	public static void setTarget(MapLocation target, boolean avoidEnemies, boolean giveSpace) {
+	public static void setTarget(MapLocation target, boolean avoidEnemies, boolean giveSpace, boolean clearRubble) {
 		if (!target.equals(Pathfinding.target) || Pathfinding.avoidEnemies != avoidEnemies) {
 			Pathfinding.target = target;
 			inBugMode = false;
 			Pathfinding.avoidEnemies = avoidEnemies;
 			Pathfinding.giveSpace = giveSpace;
+			Pathfinding.clearRubble = clearRubble;
 		}
 	}
 
@@ -83,7 +86,7 @@ public class Pathfinding extends BaseHandler {
 				}
 			}
 			if (dirToMove != null) {
-				rc.move(dirToMove);
+				move(dirToMove);
 				return true;
 			} else if (dirToMove == null) {
 				inBugMode = true;
@@ -124,8 +127,7 @@ public class Pathfinding extends BaseHandler {
 			}
 
 			if (dir != null) {
-
-				rc.move(dir);
+				move(dir);
 				numTurns += calculateBugRotation(dir);
 				lastMoveDir = dir;
 				if (isGoingLeft) {
@@ -138,6 +140,19 @@ public class Pathfinding extends BaseHandler {
 		}
 
 		return false;
+	}
+
+	private static void move(Direction dirToMove) throws GameActionException {
+		if (clearRubble) {
+			double rubble = rc.senseRubble(curLoc.add(dirToMove));
+			if (rubble >= GameConstants.RUBBLE_SLOW_THRESH) {
+				rc.clearRubble(dirToMove);
+			} else {
+				rc.move(dirToMove);
+			}
+		} else {
+			rc.move(dirToMove);
+		}
 	}
 
 	private static int numRightRotations(Direction start, Direction end) {
@@ -157,8 +172,17 @@ public class Pathfinding extends BaseHandler {
 	}
 
 	private static boolean canMove(Direction dir) {
-		if (!rc.canMove(dir)) {
-			return false;
+		if (clearRubble) {
+			// if the rubble is high enough, we can always dig it
+			// but it's low enough, we need to check if it's occupied
+			double rubble = rc.senseRubble(curLoc.add(dir));
+			if (rubble < GameConstants.RUBBLE_SLOW_THRESH && !rc.canMove(dir)) {
+				return false;
+			}
+		} else {
+			if (!rc.canMove(dir)) {
+				return false;
+			}
 		}
 
 		if (giveSpace && target.distanceSquaredTo(curLoc.add(dir)) <= 2) {

@@ -1,6 +1,5 @@
 package dk007;
 
-import battlecode.common.Clock;
 import battlecode.common.Direction;
 import battlecode.common.GameActionException;
 import battlecode.common.GameConstants;
@@ -106,7 +105,7 @@ public class Micro extends BaseHandler {
 							weakestLoc = weakest.location;
 						}
 						if (weakestLoc != null) {
-							Pathfinding.setTarget(weakestLoc, false, false);
+							Pathfinding.setTarget(weakestLoc, false, false, false);
 							Pathfinding.pathfindToward();
 						}
 						rc.setIndicatorString(2, "we outnumber but no one to shoot, advancing");
@@ -141,7 +140,7 @@ public class Micro extends BaseHandler {
 						weakestLoc = weakest.location;
 					}
 					if (weakestLoc != null) {
-						Pathfinding.setTarget(weakestLoc, nearbyAllies.length > nearbyEnemies.length, false);
+						Pathfinding.setTarget(weakestLoc, nearbyAllies.length > nearbyEnemies.length, false, false);
 						Pathfinding.pathfindToward();
 					}
 					rc.setIndicatorString(2, "no one to shoot, advancing");
