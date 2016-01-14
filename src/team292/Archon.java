@@ -64,7 +64,7 @@ public class Archon extends BaseHandler {
 		// run away
 		if (hostiles.length > 0) {
 			rc.setIndicatorString(0, "retreating");
-			Micro.retreat(hostiles);
+			Micro.retreat(hostiles, false);
 			return;
 		}
 
@@ -179,13 +179,13 @@ public class Archon extends BaseHandler {
 	private static boolean tryToMove() throws GameActionException {
 		if (closestFreeParts != null && curLoc.distanceSquaredTo(closestFreeParts) <= 2
 				&& rc.senseRubble(closestFreeParts) < GameConstants.RUBBLE_OBSTRUCTION_THRESH) {
-			Pathfinding.setTarget(closestFreeParts, true, false);
+			Pathfinding.setTarget(closestFreeParts, true, false, false);
 			return Pathfinding.pathfindToward();
 		} else if (bestNeutral != null) {
-			Pathfinding.setTarget(bestNeutral, true, false);
+			Pathfinding.setTarget(bestNeutral, true, false, false);
 			return Pathfinding.pathfindToward();
 		} else if (closestFreeParts != null) {
-			Pathfinding.setTarget(closestFreeParts, true, false);
+			Pathfinding.setTarget(closestFreeParts, true, false, false);
 			return Pathfinding.pathfindToward();
 		} else {
 

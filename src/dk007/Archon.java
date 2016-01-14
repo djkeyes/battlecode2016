@@ -1,7 +1,5 @@
 package dk007;
 
-import java.util.Arrays;
-
 import battlecode.common.Clock;
 import battlecode.common.Direction;
 import battlecode.common.GameActionException;
@@ -10,7 +8,6 @@ import battlecode.common.MapLocation;
 import battlecode.common.RobotInfo;
 import battlecode.common.RobotType;
 import battlecode.common.Team;
-import battlecode.common.ZombieSpawnSchedule;
 
 public class Archon extends BaseHandler {
 

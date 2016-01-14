@@ -88,7 +88,7 @@ public class Scout extends BaseHandler {
 				// 3. find the nearest viper and follow it.
 				MapLocation leader = trackLeader();
 				if (leader != null) {
-					Pathfinding.setTarget(leader, true, true);
+					Pathfinding.setTarget(leader, true, true, false);
 					Pathfinding.pathfindToward();
 					Clock.yield();
 					continue;
@@ -121,10 +121,7 @@ public class Scout extends BaseHandler {
 					if (roughEnemyDir != null) {
 						lastEnemyDir = roughEnemyDir;
 						MapLocation target = curLoc.add(roughEnemyDir).add(roughEnemyDir).add(roughEnemyDir);
-						Pathfinding.setTarget(target, /* avoidEnemies= */false, /*
-																			 * giveSpace
-																			 * =
-																			 */false);
+						Pathfinding.setTarget(target, false, false, false);
 						Pathfinding.pathfindToward();
 						Clock.yield();
 						continue;
@@ -137,10 +134,7 @@ public class Scout extends BaseHandler {
 					// 2. Otherwise, find nearest viper and follow it
 					MapLocation leader = trackLeader();
 					if (leader != null) {
-						Pathfinding.setTarget(leader, /* avoidEnemies= */true, /*
-																			 * giveSpace
-																			 * =
-																			 */true);
+						Pathfinding.setTarget(leader, true, true, false);
 						Pathfinding.pathfindToward();
 						Clock.yield();
 						continue;

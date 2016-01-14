@@ -1,6 +1,5 @@
 package team292;
 
-import java.util.Arrays;
 import java.util.Random;
 
 import battlecode.common.GameActionException;
@@ -58,13 +57,13 @@ public class BaseHandler {
 			Archon.run();
 			break;
 		case GUARD:
-			DefendTheArchon.run();
+			WaxAndWaneDefencer.run();
 			break;
 		case SCOUT:
 			Scout.run();
 			break;
 		case SOLDIER:
-			DefendTheArchon.run();
+			WaxAndWaneDefencer.run();
 			break;
 		case TTM:
 			Noop.run();

@@ -1,6 +1,5 @@
 package team292;
 
-import battlecode.common.Clock;
 import battlecode.common.Direction;
 import battlecode.common.GameActionException;
 import battlecode.common.GameConstants;
@@ -39,6 +38,7 @@ public class Micro extends BaseHandler {
 		double minThreatHealth = Double.MAX_VALUE;
 		double highestAtk = 0;
 		MapLocation weakestThreat = null;
+		boolean canWeOutrangeAnyThreats = false;
 		for (RobotInfo enemy : nearbyEnemies) {
 			// TODO: take turret min range into account here.
 			if (enemy.type == RobotType.ARCHON || enemy.type == RobotType.ZOMBIEDEN || enemy.type == RobotType.SCOUT) {
@@ -49,6 +49,10 @@ public class Micro extends BaseHandler {
 				numCanShootUs++;
 
 				highestAtk = Math.max(highestAtk, enemy.attackPower);
+
+				if (!canWeOutrangeAnyThreats && atkRangeSq >= enemy.type.attackRadiusSquared) {
+					canWeOutrangeAnyThreats = true;
+				}
 
 				if (distSq <= atkRangeSq) {
 					double health = enemy.health;
@@ -90,11 +94,15 @@ public class Micro extends BaseHandler {
 					// pick one that's an immediate threat
 					if (rc.isWeaponReady()) {
 						rc.attackLocation(weakestThreat);
+					} else if (canWeOutrangeAnyThreats) {
+						// if we're on cooldown, we can still move
+						// for every unit (except turrets), moving increases the
+						// weapon delay to AT MOST 1. but that's fine for us,
+						// because it's already larger than that.
+						if (rc.isCoreReady()) {
+							retreat(nearbyEnemies, false);
+						}
 					}
-					// even if we're on cooldown, no sense moving and screwing
-					// our
-					// delays. just stand still.
-					rc.setIndicatorString(2, "we outnumber, shooting");
 					return;
 				} else {
 					if (rc.isCoreReady()) {
@@ -106,19 +114,17 @@ public class Micro extends BaseHandler {
 							weakestLoc = weakest.location;
 						}
 						if (weakestLoc != null) {
-							Pathfinding.setTarget(weakestLoc, false, false);
+							Pathfinding.setTarget(weakestLoc, false, false, false);
 							Pathfinding.pathfindToward();
 						}
-						rc.setIndicatorString(2, "we outnumber but no one to shoot, advancing");
 					}
 					return;
 				}
 			} else {
 				// retreat
 				if (rc.isCoreReady()) {
-					retreat(nearbyEnemies);
+					retreat(nearbyEnemies, false);
 				}
-				rc.setIndicatorString(2, "we're outnumbered, running");
 				return;
 			}
 		} else {
@@ -128,7 +134,6 @@ public class Micro extends BaseHandler {
 				if (rc.isWeaponReady()) {
 					rc.attackLocation(weakest.location);
 				}
-				rc.setIndicatorString(2, "we're untouchable, shooting");
 				return;
 			} else {
 				// path toward the weakest person nearby
@@ -141,10 +146,9 @@ public class Micro extends BaseHandler {
 						weakestLoc = weakest.location;
 					}
 					if (weakestLoc != null) {
-						Pathfinding.setTarget(weakestLoc, nearbyAllies.length > nearbyEnemies.length, false);
+						Pathfinding.setTarget(weakestLoc, nearbyAllies.length > nearbyEnemies.length, false, false);
 						Pathfinding.pathfindToward();
 					}
-					rc.setIndicatorString(2, "no one to shoot, advancing");
 				}
 				return;
 			}
@@ -152,7 +156,8 @@ public class Micro extends BaseHandler {
 		}
 	}
 
-	public static boolean retreat(RobotInfo[] nearbyEnemies) throws GameActionException {
+	public static boolean retreat(RobotInfo[] nearbyEnemies, boolean clearRubbleAggressively)
+			throws GameActionException {
 		boolean[] isAwayFromEnemy = Util.dirsAwayFrom(nearbyEnemies, curLoc);
 
 		Direction dirToMove = null;
@@ -184,7 +189,9 @@ public class Micro extends BaseHandler {
 			if (dirToMove != null) {
 				rc.move(dirToMove);
 			} else if (dirToDig != null) {
-				if (minRubble >= GameConstants.RUBBLE_OBSTRUCTION_THRESH || Rubble.betterToClearRubble(minRubble)) {
+				if (clearRubbleAggressively
+						|| (minRubble >= GameConstants.RUBBLE_OBSTRUCTION_THRESH || Rubble
+								.betterToClearRubble(minRubble))) {
 					rc.clearRubble(dirToDig);
 				} else {
 					rc.move(dirToDig);
