@@ -1,4 +1,4 @@
-package team292;
+package dk007;
 
 import battlecode.common.Direction;
 import battlecode.common.GameActionException;

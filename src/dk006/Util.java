@@ -1,6 +1,7 @@
 package dk006;
 
 import java.util.Arrays;
+import java.util.Random;
 
 import battlecode.common.Direction;
 import battlecode.common.MapLocation;
