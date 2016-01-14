@@ -38,6 +38,7 @@ public class Micro extends BaseHandler {
 		double minThreatHealth = Double.MAX_VALUE;
 		double highestAtk = 0;
 		MapLocation weakestThreat = null;
+		boolean canWeOutrangeAnyThreats = false;
 		for (RobotInfo enemy : nearbyEnemies) {
 			// TODO: take turret min range into account here.
 			if (enemy.type == RobotType.ARCHON || enemy.type == RobotType.ZOMBIEDEN || enemy.type == RobotType.SCOUT) {
@@ -48,6 +49,10 @@ public class Micro extends BaseHandler {
 				numCanShootUs++;
 
 				highestAtk = Math.max(highestAtk, enemy.attackPower);
+
+				if (!canWeOutrangeAnyThreats && atkRangeSq >= enemy.type.attackRadiusSquared) {
+					canWeOutrangeAnyThreats = true;
+				}
 
 				if (distSq <= atkRangeSq) {
 					double health = enemy.health;
@@ -89,11 +94,15 @@ public class Micro extends BaseHandler {
 					// pick one that's an immediate threat
 					if (rc.isWeaponReady()) {
 						rc.attackLocation(weakestThreat);
+					} else if (canWeOutrangeAnyThreats) {
+						// if we're on cooldown, we can still move
+						// for every unit (except turrets), moving increases the
+						// weapon delay to AT MOST 1. but that's fine for us,
+						// because it's already larger than that.
+						if (rc.isCoreReady()) {
+							retreat(nearbyEnemies);
+						}
 					}
-					// even if we're on cooldown, no sense moving and screwing
-					// our
-					// delays. just stand still.
-					rc.setIndicatorString(2, "we outnumber, shooting");
 					return;
 				} else {
 					if (rc.isCoreReady()) {
@@ -108,7 +117,6 @@ public class Micro extends BaseHandler {
 							Pathfinding.setTarget(weakestLoc, false, false, false);
 							Pathfinding.pathfindToward();
 						}
-						rc.setIndicatorString(2, "we outnumber but no one to shoot, advancing");
 					}
 					return;
 				}
@@ -117,7 +125,6 @@ public class Micro extends BaseHandler {
 				if (rc.isCoreReady()) {
 					retreat(nearbyEnemies);
 				}
-				rc.setIndicatorString(2, "we're outnumbered, running");
 				return;
 			}
 		} else {
@@ -127,7 +134,6 @@ public class Micro extends BaseHandler {
 				if (rc.isWeaponReady()) {
 					rc.attackLocation(weakest.location);
 				}
-				rc.setIndicatorString(2, "we're untouchable, shooting");
 				return;
 			} else {
 				// path toward the weakest person nearby
@@ -143,7 +149,6 @@ public class Micro extends BaseHandler {
 						Pathfinding.setTarget(weakestLoc, nearbyAllies.length > nearbyEnemies.length, false, false);
 						Pathfinding.pathfindToward();
 					}
-					rc.setIndicatorString(2, "no one to shoot, advancing");
 				}
 				return;
 			}
