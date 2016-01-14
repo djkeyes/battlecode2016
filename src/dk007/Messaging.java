@@ -1,4 +1,4 @@
-package team292;
+package dk007;
 
 import battlecode.common.GameActionException;
 import battlecode.common.GameConstants;

@@ -1,4 +1,4 @@
-package team292;
+package dk007;
 
 import java.util.Arrays;
 import java.util.Random;
@@ -58,13 +58,13 @@ public class BaseHandler {
 			Archon.run();
 			break;
 		case GUARD:
-			DefendTheArchon.run();
+			MapControl.run();
 			break;
 		case SCOUT:
 			Scout.run();
 			break;
 		case SOLDIER:
-			DefendTheArchon.run();
+			MapControl.run();
 			break;
 		case TTM:
 			Noop.run();
