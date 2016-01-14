@@ -114,6 +114,6 @@ public class MapControl extends BaseHandler {
 
 	private static void moveAwayFromAllies(RobotInfo[] nearbyAllies) throws GameActionException {
 		// huh, I guess this works...
-		Micro.retreat(nearbyAllies);
+		Micro.retreat(nearbyAllies, true);
 	}
 }

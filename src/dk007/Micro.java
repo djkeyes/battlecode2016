@@ -100,7 +100,7 @@ public class Micro extends BaseHandler {
 						// weapon delay to AT MOST 1. but that's fine for us,
 						// because it's already larger than that.
 						if (rc.isCoreReady()) {
-							retreat(nearbyEnemies);
+							retreat(nearbyEnemies, false);
 						}
 					}
 					return;
@@ -123,7 +123,7 @@ public class Micro extends BaseHandler {
 			} else {
 				// retreat
 				if (rc.isCoreReady()) {
-					retreat(nearbyEnemies);
+					retreat(nearbyEnemies, false);
 				}
 				return;
 			}
@@ -156,7 +156,8 @@ public class Micro extends BaseHandler {
 		}
 	}
 
-	public static boolean retreat(RobotInfo[] nearbyEnemies) throws GameActionException {
+	public static boolean retreat(RobotInfo[] nearbyEnemies, boolean clearRubbleAggressively)
+			throws GameActionException {
 		boolean[] isAwayFromEnemy = Util.dirsAwayFrom(nearbyEnemies, curLoc);
 
 		Direction dirToMove = null;
@@ -188,7 +189,9 @@ public class Micro extends BaseHandler {
 			if (dirToMove != null) {
 				rc.move(dirToMove);
 			} else if (dirToDig != null) {
-				if (minRubble >= GameConstants.RUBBLE_OBSTRUCTION_THRESH || Rubble.betterToClearRubble(minRubble)) {
+				if (clearRubbleAggressively
+						|| (minRubble >= GameConstants.RUBBLE_OBSTRUCTION_THRESH || Rubble
+								.betterToClearRubble(minRubble))) {
 					rc.clearRubble(dirToDig);
 				} else {
 					rc.move(dirToDig);

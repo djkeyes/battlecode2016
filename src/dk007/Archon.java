@@ -67,7 +67,7 @@ public class Archon extends BaseHandler {
 		// run away
 		if (hostiles.length > 0) {
 			rc.setIndicatorString(0, "retreating");
-			Micro.retreat(hostiles);
+			Micro.retreat(hostiles, false);
 			return;
 		}
 
