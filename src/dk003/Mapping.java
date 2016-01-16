@@ -57,7 +57,7 @@ public class Mapping extends BaseHandler {
 		// TODO: is it worth it to check our map first, before checking rc?
 		if (minRow == null) {
 			if (!rc.onTheMap(curLoc.add(0, -maxHorizontalSight))) {
-				for (int r = -maxHorizontalSight + 1; r < 0; r++) {
+				for (int r = -maxHorizontalSight + 1; r <= 0; r++) {
 					if (rc.onTheMap(curLoc.add(0, r))) {
 						minRow = curLoc.y + r;
 						break;
@@ -68,7 +68,7 @@ public class Mapping extends BaseHandler {
 
 		if (minCol == null) {
 			if (!rc.onTheMap(curLoc.add(-maxHorizontalSight, 0))) {
-				for (int c = -maxHorizontalSight + 1; c < 0; c++) {
+				for (int c = -maxHorizontalSight + 1; c <= 0; c++) {
 					if (rc.onTheMap(curLoc.add(c, 0))) {
 						minCol = curLoc.x + c;
 						break;
@@ -79,7 +79,7 @@ public class Mapping extends BaseHandler {
 
 		if (maxRow == null) {
 			if (!rc.onTheMap(curLoc.add(0, maxHorizontalSight))) {
-				for (int r = maxHorizontalSight - 1; r > 0; r--) {
+				for (int r = maxHorizontalSight - 1; r >= 0; r--) {
 					if (rc.onTheMap(curLoc.add(0, r))) {
 						maxRow = curLoc.y + r;
 						break;
@@ -90,7 +90,7 @@ public class Mapping extends BaseHandler {
 
 		if (maxCol == null) {
 			if (!rc.onTheMap(curLoc.add(maxHorizontalSight, 0))) {
-				for (int c = maxHorizontalSight - 1; c > 0; c--) {
+				for (int c = maxHorizontalSight - 1; c >= 0; c--) {
 					if (rc.onTheMap(curLoc.add(c, 0))) {
 						maxCol = curLoc.x + c;
 						break;

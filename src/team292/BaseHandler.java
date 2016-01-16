@@ -57,16 +57,16 @@ public class BaseHandler {
 			Archon.run();
 			break;
 		case GUARD:
-			WaxAndWaneDefencer.run();
+			Noop.run();
 			break;
 		case SCOUT:
-			Scout.run();
+			Turret.run();
 			break;
 		case SOLDIER:
-			WaxAndWaneDefencer.run();
+			CircleDefender.run();
 			break;
 		case TTM:
-			Noop.run();
+			Turret.run();
 			break;
 		case TURRET:
 			Turret.run();

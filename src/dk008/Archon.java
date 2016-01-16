@@ -7,6 +7,7 @@ import battlecode.common.GameConstants;
 import battlecode.common.MapLocation;
 import battlecode.common.RobotInfo;
 import battlecode.common.RobotType;
+import battlecode.common.Signal;
 import battlecode.common.Team;
 
 public class Archon extends BaseHandler {
@@ -27,6 +28,8 @@ public class Archon extends BaseHandler {
 
 		archonGatheringSpot = rc.getInitialArchonLocations(us)[0];
 
+		MapEdges.initMapEdges();
+
 		// priorities:
 		// first on the list is doing easy stuff:
 		// -repairing (we should call micro methods to determine whether it's
@@ -39,9 +42,20 @@ public class Archon extends BaseHandler {
 		while (true) {
 			beginningOfLoop();
 
-			loop();
+			// to be honest, we should make observations before the loop, and
+			// broadcast them afterwards (since we might need to move during the
+			// loop, and many messages depend on curLoc being accurate. Also
+			// many broadcast methods increase the core delay).
 
 			Messaging.observeAndBroadcast(broadcastRadiusSq, 0.5, true);
+			Signal[] signals = rc.emptySignalQueue();
+			SignalContents[] decodedSignals = Messaging.receiveBroadcasts(signals);
+			MapEdges.checkMapEdges(decodedSignals, 74);
+			if (curTurn % 100 == 0) {
+				MapEdges.resendKnownMapEdges(74);
+			}
+
+			loop();
 
 			Clock.yield();
 		}

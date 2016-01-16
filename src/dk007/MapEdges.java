@@ -33,7 +33,7 @@ public class MapEdges extends BaseHandler {
 				minRow = Messaging.minRow;
 			} else {
 				if (!rc.onTheMap(curLoc.add(0, -maxHorizontalSight))) {
-					for (int r = -maxHorizontalSight + 1; r < 0; r++) {
+					for (int r = -maxHorizontalSight + 1; r <= 0; r++) {
 						if (rc.onTheMap(curLoc.add(0, r))) {
 							minRow = curLoc.y + r;
 							Messaging.mapMinRowMessage(minRow, allMapBroadcast);
@@ -50,7 +50,7 @@ public class MapEdges extends BaseHandler {
 				minCol = Messaging.minCol;
 			} else {
 				if (!rc.onTheMap(curLoc.add(-maxHorizontalSight, 0))) {
-					for (int c = -maxHorizontalSight + 1; c < 0; c++) {
+					for (int c = -maxHorizontalSight + 1; c <= 0; c++) {
 						if (rc.onTheMap(curLoc.add(c, 0))) {
 							minCol = curLoc.x + c;
 							Messaging.mapMinColMessage(minCol, allMapBroadcast);
@@ -67,7 +67,7 @@ public class MapEdges extends BaseHandler {
 				maxRow = Messaging.maxRow;
 			} else {
 				if (!rc.onTheMap(curLoc.add(0, maxHorizontalSight))) {
-					for (int r = maxHorizontalSight - 1; r > 0; r--) {
+					for (int r = maxHorizontalSight - 1; r >= 0; r--) {
 						if (rc.onTheMap(curLoc.add(0, r))) {
 							maxRow = curLoc.y + r;
 							Messaging.mapMaxRowMessage(maxRow, allMapBroadcast);
@@ -84,7 +84,7 @@ public class MapEdges extends BaseHandler {
 				maxCol = Messaging.maxCol;
 			} else {
 				if (!rc.onTheMap(curLoc.add(maxHorizontalSight, 0))) {
-					for (int c = maxHorizontalSight - 1; c > 0; c--) {
+					for (int c = maxHorizontalSight - 1; c >= 0; c--) {
 						if (rc.onTheMap(curLoc.add(c, 0))) {
 							maxCol = curLoc.x + c;
 							Messaging.mapMaxColMessage(maxCol, allMapBroadcast);

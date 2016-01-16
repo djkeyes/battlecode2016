@@ -1,4 +1,4 @@
-package dk008;
+package team292;
 
 import battlecode.common.Clock;
 import battlecode.common.Direction;
@@ -37,8 +37,6 @@ public class CircleDefender extends BaseHandler {
 	}
 
 	private static void updateCircleSize() {
-		TurretCircle.updateCircleAreas(archonGatheringSpot);
-
 		int curNumRobots = rc.getRobotCount();
 
 		while (TurretCircle.CIRCLE_AREAS[circleRadiusIdx] <= curNumRobots) {

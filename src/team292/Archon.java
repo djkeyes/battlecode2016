@@ -11,22 +11,28 @@ import battlecode.common.Team;
 
 public class Archon extends BaseHandler {
 
-	private static Strategy curStrategy = new SoldierMass();
+	private static Strategy curStrategy = new TurretCircle();
+
+	private static final int ALLY_COUNT_TO_RETREAT = 1;
+
+	private static MapLocation archonGatheringSpot = null;
+
+	private static RobotInfo[] allies, hostiles;
+
+	private static DigRubbleMovement initialMovementStrategy = new DigRubbleMovement(true);
 
 	public static void run() throws GameActionException {
 
 		final int broadcastRadiusSq = RobotType.ARCHON.sensorRadiusSquared;
 
+		archonGatheringSpot = rc.getInitialArchonLocations(us)[0];
+
 		// priorities:
 		// first on the list is doing easy stuff:
 		// -repairing (we should call micro methods to determine whether it's
 		// better to repair (and build new units) or to retreat)
-		// -activating
-		// -move away from enemies
-		// -build shit (no sense building stuff if there are enemies nearby)
-		// -move toward free units
-		// -move toward free parts
-		// -move toward archon gathering location (mining rubble okay here)
+		// -move toward main archon
+		// -build shit
 		// at the bottom is broadcasting, since it increments delays, but
 		// doesn't depend on them
 		// -broadcasting
@@ -35,18 +41,16 @@ public class Archon extends BaseHandler {
 
 			loop();
 
-			// Messaging.observeAndBroadcast(broadcastRadiusSq, 0.5, true);
+			Messaging.observeAndBroadcast(broadcastRadiusSq, 0.5, true);
 
 			Clock.yield();
 		}
 	}
 
 	private static void loop() throws GameActionException {
-		rc.setIndicatorString(0, "not retreating");
 
-		RobotInfo[] neutrals = rc.senseNearbyRobots(sensorRangeSq, Team.NEUTRAL);
-		RobotInfo[] allies = rc.senseNearbyRobots(sensorRangeSq, us);
-		RobotInfo[] hostiles = rc.senseHostileRobots(curLoc, sensorRangeSq);
+		allies = rc.senseNearbyRobots(sensorRangeSq, us);
+		hostiles = rc.senseHostileRobots(curLoc, sensorRangeSq);
 
 		// repairing is free, so just do this first
 		repairWeakest(allies);
@@ -56,15 +60,23 @@ public class Archon extends BaseHandler {
 			return;
 		}
 
-		// check for adj free units
+		// run away
+		if (canAnyAttackUs(hostiles) || (hostiles.length > 0 && allies.length <= ALLY_COUNT_TO_RETREAT)) {
+			Micro.retreat(hostiles, false);
+			return;
+		}
+
+		// free units!
+		RobotInfo[] neutrals = rc.senseNearbyRobots(sensorRangeSq, Team.NEUTRAL);
 		if (tryToActivate(neutrals)) {
 			return;
 		}
 
-		// run away
-		if (hostiles.length > 0) {
-			rc.setIndicatorString(0, "retreating");
-			Micro.retreat(hostiles, false);
+		// move toward gathering loc
+		if (curLoc.distanceSquaredTo(archonGatheringSpot) > 1) {
+			initialMovementStrategy.setNearbyEnemies(hostiles);
+			Pathfinding.setTarget(archonGatheringSpot, initialMovementStrategy);
+			Pathfinding.pathfindToward();
 			return;
 		}
 
@@ -73,55 +85,26 @@ public class Archon extends BaseHandler {
 			return;
 		}
 
-		findFreeParts();
-		if (tryToMove()) {
+		// sometimes there's some rubble left over. if we're already at the
+		// gathering position and there's nothing to build, try clearing rubble
+		if (tryClearingAdjacentRubble()) {
 			return;
 		}
+
 	}
 
-	/********* building **********/
-
-	private static int startBuildDir = 0;
-
-	private static boolean tryToBuild() throws GameActionException {
-		RobotType nextToBuild = curStrategy.getNextToBuild();
-		if (nextToBuild != null && rc.hasBuildRequirements(nextToBuild)) {
-			boolean built = false;
-			// checkerboard placement, so shit doesn't get stuck
-			// TODO(daniel): invent a more clever packing strategy, or at
-			// least move blocking turrets out of the way.
-
-			Direction[] dirs;
-			if (nextToBuild == RobotType.TURRET) {
-				if (((curLoc.x ^ curLoc.y) & 1) > 0) {
-					dirs = Util.CARDINAL_DIRECTIONS;
-				} else {
-					dirs = Util.UN_CARDINAL_DIRECTIONS;
+	private static boolean canAnyAttackUs(RobotInfo[] hostiles) {
+		for (RobotInfo enemy : hostiles) {
+			if (enemy.type.canAttack()) {
+				// plan one tile ahead
+				MapLocation nextEnemyLoc = enemy.location.add(enemy.location.directionTo(curLoc));
+				if (enemy.type.attackRadiusSquared >= curLoc.distanceSquaredTo(nextEnemyLoc)) {
+					return true;
 				}
-			} else {
-				dirs = Util.RANDOM_DIRECTION_PERMUTATION;
-			}
-			// use a different start direction every time
-			int i = startBuildDir;
-			do {
-				if (rc.canBuild(dirs[i], nextToBuild)) {
-					rc.build(dirs[i], nextToBuild);
-					built = true;
-					break;
-				}
-			} while ((i++) % 8 != startBuildDir);
-			startBuildDir++;
-			startBuildDir %= 8;
-
-			if (built) {
-				curStrategy.incrementNextToBuild();
-				return true;
 			}
 		}
 		return false;
 	}
-
-	/******* handling neutral robots ********/
 
 	private static MapLocation bestNeutral = null;
 
@@ -163,6 +146,48 @@ public class Archon extends BaseHandler {
 		return false;
 	}
 
+	private static boolean tryClearingAdjacentRubble() throws GameActionException {
+		for (Direction d : Util.RANDOM_DIRECTION_PERMUTATION) {
+			double rubble = rc.senseRubble(curLoc.add(d));
+			if (rubble >= GameConstants.RUBBLE_SLOW_THRESH) {
+				rc.clearRubble(d);
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/********* building **********/
+
+	private static int startBuildDir = 0;
+
+	private static boolean tryToBuild() throws GameActionException {
+		RobotType nextToBuild = curStrategy.getNextToBuild(allies);
+		if (nextToBuild != null && rc.hasBuildRequirements(nextToBuild)) {
+			boolean built = false;
+
+			Direction[] dirs = Util.RANDOM_DIRECTION_PERMUTATION;
+
+			// use a different start direction every time
+			int i = startBuildDir;
+			do {
+				if (rc.canBuild(dirs[i], nextToBuild)) {
+					rc.build(dirs[i], nextToBuild);
+					built = true;
+					break;
+				}
+			} while ((i++) % 8 != startBuildDir);
+			startBuildDir++;
+			startBuildDir %= 8;
+
+			if (built) {
+				curStrategy.incrementNextToBuild();
+				return true;
+			}
+		}
+		return false;
+	}
+
 	/******** repairing ********/
 	private static void repairWeakest(RobotInfo[] allies) throws GameActionException {
 		// this doesn't change any delays, so no need to return a boolean
@@ -174,37 +199,4 @@ public class Archon extends BaseHandler {
 		}
 	}
 
-	/******** moving ***********/
-
-	private static boolean tryToMove() throws GameActionException {
-		if (closestFreeParts != null && curLoc.distanceSquaredTo(closestFreeParts) <= 2
-				&& rc.senseRubble(closestFreeParts) < GameConstants.RUBBLE_OBSTRUCTION_THRESH) {
-			Pathfinding.setTarget(closestFreeParts, true, false, false);
-			return Pathfinding.pathfindToward();
-		} else if (bestNeutral != null) {
-			Pathfinding.setTarget(bestNeutral, true, false, false);
-			return Pathfinding.pathfindToward();
-		} else if (closestFreeParts != null) {
-			Pathfinding.setTarget(closestFreeParts, true, false, false);
-			return Pathfinding.pathfindToward();
-		} else {
-
-		}
-		return false;
-	}
-
-	private static MapLocation closestFreeParts = null;
-
-	private static void findFreeParts() {
-		MapLocation[] parts = rc.sensePartLocations(sensorRangeSq);
-		closestFreeParts = null;
-		int minDistSq = Integer.MAX_VALUE;
-		for (int i = parts.length; --i >= 0;) {
-			int dist = curLoc.distanceSquaredTo(parts[i]);
-			if (dist < minDistSq) {
-				minDistSq = dist;
-				closestFreeParts = parts[i];
-			}
-		}
-	}
 }
