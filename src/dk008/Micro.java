@@ -1,4 +1,4 @@
-package dk007;
+package dk008;
 
 import battlecode.common.Direction;
 import battlecode.common.GameActionException;
@@ -8,6 +8,9 @@ import battlecode.common.RobotInfo;
 import battlecode.common.RobotType;
 
 public class Micro extends BaseHandler {
+
+	private static CautiousMovement cautious = new CautiousMovement();
+	private static SimpleMovement aggressive = new SimpleMovement();
 
 	// TODO: none of this takes into account min turret range
 	// with lone turrets, your best strategy is to rush them and get under their
@@ -114,7 +117,7 @@ public class Micro extends BaseHandler {
 							weakestLoc = weakest.location;
 						}
 						if (weakestLoc != null) {
-							Pathfinding.setTarget(weakestLoc, false, false, false);
+							Pathfinding.setTarget(weakestLoc, aggressive);
 							Pathfinding.pathfindToward();
 						}
 					}
@@ -146,7 +149,14 @@ public class Micro extends BaseHandler {
 						weakestLoc = weakest.location;
 					}
 					if (weakestLoc != null) {
-						Pathfinding.setTarget(weakestLoc, nearbyAllies.length < nearbyEnemies.length, false, false);
+						if (nearbyAllies.length > nearbyEnemies.length) {
+							// lots of allies, be aggressive
+							Pathfinding.setTarget(weakestLoc, aggressive);
+						} else {
+							// few allies, be careful
+							cautious.setNearbyEnemies(nearbyEnemies);
+							Pathfinding.setTarget(weakestLoc, cautious);
+						}
 						Pathfinding.pathfindToward();
 					}
 				}

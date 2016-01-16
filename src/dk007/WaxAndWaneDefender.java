@@ -8,7 +8,7 @@ import battlecode.common.RobotInfo;
 import battlecode.common.RobotType;
 import battlecode.common.Signal;
 
-public class WaxAndWaneDefencer extends BaseHandler {
+public class WaxAndWaneDefender extends BaseHandler {
 
 	private static int[] zombieSpawnTurns;
 

@@ -13,6 +13,8 @@ public class Archon extends BaseHandler {
 
 	private static Strategy curStrategy = new SoldierMass();
 
+	private static final int ALLY_COUNT_TO_RETREAT = 1;
+
 	public static void run() throws GameActionException {
 
 		final int broadcastRadiusSq = RobotType.ARCHON.sensorRadiusSquared;
@@ -62,6 +64,10 @@ public class Archon extends BaseHandler {
 		}
 
 		// run away
+		if (canAnyAttackUs(hostiles) || (hostiles.length > 0 && allies.length <= ALLY_COUNT_TO_RETREAT)) {
+			Micro.retreat(hostiles, false);
+			return;
+		}
 		if (hostiles.length > 0) {
 			rc.setIndicatorString(0, "retreating");
 			Micro.retreat(hostiles, false);
@@ -206,5 +212,18 @@ public class Archon extends BaseHandler {
 				closestFreeParts = parts[i];
 			}
 		}
+	}
+
+	private static boolean canAnyAttackUs(RobotInfo[] hostiles) {
+		for (RobotInfo enemy : hostiles) {
+			if (enemy.type.canAttack()) {
+				// plan one tile ahead
+				MapLocation nextEnemyLoc = enemy.location.add(enemy.location.directionTo(curLoc));
+				if (enemy.type.attackRadiusSquared >= curLoc.distanceSquaredTo(nextEnemyLoc)) {
+					return true;
+				}
+			}
+		}
+		return false;
 	}
 }

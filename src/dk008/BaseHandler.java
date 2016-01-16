@@ -1,4 +1,4 @@
-package dk007;
+package dk008;
 
 import java.util.Random;
 
@@ -57,16 +57,16 @@ public class BaseHandler {
 			Archon.run();
 			break;
 		case GUARD:
-			WaxAndWaneDefender.run();
+			Noop.run();
 			break;
 		case SCOUT:
-			Scout.run();
+			Turret.run();
 			break;
 		case SOLDIER:
-			WaxAndWaneDefender.run();
+			CircleDefender.run();
 			break;
 		case TTM:
-			Noop.run();
+			Turret.run();
 			break;
 		case TURRET:
 			Turret.run();
