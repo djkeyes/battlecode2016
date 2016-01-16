@@ -1,0 +1,100 @@
+
+import os
+import random
+import signal
+import subprocess
+
+
+
+
+def runMatches(firstWeights, secondWeights):
+    totalGames = 0.0;
+    numFirstWins = 0.0;
+    
+    firstWeights = ','.join(map(str, firstWeights))
+    secondWeights = ','.join(map(str, secondWeights))
+    javaArgument = 'java'
+    classpathArgument = '-cp "lib/*:bin/main" battlecode.server.Main'
+    configArgument = '-c automated.conf'
+    # TODO: randomly generate maps, by somehow distributing units in a reasonable way
+    # this is going to be biased for whatever maps we have in the bag.
+    for mapNum in range(0,7):
+        mapNameArgument = '-Dbc.game.maps=microtest' + str(mapNum)
+        weightArgument = '-Dbc.testing.team-a-weights=' + firstWeights + ' -Dbc.testing.team-b-weights=' + secondWeights
+        command = javaArgument + ' ' + mapNameArgument + ' ' + weightArgument + ' ' + classpathArgument + ' ' + configArgument
+        # print('running command: ' + command)
+        if(runMatch(command)):
+            numFirstWins = numFirstWins+1
+        # reverse the order and run again
+        weightArgument = '-Dbc.testing.team-a-weights=' + secondWeights + ' -Dbc.testing.team-b-weights=' + firstWeights
+        command = javaArgument + ' ' + mapNameArgument + ' ' + weightArgument + ' ' + classpathArgument + ' ' + configArgument
+        if(not runMatch(command)):
+            numFirstWins = numFirstWins+1
+        totalGames = totalGames+2
+    return numFirstWins/totalGames
+
+
+def runMatch(command):
+    p1 = subprocess.Popen(command, shell=True, universal_newlines=True, stdout = subprocess.PIPE, stderr = subprocess.PIPE, preexec_fn=os.setsid)
+    p1.stdout.readline()
+    p1.stdout.readline()
+    result = p1.stdout.readline()
+    # one of these two lines should end up killing the process.
+    os.killpg(os.getpgid(p1.pid), signal.SIGTERM)
+    p1.kill()
+    # print("results: " + result);
+    winner = result[result.find('wins')-3]
+    return winner == 'A'
+
+
+
+
+startWeights = [5,50,1,10,-5,-50,-1,-10,-5,-50,1,-1,3,-3]
+sigmas = [1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+numAgents = 10;
+agents = []
+agentWinRates = []
+agentGameCount = []
+alpha = 0.2
+for i in range(0,numAgents):
+    agents.append(startWeights.copy())
+    agentWinRates.append(0.5)
+    agentGameCount.append(0)
+    
+numTrials = 10000
+for i in range(0,numTrials):
+
+    if( i%50== 0):
+        agentWinRates, agents, agentGameCount = (list(x) for x in zip(*sorted(zip(agentWinRates, agents, agentGameCount))))
+        for j in range(0,numAgents):
+            print('agent ' + str(j) + ': adaptive win rate ' + "{0:.2f}".format(100*agentWinRates[j]) + '% (from ' + str(agentGameCount[j]) + ' games)\nweights=' + str(agents[j]) + '\n')
+    
+    print('trial ' + str(i))
+    # pick two agents
+    # play a match
+    # adjust the win rates with alpha
+    # then give a random shock to both players, proportional to their loss rate
+    agentIdx = random.sample(range(0, numAgents), 2)
+    a = agentIdx[0]
+    b = agentIdx[1]
+    
+#    winRate = random.random()
+    winRate = runMatches(agents[a], agents[b])
+    agentWinRates[a] = agentWinRates[a]*(1-alpha) + alpha*winRate
+    agentWinRates[b] = agentWinRates[b]*(1-alpha) + alpha*(1-winRate)
+    
+    agentGameCount[a] = agentGameCount[a]+1;
+    agentGameCount[b] = agentGameCount[b]+1;
+    
+    for j in range(0,len(startWeights)):
+        aProportion = (1-agentWinRates[a])*(1-agentWinRates[a]);
+        agents[a][j] = random.normalvariate(agents[a][j], aProportion*sigmas[j])
+        bProportion = (1-agentWinRates[b])*(1-agentWinRates[b]);
+        agents[b][j] = random.normalvariate(agents[b][j], bProportion*sigmas[j])
+
+agentWinRates, agents = (list(x) for x in zip(*sorted(zip(agentWinRates, agents))))
+for i in range(0,numAgents):
+    print('agent ' + str(i) + ': adaptive win rate ' + "{0:.2f}".format(100*agentWinRates[i]) + '% (from ' + str(agentGameCount[i]) + ' games)\nweights=' + str(agents[i]) + '\n')
+
+
+
