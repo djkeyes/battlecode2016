@@ -6,7 +6,7 @@ import battlecode.common.MapLocation;
 
 public class MapEdges extends BaseHandler {
 
-	public static int maxHorizontalSight;
+	private static int maxHorizontalSight;
 
 	// map boundaries, in game coordinates.
 	public static Integer minRow, maxRow, minCol, maxCol;
@@ -20,11 +20,11 @@ public class MapEdges extends BaseHandler {
 	// and could hose the core delay).
 	// this doesn't actually use the decoded signals, but as a precondition, the
 	// map signals need to be processed.
-	public static boolean checkMapEdges(SignalContents[] decodedSignals) throws GameActionException {
+	public static boolean checkMapEdges(SignalContents[] decodedSignals, int broadcastRadius)
+			throws GameActionException {
 
 		boolean messageSent = false;
-		int allMapBroadcast = GameConstants.MAP_MAX_HEIGHT * GameConstants.MAP_MAX_HEIGHT + GameConstants.MAP_MAX_WIDTH
-				* GameConstants.MAP_MAX_WIDTH;
+
 		// for each of these, start at the furthest visible loc and linear
 		// search inward.
 		// idt binary search would be any fast for such small sight ranges
@@ -33,10 +33,10 @@ public class MapEdges extends BaseHandler {
 				minRow = Messaging.minRow;
 			} else {
 				if (!rc.onTheMap(curLoc.add(0, -maxHorizontalSight))) {
-					for (int r = -maxHorizontalSight + 1; r < 0; r++) {
+					for (int r = -maxHorizontalSight + 1; r <= 0; r++) {
 						if (rc.onTheMap(curLoc.add(0, r))) {
 							minRow = curLoc.y + r;
-							Messaging.mapMinRowMessage(minRow, allMapBroadcast);
+							Messaging.mapMinRowMessage(minRow, broadcastRadius);
 							messageSent = true;
 							break;
 						}
@@ -50,10 +50,10 @@ public class MapEdges extends BaseHandler {
 				minCol = Messaging.minCol;
 			} else {
 				if (!rc.onTheMap(curLoc.add(-maxHorizontalSight, 0))) {
-					for (int c = -maxHorizontalSight + 1; c < 0; c++) {
+					for (int c = -maxHorizontalSight + 1; c <= 0; c++) {
 						if (rc.onTheMap(curLoc.add(c, 0))) {
 							minCol = curLoc.x + c;
-							Messaging.mapMinColMessage(minCol, allMapBroadcast);
+							Messaging.mapMinColMessage(minCol, broadcastRadius);
 							messageSent = true;
 							break;
 						}
@@ -67,10 +67,10 @@ public class MapEdges extends BaseHandler {
 				maxRow = Messaging.maxRow;
 			} else {
 				if (!rc.onTheMap(curLoc.add(0, maxHorizontalSight))) {
-					for (int r = maxHorizontalSight - 1; r > 0; r--) {
+					for (int r = maxHorizontalSight - 1; r >= 0; r--) {
 						if (rc.onTheMap(curLoc.add(0, r))) {
 							maxRow = curLoc.y + r;
-							Messaging.mapMaxRowMessage(maxRow, allMapBroadcast);
+							Messaging.mapMaxRowMessage(maxRow, broadcastRadius);
 							messageSent = true;
 							break;
 						}
@@ -84,10 +84,10 @@ public class MapEdges extends BaseHandler {
 				maxCol = Messaging.maxCol;
 			} else {
 				if (!rc.onTheMap(curLoc.add(maxHorizontalSight, 0))) {
-					for (int c = maxHorizontalSight - 1; c > 0; c--) {
+					for (int c = maxHorizontalSight - 1; c >= 0; c--) {
 						if (rc.onTheMap(curLoc.add(c, 0))) {
 							maxCol = curLoc.x + c;
-							Messaging.mapMaxColMessage(maxCol, allMapBroadcast);
+							Messaging.mapMaxColMessage(maxCol, broadcastRadius);
 							messageSent = true;
 							break;
 						}
@@ -102,7 +102,7 @@ public class MapEdges extends BaseHandler {
 			} else {
 				if ((minRow != null && maxRow != null)) {
 					mapHeight = maxRow - minRow + 1;
-					Messaging.mapMapHeightMessage(mapHeight, allMapBroadcast);
+					Messaging.mapMapHeightMessage(mapHeight, broadcastRadius);
 					messageSent = true;
 				}
 			}
@@ -113,7 +113,7 @@ public class MapEdges extends BaseHandler {
 			} else {
 				if (maxCol != null && minCol != null) {
 					mapWidth = maxCol - minCol + 1;
-					Messaging.mapMapWidthMessage(mapWidth, allMapBroadcast);
+					Messaging.mapMapWidthMessage(mapWidth, broadcastRadius);
 					messageSent = true;
 				}
 			}
@@ -136,5 +136,26 @@ public class MapEdges extends BaseHandler {
 			loc = new MapLocation(loc.x, Math.min(loc.y, MapEdges.maxRow));
 		}
 		return loc;
+	}
+
+	public static void resendKnownMapEdges(int broadcastRadius) throws GameActionException {
+		if (MapEdges.minCol != null) {
+			Messaging.mapMinColMessage(minCol, broadcastRadius);
+		}
+		if (MapEdges.maxCol != null) {
+			Messaging.mapMaxColMessage(maxCol, broadcastRadius);
+		}
+		if (MapEdges.minRow != null) {
+			Messaging.mapMinRowMessage(minRow, broadcastRadius);
+		}
+		if (MapEdges.maxRow != null) {
+			Messaging.mapMaxRowMessage(maxRow, broadcastRadius);
+		}
+		if (MapEdges.mapWidth != null) {
+			Messaging.mapMapWidthMessage(mapWidth, broadcastRadius);
+		}
+		if (MapEdges.mapHeight != null) {
+			Messaging.mapMapHeightMessage(mapHeight, broadcastRadius);
+		}
 	}
 }

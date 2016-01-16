@@ -47,6 +47,10 @@ public class Messaging extends BaseHandler {
 	public static MapLocation lastUnitRequestLocation;
 	public static int lastUnitRequestTimestamp;
 
+	// TODO: modify this if we know more about the map
+	public static final int ALL_MAP_BROADCAST_RANGE = GameConstants.MAP_MAX_HEIGHT * GameConstants.MAP_MAX_HEIGHT
+			+ GameConstants.MAP_MAX_WIDTH * GameConstants.MAP_MAX_WIDTH;
+
 	public static void observeAndBroadcast(int broadcastRadiusSq, double maxCoreDelay, boolean okayToShoutDens)
 			throws GameActionException {
 		RobotInfo[] nearby = rc.senseHostileRobots(curLoc, sensorRangeSq);

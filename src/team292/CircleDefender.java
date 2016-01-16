@@ -37,6 +37,8 @@ public class CircleDefender extends BaseHandler {
 	}
 
 	private static void updateCircleSize() {
+		TurretCircle.updateCircleAreas(archonGatheringSpot);
+
 		int curNumRobots = rc.getRobotCount();
 
 		while (TurretCircle.CIRCLE_AREAS[circleRadiusIdx] <= curNumRobots) {

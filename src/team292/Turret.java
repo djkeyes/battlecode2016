@@ -1,5 +1,7 @@
 package team292;
 
+import java.util.Arrays;
+
 import battlecode.common.Clock;
 import battlecode.common.Direction;
 import battlecode.common.GameActionException;
@@ -26,11 +28,22 @@ public class Turret extends BaseHandler {
 		while (true) {
 			beginningOfLoop();
 
+			// if we're in a corner, update the edges to reflect the actual area
+			// of the circle sections
+			// note that we need to have processed the signal queue as a
+			// precondition to this (this happens in the XLoop() methods, feel
+			// free to extract that out).
+			TurretCircle.updateCircleAreas(archonGatheringSpot);
+
 			if (rc.getType() == RobotType.TURRET) {
 				turretLoop();
 			} else if (rc.getType() == RobotType.TTM) {
 				ttmLoop();
 			} else if (rc.getType() == RobotType.SCOUT) {
+				// TODO: the simple solder makes scouts orbit the center instead
+				// of being a part of it. I think that's smarter, as it gives
+				// them more potential vision opportunities. So move this to
+				// CircleDefender instead. Or make a CircleScout class.
 				scoutLoop();
 			}
 
@@ -40,11 +53,12 @@ public class Turret extends BaseHandler {
 
 	private static void scoutLoop() throws GameActionException {
 		hostiles = rc.senseHostileRobots(curLoc, atkRangeSq);
-		
+
 		// just send messages, and move if it's too crowded
 
 		final int broadcastRadiusSq = RobotType.SCOUT.sensorRadiusSquared;
 		Messaging.observeAndBroadcast(broadcastRadiusSq, 0.9, true);
+		Messaging.receiveBroadcasts(rc.emptySignalQueue());
 
 		if (hostiles.length == 0 && rc.isCoreReady()) {
 			if (tooCrowded() && tryToMoveAway()) {
@@ -65,7 +79,15 @@ public class Turret extends BaseHandler {
 
 	private static boolean tryToMoveAway() throws GameActionException {
 		int curDist = curLoc.distanceSquaredTo(archonGatheringSpot);
-		for (Direction d : Util.getDirectionsToward(archonGatheringSpot.directionTo(curLoc))) {
+		// in some situations, it's possible for a turret to get stuck in the
+		// center
+		Direction[] dirs;
+		if (curLoc.equals(archonGatheringSpot)) {
+			dirs = Util.ACTUAL_DIRECTIONS;
+		} else {
+			dirs = Util.getDirectionsToward(archonGatheringSpot.directionTo(curLoc));
+		}
+		for (Direction d : dirs) {
 			if (rc.canMove(d)) {
 				int nextDistSq = curLoc.add(d).distanceSquaredTo(archonGatheringSpot);
 				if (nextDistSq > curDist && nextDistSq <= TurretCircle.CIRCLE_RADII[circleRadiusIdx]) {
@@ -79,7 +101,15 @@ public class Turret extends BaseHandler {
 
 	private static boolean canMoveAway() throws GameActionException {
 		int curDist = curLoc.distanceSquaredTo(archonGatheringSpot);
-		for (Direction d : Util.getDirectionsToward(archonGatheringSpot.directionTo(curLoc))) {
+		Direction[] dirs;
+		// in some situations, it's possible for a turret to get stuck in the
+		// center
+		if (curLoc.equals(archonGatheringSpot)) {
+			dirs = Util.ACTUAL_DIRECTIONS;
+		} else {
+			dirs = Util.getDirectionsToward(archonGatheringSpot.directionTo(curLoc));
+		}
+		for (Direction d : dirs) {
 			MapLocation nextLoc = curLoc.add(d);
 			// we can't rc.canMove() here, because Turrets *can't* move ever.
 			if (rc.senseRubble(nextLoc) < GameConstants.RUBBLE_OBSTRUCTION_THRESH && !rc.isLocationOccupied(nextLoc)
@@ -118,6 +148,7 @@ public class Turret extends BaseHandler {
 		int curNumRobots = rc.getRobotCount();
 		rc.setIndicatorString(0, "cur num units: " + curNumRobots);
 		rc.setIndicatorString(1, "cur circle radius: " + TurretCircle.CIRCLE_RADII[circleRadiusIdx]);
+		rc.setIndicatorString(2, "cur circle areas: " + Arrays.toString(TurretCircle.CIRCLE_AREAS));
 
 		RobotInfo[] allies = rc.senseNearbyRobots(sensorRangeSq, us);
 		for (RobotInfo ally : allies) {
@@ -127,6 +158,9 @@ public class Turret extends BaseHandler {
 		}
 
 		if (TurretCircle.CIRCLE_AREAS[circleRadiusIdx] > curNumRobots) {
+			// if (curLoc.distanceSquaredTo(archonGatheringSpot) <= 1) {
+			// return true;
+			// }
 			return false;
 		}
 
