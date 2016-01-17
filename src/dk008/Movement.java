@@ -13,4 +13,6 @@ public interface Movement {
 
 	boolean canMove(Direction dir);
 
+	boolean canMoveIfImpatient(Direction dir);
+
 }

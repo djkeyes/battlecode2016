@@ -8,13 +8,10 @@ import battlecode.common.MapLocation;
 import battlecode.common.RobotInfo;
 import battlecode.common.RobotType;
 import battlecode.common.Signal;
-import battlecode.common.Team;
 
 public class Archon extends BaseHandler {
 
 	private static Strategy curStrategy = new TurretCircle();
-
-	private static final int ALLY_COUNT_TO_RETREAT = 1;
 
 	private static MapLocation archonGatheringSpot = null;
 
@@ -29,6 +26,8 @@ public class Archon extends BaseHandler {
 		archonGatheringSpot = rc.getInitialArchonLocations(us)[0];
 
 		MapEdges.initMapEdges();
+		
+		Pathfinding.PATIENCE = 1;
 
 		// priorities:
 		// first on the list is doing easy stuff:

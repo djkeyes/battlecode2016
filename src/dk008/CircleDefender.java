@@ -120,7 +120,12 @@ public class CircleDefender extends BaseHandler {
 				return false;
 			}
 
-			return super.canMove(dir);
+			return super.canMoveIfImpatient(dir);
+		}
+
+		@Override
+		public boolean canMoveIfImpatient(Direction dir){
+			return this.canMove(dir);
 		}
 	}
 }

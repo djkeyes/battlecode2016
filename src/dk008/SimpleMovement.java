@@ -22,4 +22,9 @@ public class SimpleMovement extends BaseHandler implements Movement {
 		return rc.canMove(dir);
 	}
 
+	@Override
+	public boolean canMoveIfImpatient(Direction dir) {
+		return rc.canMove(dir);
+	}
+
 }

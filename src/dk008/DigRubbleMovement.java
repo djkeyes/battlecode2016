@@ -8,8 +8,6 @@ import battlecode.common.RobotInfo;
 
 public class DigRubbleMovement extends BaseHandler implements Movement {
 
-	private boolean avoidEnemies = false;
-
 	private CautiousMovement cautious = null;
 
 	public DigRubbleMovement(boolean avoidEnemies) {
@@ -42,6 +40,22 @@ public class DigRubbleMovement extends BaseHandler implements Movement {
 
 	@Override
 	public boolean canMove(Direction dir) {
+		// if the rubble is high enough, we can always dig it
+		// but it's low enough, we need to check if it's occupied
+		double rubble = rc.senseRubble(curLoc.add(dir));
+		
+		if(rubble >= GameConstants.RUBBLE_OBSTRUCTION_THRESH){
+			return false;
+		}
+		if (rubble < GameConstants.RUBBLE_SLOW_THRESH && !rc.canMove(dir)) {
+			return false;
+		}
+
+		return (cautious == null) || cautious.canMove(dir);
+	}
+
+	@Override
+	public boolean canMoveIfImpatient(Direction dir) {
 		// if the rubble is high enough, we can always dig it
 		// but it's low enough, we need to check if it's occupied
 		double rubble = rc.senseRubble(curLoc.add(dir));
