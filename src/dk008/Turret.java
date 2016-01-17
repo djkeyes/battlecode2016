@@ -61,7 +61,8 @@ public class Turret extends BaseHandler {
 		Messaging.receiveBroadcasts(rc.emptySignalQueue());
 
 		if (hostiles.length == 0 && rc.isCoreReady()) {
-			if (tooCrowded() && tryToMoveAway()) {
+			checkIfTooCrowded();
+			if (tryToMoveAway()) {
 				return;
 			}
 		}
@@ -136,7 +137,8 @@ public class Turret extends BaseHandler {
 		// all adjacent units and see if any of them are < turns away, and
 		// use that as a gauge of safety?
 		if (hostiles.length == 0 && rc.isCoreReady()) {
-			if (tooCrowded() && canMoveAway()) {
+			checkIfTooCrowded();
+			if (canMoveAway()) {
 				rc.pack();
 				return;
 			}
@@ -144,11 +146,8 @@ public class Turret extends BaseHandler {
 
 	}
 
-	private static boolean tooCrowded() {
+	private static boolean checkIfTooCrowded() {
 		int curNumRobots = rc.getRobotCount();
-		rc.setIndicatorString(0, "cur num units: " + curNumRobots);
-		rc.setIndicatorString(1, "cur circle radius: " + TurretCircle.CIRCLE_RADII[circleRadiusIdx]);
-		rc.setIndicatorString(2, "cur circle areas: " + Arrays.toString(TurretCircle.CIRCLE_AREAS));
 
 		RobotInfo[] allies = rc.senseNearbyRobots(sensorRangeSq, us);
 		for (RobotInfo ally : allies) {
@@ -158,9 +157,6 @@ public class Turret extends BaseHandler {
 		}
 
 		if (TurretCircle.CIRCLE_AREAS[circleRadiusIdx] > curNumRobots) {
-			// if (curLoc.distanceSquaredTo(archonGatheringSpot) <= 1) {
-			// return true;
-			// }
 			return false;
 		}
 
