@@ -8,6 +8,7 @@ import battlecode.common.MapLocation;
 import battlecode.common.RobotInfo;
 import battlecode.common.RobotType;
 import battlecode.common.Signal;
+import battlecode.common.Team;
 
 public class Archon extends BaseHandler {
 
@@ -83,11 +84,10 @@ public class Archon extends BaseHandler {
 		}
 
 		// free units!
-		// RobotInfo[] neutrals = rc.senseNearbyRobots(sensorRangeSq,
-		// Team.NEUTRAL);
-		// if (tryToActivate(neutrals)) {
-		// return;
-		// }
+		RobotInfo[] neutrals = rc.senseNearbyRobots(sensorRangeSq, Team.NEUTRAL);
+		if (tryToActivate(neutrals)) {
+			return;
+		}
 
 		// move toward gathering loc
 		if (curLoc.distanceSquaredTo(archonGatheringSpot) > 1) {
@@ -124,10 +124,8 @@ public class Archon extends BaseHandler {
 		return false;
 	}
 
-	private static MapLocation bestNeutral = null;
-
 	private static boolean tryToActivate(RobotInfo[] neutrals) throws GameActionException {
-		bestNeutral = null;
+		MapLocation bestNeutral = null;
 		if (neutrals.length > 0) {
 			// find the closest one
 			int minDistSq = Integer.MAX_VALUE;
