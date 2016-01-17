@@ -174,7 +174,10 @@ public class Micro extends BaseHandler {
 		Direction dirToDig = null;
 		Direction unsafeDirToMove = null;
 		double minRubble = Double.MAX_VALUE;
-		for (int i = Util.RANDOM_DIRECTION_PERMUTATION.length; --i >= 0;) {
+		int dirLen = Util.RANDOM_DIRECTION_PERMUTATION.length;
+		int start = gen.nextInt(dirLen);
+		int i = start;
+		do {
 			Direction d = Util.RANDOM_DIRECTION_PERMUTATION[i];
 			if (isAwayFromEnemy[Util.dirToInt(d)]) {
 				MapLocation next = curLoc.add(d);
@@ -193,7 +196,9 @@ public class Micro extends BaseHandler {
 			} else if (unsafeDirToMove == null && rc.canMove(d)) {
 				unsafeDirToMove = d;
 			}
-		}
+
+			i = (i + 1) % dirLen;
+		} while (i != start);
 
 		if (dirToMove != null || dirToDig != null) {
 			if (dirToMove != null) {

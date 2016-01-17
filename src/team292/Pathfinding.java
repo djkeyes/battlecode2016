@@ -106,9 +106,16 @@ public class Pathfinding extends BaseHandler {
 			Direction dir = null;
 
 			for (int i = 8; i-- > 0;) {
-				if (canMove(possibleDir)) {
-					dir = possibleDir;
-					break;
+				if (turnsSinceBlocked >= PATIENCE) {
+					if (canMoveIfImpatient(possibleDir)) {
+						dir = possibleDir;
+						break;
+					}
+				} else {
+					if (canMove(possibleDir)) {
+						dir = possibleDir;
+						break;
+					}
 				}
 
 				if (isGoingLeft) {
@@ -157,6 +164,10 @@ public class Pathfinding extends BaseHandler {
 
 	private static boolean canMove(Direction dir) {
 		return movementStrategy.canMove(dir);
+	}
+
+	private static boolean canMoveIfImpatient(Direction dir) {
+		return movementStrategy.canMoveIfImpatient(dir);
 	}
 
 	public static void resetBugMode() {

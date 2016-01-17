@@ -46,6 +46,11 @@ public class CautiousMovement extends BaseHandler implements Movement {
 		return !inEnemyRange(curLoc.add(dir), nearbyEnemies);
 	}
 
+	@Override
+	public boolean canMoveIfImpatient(Direction dir) {
+		return canMove(dir);
+	}
+
 	public static boolean inEnemyRange(MapLocation loc, RobotInfo[] nearbyEnemies) {
 		for (RobotInfo enemy : nearbyEnemies) {
 			// TODO(daniel): TTMs are still sort of dangerous--if they're

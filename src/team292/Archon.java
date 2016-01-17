@@ -8,13 +8,10 @@ import battlecode.common.MapLocation;
 import battlecode.common.RobotInfo;
 import battlecode.common.RobotType;
 import battlecode.common.Signal;
-import battlecode.common.Team;
 
 public class Archon extends BaseHandler {
 
 	private static Strategy curStrategy = new TurretCircle();
-
-	private static final int ALLY_COUNT_TO_RETREAT = 1;
 
 	private static MapLocation archonGatheringSpot = null;
 
@@ -29,6 +26,8 @@ public class Archon extends BaseHandler {
 		archonGatheringSpot = rc.getInitialArchonLocations(us)[0];
 
 		MapEdges.initMapEdges();
+		
+		Pathfinding.PATIENCE = 1;
 
 		// priorities:
 		// first on the list is doing easy stuff:
@@ -47,7 +46,7 @@ public class Archon extends BaseHandler {
 			// loop, and many messages depend on curLoc being accurate. Also
 			// many broadcast methods increase the core delay).
 
-			Messaging.observeAndBroadcast(broadcastRadiusSq, 0.5, true);
+			Messaging.observeAndBroadcast(broadcastRadiusSq, 0.5, false);
 			Signal[] signals = rc.emptySignalQueue();
 			SignalContents[] decodedSignals = Messaging.receiveBroadcasts(signals);
 			MapEdges.checkMapEdges(decodedSignals, 74);
@@ -75,16 +74,20 @@ public class Archon extends BaseHandler {
 		}
 
 		// run away
-		if (canAnyAttackUs(hostiles) || (hostiles.length > 0 && allies.length <= ALLY_COUNT_TO_RETREAT)) {
+		if (canAnyAttackUs(hostiles) /*
+									 * || (hostiles.length > 0 && allies.length
+									 * <= ALLY_COUNT_TO_RETREAT)
+									 */) {
 			Micro.retreat(hostiles, false);
 			return;
 		}
 
 		// free units!
-		RobotInfo[] neutrals = rc.senseNearbyRobots(sensorRangeSq, Team.NEUTRAL);
-		if (tryToActivate(neutrals)) {
-			return;
-		}
+		// RobotInfo[] neutrals = rc.senseNearbyRobots(sensorRangeSq,
+		// Team.NEUTRAL);
+		// if (tryToActivate(neutrals)) {
+		// return;
+		// }
 
 		// move toward gathering loc
 		if (curLoc.distanceSquaredTo(archonGatheringSpot) > 1) {
@@ -110,9 +113,10 @@ public class Archon extends BaseHandler {
 	private static boolean canAnyAttackUs(RobotInfo[] hostiles) {
 		for (RobotInfo enemy : hostiles) {
 			if (enemy.type.canAttack()) {
-				// plan one tile ahead
+				// plan two tiles ahead
 				MapLocation nextEnemyLoc = enemy.location.add(enemy.location.directionTo(curLoc));
-				if (enemy.type.attackRadiusSquared >= curLoc.distanceSquaredTo(nextEnemyLoc)) {
+				MapLocation nextNextEnemyLoc = nextEnemyLoc.add(nextEnemyLoc.directionTo(curLoc));
+				if (enemy.type.attackRadiusSquared >= curLoc.distanceSquaredTo(nextNextEnemyLoc)) {
 					return true;
 				}
 			}
