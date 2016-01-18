@@ -41,6 +41,7 @@ public class WaxAndWaneScout extends WaxAndWane {
 		Signal[] signals = rc.emptySignalQueue();
 		SignalContents[] decodedSignals = Messaging.receiveBroadcasts(signals);
 		GatheringSpot.updateGatheringSpot(decodedSignals);
+		rc.setIndicatorString(2, "" + nextDenBroadcastTurn);
 		if (curTurn >= nextDenBroadcastTurn) {
 			if (Messaging.observeAndBroadcast(broadcastRadiusSq, 0.5, true)) {
 				nextDenBroadcastTurn = curTurn + DEN_BROADCAST_FREQUENCY;
@@ -214,6 +215,7 @@ public class WaxAndWaneScout extends WaxAndWane {
 				i++;
 				i %= dirLen;
 			} while (i != DIRECTION_BIAS);
+			DIRECTION_BIAS = i;
 		}
 
 		rc.setIndicatorString(0, "turn " + curTurn + ", moving " + dirToMove);

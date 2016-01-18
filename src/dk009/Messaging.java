@@ -61,7 +61,12 @@ public class Messaging extends BaseHandler {
 		int roundLimit = rc.getRoundLimit();
 		for (int i = nearby.length; --i >= 0;) {
 			if (maxCoreDelay > 0 && rc.getCoreDelay() + coreDelayIncrement >= maxCoreDelay) {
-				break;
+				if (!okayToShoutDens) {
+					break;
+				}
+				if (nearby[i].type != RobotType.ZOMBIEDEN) {
+					continue;
+				}
 			}
 			RobotInfo cur = nearby[i];
 			// We can send several successive signals, since there are lots

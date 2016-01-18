@@ -42,7 +42,11 @@ public class Micro extends BaseHandler {
 		double highestAtk = 0;
 		MapLocation weakestThreat = null;
 		boolean canWeOutrangeAnyThreats = false;
+		boolean onlyZombieDens = true;
 		for (RobotInfo enemy : nearbyEnemies) {
+			if (enemy.type != RobotType.ZOMBIEDEN) {
+				onlyZombieDens = false;
+			}
 			// TODO: take turret min range into account here.
 			if (enemy.type == RobotType.ARCHON || enemy.type == RobotType.ZOMBIEDEN || enemy.type == RobotType.SCOUT) {
 				continue;
@@ -136,6 +140,13 @@ public class Micro extends BaseHandler {
 			if (weakest != null) {
 				if (rc.isWeaponReady()) {
 					rc.attackLocation(weakest.location);
+				} else {
+					if (onlyZombieDens && rc.isCoreReady()
+							&& rc.getHealth() > GameConstants.DEN_SPAWN_PROXIMITY_DAMAGE) {
+						// be aggressive, to maximize dps
+						Pathfinding.setTarget(weakest.location, aggressive);
+						Pathfinding.pathfindToward();
+					}
 				}
 				return;
 			} else {

@@ -79,11 +79,6 @@ public class Archon extends BaseHandler {
 			Micro.retreat(hostiles, false);
 			return;
 		}
-		if (hostiles.length > 0) {
-			rc.setIndicatorString(0, "retreating");
-			Micro.retreat(hostiles, false);
-			return;
-		}
 
 		// this is required as a preconditon for the movement methods below
 		cautiouslyDigMovement.setNearbyEnemies(hostiles);
