@@ -5,15 +5,15 @@ import battlecode.common.Direction;
 import battlecode.common.GameActionException;
 import battlecode.common.MapLocation;
 import battlecode.common.RobotInfo;
-import battlecode.common.RobotType;
 import battlecode.common.Signal;
 
-public class WaxAndWaneDefender extends WaxAndWane {
+public class GatheringSpotDefender extends BaseHandler {
 
-	// a unit handler that bunches together when zombie spawns are nigh, and
-	// expands outward otherwise
+	private static final DigRubbleMovement cautiouslyDigMovement = new DigRubbleMovement(true);
+
+	// a unit handler that gathers are broadcasted meeting positions
 	public static void run() throws GameActionException {
-		WaxAndWane.init();
+		GatheringSpot.init();
 
 		while (true) {
 			beginningOfLoop();
@@ -28,23 +28,14 @@ public class WaxAndWaneDefender extends WaxAndWane {
 
 		Signal[] signals = rc.emptySignalQueue();
 		SignalContents[] decodedSignals = Messaging.receiveBroadcasts(signals);
+		
+		GatheringSpot.updateGatheringSpot(decodedSignals);
 
 		RobotInfo[] nearbyAllies = rc.senseNearbyRobots(curLoc, sensorRangeSq, us);
 		RobotInfo[] nearbyEnemies = rc.senseHostileRobots(curLoc, sensorRangeSq);
 
-		boolean shouldMicro = false;
-		if(zombiesAreNigh()){
-			for(RobotInfo enemy : nearbyEnemies){
-				if(enemy.type.canAttack()){
-					shouldMicro = true;
-					break;
-				}
-			}
-		} else {
-			shouldMicro = nearbyEnemies.length + decodedSignals.length > 0;
-		}
 		// do micro if we're near enemies
-		if (shouldMicro) {
+		if (nearbyEnemies.length > 0) {
 			Micro.doMicro(nearbyAllies, nearbyEnemies, decodedSignals);
 			return;
 		}
@@ -60,14 +51,18 @@ public class WaxAndWaneDefender extends WaxAndWane {
 				}
 			}
 
-			if (zombiesAreNigh()) {
-				moveToArchons(nearbyAllies);
-				return;
-			} else {
-				moveAwayFromAllies(nearbyAllies);
-				return;
-			}
+			// at the moment, nearbyEnemies isn't actually used, since we chech
+			// nearbyEnemies.length > 0 earlier. but that could change, and this
+			// comment might be out-of-date.
+			moveToGatheringSpot(nearbyEnemies);
 		}
+	}
+
+	private static void moveToGatheringSpot(RobotInfo[] hostiles) throws GameActionException {
+		cautiouslyDigMovement.setNearbyEnemies(hostiles);
+		Pathfinding.setTarget(GatheringSpot.gatheringSpot, cautiouslyDigMovement);
+		Pathfinding.pathfindToward();
+		return;
 	}
 
 }

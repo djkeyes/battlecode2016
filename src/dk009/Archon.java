@@ -7,6 +7,7 @@ import battlecode.common.GameConstants;
 import battlecode.common.MapLocation;
 import battlecode.common.RobotInfo;
 import battlecode.common.RobotType;
+import battlecode.common.Signal;
 import battlecode.common.Team;
 
 public class Archon extends BaseHandler {
@@ -17,7 +18,11 @@ public class Archon extends BaseHandler {
 
 	private static RobotInfo[] neutrals, allies, hostiles;
 
+	private static DigRubbleMovement cautiouslyDigMovement = new DigRubbleMovement(true);
+
 	public static void run() throws GameActionException {
+		WaxAndWane.init(); // used by SoldierMass
+		GatheringSpot.init();
 
 		final int broadcastRadiusSq = RobotType.ARCHON.sensorRadiusSquared;
 
@@ -39,7 +44,7 @@ public class Archon extends BaseHandler {
 
 			loop();
 
-			// Messaging.observeAndBroadcast(broadcastRadiusSq, 0.5, true);
+			Messaging.observeAndBroadcast(broadcastRadiusSq, 0.5, false);
 
 			Clock.yield();
 		}
@@ -47,6 +52,10 @@ public class Archon extends BaseHandler {
 
 	private static void loop() throws GameActionException {
 		rc.setIndicatorString(0, "not retreating");
+		
+		Signal[] signals = rc.emptySignalQueue();
+		SignalContents[] decodedSignals = Messaging.receiveBroadcasts(signals);
+		GatheringSpot.updateGatheringSpot(decodedSignals);
 
 		neutrals = rc.senseNearbyRobots(sensorRangeSq, Team.NEUTRAL);
 		allies = rc.senseNearbyRobots(sensorRangeSq, us);
@@ -73,6 +82,15 @@ public class Archon extends BaseHandler {
 		if (hostiles.length > 0) {
 			rc.setIndicatorString(0, "retreating");
 			Micro.retreat(hostiles, false);
+			return;
+		}
+
+		// this is required as a preconditon for the movement methods below
+		cautiouslyDigMovement.setNearbyEnemies(hostiles);
+
+		// first get within spitting distance of the gathering loc
+		if (curLoc.distanceSquaredTo(GatheringSpot.gatheringSpot) >= 25) {
+			moveToGatheringSpot();
 			return;
 		}
 
@@ -187,18 +205,17 @@ public class Archon extends BaseHandler {
 	private static boolean tryToMove() throws GameActionException {
 		if (closestFreeParts != null && curLoc.distanceSquaredTo(closestFreeParts) <= 2
 				&& rc.senseRubble(closestFreeParts) < GameConstants.RUBBLE_OBSTRUCTION_THRESH) {
-			Pathfinding.setTarget(closestFreeParts, true, false, false);
+			Pathfinding.setTarget(closestFreeParts, cautiouslyDigMovement);
 			return Pathfinding.pathfindToward();
 		} else if (bestNeutral != null) {
-			Pathfinding.setTarget(bestNeutral, true, false, false);
+			Pathfinding.setTarget(bestNeutral, cautiouslyDigMovement);
 			return Pathfinding.pathfindToward();
 		} else if (closestFreeParts != null) {
-			Pathfinding.setTarget(closestFreeParts, true, false, false);
+			Pathfinding.setTarget(closestFreeParts, cautiouslyDigMovement);
 			return Pathfinding.pathfindToward();
 		} else {
-
+			return moveToGatheringSpot();
 		}
-		return false;
 	}
 
 	private static MapLocation closestFreeParts = null;
@@ -228,4 +245,10 @@ public class Archon extends BaseHandler {
 		}
 		return false;
 	}
+
+	private static boolean moveToGatheringSpot() throws GameActionException {
+		Pathfinding.setTarget(GatheringSpot.gatheringSpot, cautiouslyDigMovement);
+		return Pathfinding.pathfindToward();
+	}
+
 }

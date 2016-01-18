@@ -17,6 +17,34 @@ public class WaxAndWane extends BaseHandler {
 		zombieSpawnTurns = rc.getZombieSpawnSchedule().getRounds();
 	}
 
+	public static boolean zombiesAreNigh(int turn) {
+		for (int i = 0; i < zombieSpawnTurns.length; i++) {
+			boolean earlier = curTurn <= zombieSpawnTurns[i] - TURNS_TO_GET_HOME;
+			if (earlier) {
+				return false;
+			}
+			if (!earlier && curTurn < zombieSpawnTurns[i] + TURNS_TO_STAY_AT_HOME) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public static boolean zombiesAreNigh(int turn, int turnsToGetHome) {
+		for (int i = 0; i < zombieSpawnTurns.length; i++) {
+			boolean earlier = curTurn <= zombieSpawnTurns[i] - turnsToGetHome;
+			if (earlier) {
+				return false;
+			}
+			if (!earlier && curTurn < zombieSpawnTurns[i] + TURNS_TO_STAY_AT_HOME) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	// this function is slightly more efficient, but only works on the current
+	// turn
 	public static boolean zombiesAreNigh() {
 		for (; curZombieTurnIdx < zombieSpawnTurns.length; curZombieTurnIdx++) {
 			boolean earlier = curTurn <= zombieSpawnTurns[curZombieTurnIdx] - TURNS_TO_GET_HOME;
@@ -30,39 +58,4 @@ public class WaxAndWane extends BaseHandler {
 		return false;
 	}
 
-	public static void moveToArchons(RobotInfo[] nearbyAllies) throws GameActionException {
-		MapLocation nearestArchon = null;
-		// path toward allied archons
-		int minArchonDistSq = Integer.MAX_VALUE;
-		for (int i = nearbyAllies.length; --i >= 0;) {
-			if (nearbyAllies[i].type == RobotType.ARCHON) {
-				int distSq = nearbyAllies[i].location.distanceSquaredTo(curLoc);
-				if (distSq < minArchonDistSq) {
-					minArchonDistSq = distSq;
-					nearestArchon = nearbyAllies[i].location;
-				}
-			}
-		}
-		if (nearestArchon == null) {
-			// return to the closest start position
-			MapLocation[] initialArchonPositions = rc.getInitialArchonLocations(us);
-
-			for (int i = initialArchonPositions.length; --i >= 0;) {
-				int distSq = initialArchonPositions[i].distanceSquaredTo(curLoc);
-				if (distSq < minArchonDistSq) {
-					minArchonDistSq = distSq;
-					nearestArchon = initialArchonPositions[i];
-				}
-			}
-		}
-
-		Pathfinding.setTarget(nearestArchon, true, true, false);
-		Pathfinding.pathfindToward();
-		return;
-	}
-
-	public static void moveAwayFromAllies(RobotInfo[] nearbyAllies) throws GameActionException {
-		// huh, I guess this works...
-		Micro.retreat(nearbyAllies, true);
-	}
 }

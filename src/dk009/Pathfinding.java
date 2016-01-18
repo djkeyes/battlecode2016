@@ -2,10 +2,7 @@ package dk009;
 
 import battlecode.common.Direction;
 import battlecode.common.GameActionException;
-import battlecode.common.GameConstants;
 import battlecode.common.MapLocation;
-import battlecode.common.RobotInfo;
-import battlecode.common.RobotType;
 
 public class Pathfinding extends BaseHandler {
 
@@ -16,9 +13,7 @@ public class Pathfinding extends BaseHandler {
 	// since there's no global team memory this year) and BFSing on the map when
 	// necessary
 
-	private static boolean avoidEnemies;
-	private static boolean giveSpace;
-	private static boolean clearRubble;
+	private static Movement movementStrategy;
 	private static MapLocation target;
 
 	// bug mode state
@@ -30,25 +25,21 @@ public class Pathfinding extends BaseHandler {
 	private static int turnsSinceBlocked = 0;
 	private static int numTurns = 0;
 
-	private static int PATIENCE = 3;
+	public static int PATIENCE = 3;
 
 	private static Direction lastMoveDir;
 
-	private static RobotInfo[] nearbyEnemies;
-
-	public static void setTarget(MapLocation target, boolean avoidEnemies, boolean giveSpace, boolean clearRubble) {
-		if (!target.equals(Pathfinding.target) || Pathfinding.avoidEnemies != avoidEnemies) {
+	public static void setTarget(MapLocation target, Movement movementStrategy) {
+		if (!target.equals(Pathfinding.target) || Pathfinding.movementStrategy != movementStrategy) {
 			Pathfinding.target = target;
 			inBugMode = false;
-			Pathfinding.avoidEnemies = avoidEnemies;
-			Pathfinding.giveSpace = giveSpace;
-			Pathfinding.clearRubble = clearRubble;
+			Pathfinding.movementStrategy = movementStrategy;
 		}
 	}
 
 	// precondition to this method: rc.isCoreReady() should return true
 	public static boolean pathfindToward() throws GameActionException {
-		if (curLoc.equals(target) || (giveSpace && curLoc.distanceSquaredTo(target) <= 2)) {
+		if (movementStrategy.atGoal(target)) {
 			return false;
 		}
 
@@ -58,8 +49,6 @@ public class Pathfinding extends BaseHandler {
 				inBugMode = false;
 			}
 		}
-
-		nearbyEnemies = rc.senseHostileRobots(rc.getLocation(), sensorRangeSq);
 
 		if (!inBugMode) {
 			Direction dirToMove = null;
@@ -113,9 +102,16 @@ public class Pathfinding extends BaseHandler {
 			Direction dir = null;
 
 			for (int i = 8; i-- > 0;) {
-				if (canMove(possibleDir)) {
-					dir = possibleDir;
-					break;
+				if (turnsSinceBlocked >= PATIENCE) {
+					if (canMoveIfImpatient(possibleDir)) {
+						dir = possibleDir;
+						break;
+					}
+				} else {
+					if (canMove(possibleDir)) {
+						dir = possibleDir;
+						break;
+					}
 				}
 
 				if (isGoingLeft) {
@@ -143,16 +139,7 @@ public class Pathfinding extends BaseHandler {
 	}
 
 	private static void move(Direction dirToMove) throws GameActionException {
-		if (clearRubble) {
-			double rubble = rc.senseRubble(curLoc.add(dirToMove));
-			if (rubble >= GameConstants.RUBBLE_SLOW_THRESH) {
-				rc.clearRubble(dirToMove);
-			} else {
-				rc.move(dirToMove);
-			}
-		} else {
-			rc.move(dirToMove);
-		}
+		movementStrategy.move(dirToMove);
 	}
 
 	private static int numRightRotations(Direction start, Direction end) {
@@ -172,44 +159,11 @@ public class Pathfinding extends BaseHandler {
 	}
 
 	private static boolean canMove(Direction dir) {
-		if (clearRubble) {
-			// if the rubble is high enough, we can always dig it
-			// but it's low enough, we need to check if it's occupied
-			double rubble = rc.senseRubble(curLoc.add(dir));
-			if (rubble < GameConstants.RUBBLE_SLOW_THRESH && !rc.canMove(dir)) {
-				return false;
-			}
-		} else {
-			if (!rc.canMove(dir)) {
-				return false;
-			}
-		}
-
-		if (giveSpace && target.distanceSquaredTo(curLoc.add(dir)) <= 2) {
-			return false;
-		}
-
-		return !avoidEnemies || !inEnemyRange(curLoc.add(dir), nearbyEnemies);
+		return movementStrategy.canMove(dir);
 	}
 
-	public static boolean inEnemyRange(MapLocation loc, RobotInfo[] nearbyEnemies) {
-		for (RobotInfo enemy : nearbyEnemies) {
-			// TODO(daniel): TTMs are still sort of dangerous--if they're
-			// transforming, you better fucking run away.
-			// also anything infected could turn into a zombie. so that's
-			// dangerous too. we should check those conditions.
-			if (enemy.type == RobotType.SCOUT || enemy.type == RobotType.TTM || enemy.type == RobotType.ARCHON) {
-				continue;
-			}
-			// TODO: also check broadcasted enemies
-			// TODO: also store turret positions. turrets have a long enough
-			// range that (in some situations on diagonals), scouts won't see
-			// them until it's too late.
-			if (loc.distanceSquaredTo(enemy.location) <= enemy.type.attackRadiusSquared) {
-				return true;
-			}
-		}
-		return false;
+	private static boolean canMoveIfImpatient(Direction dir) {
+		return movementStrategy.canMoveIfImpatient(dir);
 	}
 
 	public static void resetBugMode() {

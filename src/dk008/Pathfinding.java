@@ -2,10 +2,7 @@ package dk008;
 
 import battlecode.common.Direction;
 import battlecode.common.GameActionException;
-import battlecode.common.GameConstants;
 import battlecode.common.MapLocation;
-import battlecode.common.RobotInfo;
-import battlecode.common.RobotType;
 
 public class Pathfinding extends BaseHandler {
 
@@ -32,7 +29,6 @@ public class Pathfinding extends BaseHandler {
 
 	private static Direction lastMoveDir;
 
-	/* , boolean avoidEnemies, boolean giveSpace, boolean clearRubble */
 	public static void setTarget(MapLocation target, Movement movementStrategy) {
 		if (!target.equals(Pathfinding.target) || Pathfinding.movementStrategy != movementStrategy) {
 			Pathfinding.target = target;

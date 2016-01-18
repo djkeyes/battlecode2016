@@ -9,6 +9,9 @@ import battlecode.common.RobotType;
 
 public class Micro extends BaseHandler {
 
+	private static CautiousMovement cautious = new CautiousMovement();
+	private static SimpleMovement aggressive = new SimpleMovement();
+
 	// TODO: none of this takes into account min turret range
 	// with lone turrets, your best strategy is to rush them and get under their
 	// minimum range
@@ -114,7 +117,7 @@ public class Micro extends BaseHandler {
 							weakestLoc = weakest.location;
 						}
 						if (weakestLoc != null) {
-							Pathfinding.setTarget(weakestLoc, false, false, false);
+							Pathfinding.setTarget(weakestLoc, aggressive);
 							Pathfinding.pathfindToward();
 						}
 					}
@@ -146,7 +149,14 @@ public class Micro extends BaseHandler {
 						weakestLoc = weakest.location;
 					}
 					if (weakestLoc != null) {
-						Pathfinding.setTarget(weakestLoc, nearbyAllies.length < nearbyEnemies.length, false, false);
+						if (nearbyAllies.length > nearbyEnemies.length) {
+							// lots of allies, be aggressive
+							Pathfinding.setTarget(weakestLoc, aggressive);
+						} else {
+							// few allies, be careful
+							cautious.setNearbyEnemies(nearbyEnemies);
+							Pathfinding.setTarget(weakestLoc, cautious);
+						}
 						Pathfinding.pathfindToward();
 					}
 				}
@@ -164,7 +174,10 @@ public class Micro extends BaseHandler {
 		Direction dirToDig = null;
 		Direction unsafeDirToMove = null;
 		double minRubble = Double.MAX_VALUE;
-		for (int i = Util.RANDOM_DIRECTION_PERMUTATION.length; --i >= 0;) {
+		int dirLen = Util.RANDOM_DIRECTION_PERMUTATION.length;
+		int start = gen.nextInt(dirLen);
+		int i = start;
+		do {
 			Direction d = Util.RANDOM_DIRECTION_PERMUTATION[i];
 			if (isAwayFromEnemy[Util.dirToInt(d)]) {
 				MapLocation next = curLoc.add(d);
@@ -183,7 +196,9 @@ public class Micro extends BaseHandler {
 			} else if (unsafeDirToMove == null && rc.canMove(d)) {
 				unsafeDirToMove = d;
 			}
-		}
+
+			i = (i + 1) % dirLen;
+		} while (i != start);
 
 		if (dirToMove != null || dirToDig != null) {
 			if (dirToMove != null) {

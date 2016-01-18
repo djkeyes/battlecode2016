@@ -47,12 +47,14 @@ public class Messaging extends BaseHandler {
 	public static MapLocation lastUnitRequestLocation;
 	public static int lastUnitRequestTimestamp;
 
-	public static void observeAndBroadcast(int broadcastRadiusSq, double maxCoreDelay, boolean okayToShoutDens)
+	public static boolean observeAndBroadcast(int broadcastRadiusSq, double maxCoreDelay, boolean okayToShoutDens)
 			throws GameActionException {
 		RobotInfo[] nearby = rc.senseHostileRobots(curLoc, sensorRangeSq);
 
 		double coreDelayIncrement = BROADCASTS_PER_MESSAGE
 				* (0.05 + 0.03 * (broadcastRadiusSq / rc.getType().sensorRadiusSquared - 2));
+
+		boolean shouted = false;
 
 		// if there are a lot of enemies, this could get costly. consider
 		// terminating early if we're running out of bytecodes.
@@ -103,10 +105,14 @@ public class Messaging extends BaseHandler {
 			if (okayToShoutDens && cur.type == RobotType.ZOMBIEDEN) {
 				rc.broadcastMessageSignal(first, second, GameConstants.MAP_MAX_HEIGHT * GameConstants.MAP_MAX_HEIGHT
 						+ GameConstants.MAP_MAX_WIDTH * GameConstants.MAP_MAX_WIDTH);
+				okayToShoutDens = false;
+				shouted = true;
 			} else {
 				rc.broadcastMessageSignal(first, second, broadcastRadiusSq);
 			}
 		}
+
+		return shouted;
 
 	}
 
