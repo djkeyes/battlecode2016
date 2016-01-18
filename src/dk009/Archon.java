@@ -52,7 +52,7 @@ public class Archon extends BaseHandler {
 
 	private static void loop() throws GameActionException {
 		rc.setIndicatorString(0, "not retreating");
-		
+
 		Signal[] signals = rc.emptySignalQueue();
 		SignalContents[] decodedSignals = Messaging.receiveBroadcasts(signals);
 		GatheringSpot.updateGatheringSpot(decodedSignals);
@@ -108,20 +108,8 @@ public class Archon extends BaseHandler {
 		RobotType nextToBuild = curStrategy.getNextToBuild(allies);
 		if (nextToBuild != null && rc.hasBuildRequirements(nextToBuild)) {
 			boolean built = false;
-			// checkerboard placement, so shit doesn't get stuck
-			// TODO(daniel): invent a more clever packing strategy, or at
-			// least move blocking turrets out of the way.
 
-			Direction[] dirs;
-			if (nextToBuild == RobotType.TURRET) {
-				if (((curLoc.x ^ curLoc.y) & 1) > 0) {
-					dirs = Util.CARDINAL_DIRECTIONS;
-				} else {
-					dirs = Util.UN_CARDINAL_DIRECTIONS;
-				}
-			} else {
-				dirs = Util.RANDOM_DIRECTION_PERMUTATION;
-			}
+			Direction[] dirs = Util.RANDOM_DIRECTION_PERMUTATION;
 			// use a different start direction every time
 			int i = startBuildDir;
 			do {
