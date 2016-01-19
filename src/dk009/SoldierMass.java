@@ -9,8 +9,30 @@ public class SoldierMass extends BaseHandler implements Strategy {
 	private static final int SOLDIERS_PER_TURRET = 5;
 	private static int soldierCounter = 0;
 
+	private boolean isSpawnScheduleHard = false;
+	public static int LAST_RUSH_ROUND = 39;
+
+	public SoldierMass() {
+		if (zombieSpawnTurns.length > 0) {
+			// not sure what a good divider is here. Some maps have spawns on 0,
+			// 50, 100, and some maps don't start until 150. we should do some
+			// research.
+			if (zombieSpawnTurns[0] <= 75) {
+				isSpawnScheduleHard = true;
+			}
+		}
+	}
+
 	@Override
 	public RobotType getNextToBuild(RobotInfo[] nearbyAllies) {
+		if (isRush()) {
+			if (isSpawnScheduleHard) {
+				// the map already provides the zombies for us
+				return RobotType.SCOUT;
+			} else {
+				return RobotType.VIPER;
+			}
+		}
 
 		// don't bother building scouts if they wouldn't have time to see
 		// anything
@@ -37,6 +59,11 @@ public class SoldierMass extends BaseHandler implements Strategy {
 	@Override
 	public void incrementNextToBuild() {
 		soldierCounter = (soldierCounter + 1) % SOLDIERS_PER_TURRET;
+	}
+
+	@Override
+	public boolean isRush() {
+		return curTurn <= LAST_RUSH_ROUND;
 	}
 
 }

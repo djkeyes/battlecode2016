@@ -22,7 +22,6 @@ public class WaxAndWaneScout extends WaxAndWane {
 	// a unit handler that bunches together when zombie spawns are nigh, and
 	// expands outward otherwise
 	public static void run() throws GameActionException {
-		WaxAndWane.init();
 		GatheringSpot.init();
 
 		DIRECTION_BIAS = gen.nextInt(Util.ACTUAL_DIRECTIONS.length);

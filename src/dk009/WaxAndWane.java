@@ -7,15 +7,9 @@ import battlecode.common.RobotType;
 
 public class WaxAndWane extends BaseHandler {
 
-	private static int[] zombieSpawnTurns;
-
 	private static final int TURNS_TO_GET_HOME = 30;
 	private static final int TURNS_TO_STAY_AT_HOME = 100;
 	private static int curZombieTurnIdx = 0;
-
-	public static void init() {
-		zombieSpawnTurns = rc.getZombieSpawnSchedule().getRounds();
-	}
 
 	public static boolean zombiesAreNigh(int turn) {
 		for (int i = 0; i < zombieSpawnTurns.length; i++) {

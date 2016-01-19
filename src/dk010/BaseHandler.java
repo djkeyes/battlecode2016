@@ -1,4 +1,4 @@
-package dk009;
+package dk010;
 
 import java.util.Random;
 
@@ -22,8 +22,6 @@ public class BaseHandler {
 
 	public static Random gen;
 
-	public static int[] zombieSpawnTurns;
-
 	public static void init(RobotController rc) {
 		BaseHandler.rc = rc;
 		BaseHandler.type = rc.getType();
@@ -38,8 +36,6 @@ public class BaseHandler {
 		gen = new Random(rc.getID());
 
 		Util.initRandomDirections(gen);
-
-		zombieSpawnTurns = rc.getZombieSpawnSchedule().getRounds();
 	}
 
 	// current location, in game coordinates
@@ -61,26 +57,22 @@ public class BaseHandler {
 			Archon.run();
 			break;
 		case GUARD:
-			GatheringSpotDefender.run();
+			Noop.run();
 			break;
 		case SCOUT:
-			if (rc.getRoundNum() <= SoldierMass.LAST_RUSH_ROUND + RobotType.SCOUT.buildTurns) {
-				RushScout.run();
-			} else {
-				WaxAndWaneScout.run();
-			}
+			Turret.run();
 			break;
 		case SOLDIER:
-			GatheringSpotDefender.run();
+			CircleDefender.run();
 			break;
 		case TTM:
-			Noop.run();
+			Turret.run();
 			break;
 		case TURRET:
 			Turret.run();
 			break;
 		case VIPER:
-			RushViper.run();
+			Noop.run();
 			break;
 		default:
 			break;

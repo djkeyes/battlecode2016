@@ -21,24 +21,10 @@ public class Archon extends BaseHandler {
 	private static DigRubbleMovement cautiouslyDigMovement = new DigRubbleMovement(true);
 
 	public static void run() throws GameActionException {
-		WaxAndWane.init(); // used by SoldierMass
 		GatheringSpot.init();
 
 		final int broadcastRadiusSq = RobotType.ARCHON.sensorRadiusSquared;
 
-		// priorities:
-		// first on the list is doing easy stuff:
-		// -repairing (we should call micro methods to determine whether it's
-		// better to repair (and build new units) or to retreat)
-		// -activating
-		// -move away from enemies
-		// -build shit (no sense building stuff if there are enemies nearby)
-		// -move toward free units
-		// -move toward free parts
-		// -move toward archon gathering location (mining rubble okay here)
-		// at the bottom is broadcasting, since it increments delays, but
-		// doesn't depend on them
-		// -broadcasting
 		while (true) {
 			beginningOfLoop();
 
@@ -82,6 +68,12 @@ public class Archon extends BaseHandler {
 
 		// this is required as a preconditon for the movement methods below
 		cautiouslyDigMovement.setNearbyEnemies(hostiles);
+
+		if (curStrategy.isRush()) {
+			if (tryToBuild()) {
+				return;
+			}
+		}
 
 		// first get within spitting distance of the gathering loc
 		if (curLoc.distanceSquaredTo(GatheringSpot.gatheringSpot) >= 25) {
