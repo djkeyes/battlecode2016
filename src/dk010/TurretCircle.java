@@ -1,12 +1,10 @@
 package dk010;
 
-import java.util.Arrays;
-
 import battlecode.common.MapLocation;
 import battlecode.common.RobotInfo;
 import battlecode.common.RobotType;
 
-public class TurretCircle implements Strategy {
+public class TurretCircle extends BaseHandler implements Strategy {
 
 	// these are radii squared of circles, and the corresponding number of tiles
 	// they contain. some radii are skipped, because they have the same area as
@@ -28,6 +26,20 @@ public class TurretCircle implements Strategy {
 	private static final int TURRETS_PER_SCOUT = 7;
 
 	private static boolean isMinRowKnown = false, isMaxRowKnown = false, isMinColKnown = false, isMaxColKnown = false;
+
+	private boolean isSpawnScheduleHard = false;
+	public static int LAST_RUSH_ROUND = 39;
+
+	public TurretCircle() {
+		if (zombieSpawnTurns.length > 0) {
+			// not sure what a good divider is here. Some maps have spawns on 0,
+			// 50, 100, and some maps don't start until 150. we should do some
+			// research.
+			if (zombieSpawnTurns[0] <= 75) {
+				isSpawnScheduleHard = true;
+			}
+		}
+	}
 
 	public static void updateCircleAreas(MapLocation archonGatheringLoc) {
 		boolean shouldUpdate = false;
@@ -79,7 +91,16 @@ public class TurretCircle implements Strategy {
 
 	@Override
 	public RobotType getNextToBuild(RobotInfo[] nearbyAllies) {
-		if (numSoldiersBuilt < NUM_SOLDIERS_TO_BUILD) {
+		if (isRush()) {
+			if (isSpawnScheduleHard) {
+				// the map already provides the zombies for us
+				return RobotType.SCOUT;
+			} else {
+				return RobotType.VIPER;
+			}
+		}
+
+		if (numSoldiersBuilt < NUM_SOLDIERS_TO_BUILD || rc.getRobotCount() < 10) {
 			return RobotType.SOLDIER;
 		}
 		// there are probably better ways to determine when to build a scout,
@@ -104,9 +125,15 @@ public class TurretCircle implements Strategy {
 
 	@Override
 	public void incrementNextToBuild() {
-		if (numSoldiersBuilt < NUM_SOLDIERS_TO_BUILD) {
-			numSoldiersBuilt++;
+		if (!isRush()) {
+			if (numSoldiersBuilt < NUM_SOLDIERS_TO_BUILD) {
+				numSoldiersBuilt++;
+			}
 		}
 	}
 
+	@Override
+	public boolean isRush() {
+		return curTurn <= LAST_RUSH_ROUND;
+	}
 }

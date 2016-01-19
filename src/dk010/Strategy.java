@@ -8,4 +8,6 @@ public interface Strategy {
 	public RobotType getNextToBuild(RobotInfo[] nearbyAllies);
 
 	public void incrementNextToBuild();
+
+	boolean isRush();
 }

@@ -22,6 +22,8 @@ public class BaseHandler {
 
 	public static Random gen;
 
+	public static int[] zombieSpawnTurns;
+
 	public static void init(RobotController rc) {
 		BaseHandler.rc = rc;
 		BaseHandler.type = rc.getType();
@@ -36,6 +38,8 @@ public class BaseHandler {
 		gen = new Random(rc.getID());
 
 		Util.initRandomDirections(gen);
+
+		zombieSpawnTurns = rc.getZombieSpawnSchedule().getRounds();
 	}
 
 	// current location, in game coordinates
@@ -60,7 +64,11 @@ public class BaseHandler {
 			Noop.run();
 			break;
 		case SCOUT:
-			Turret.run();
+			if (rc.getRoundNum() <= TurretCircle.LAST_RUSH_ROUND + RobotType.SCOUT.buildTurns) {
+				RushScout.run();
+			} else {
+				Turret.run();
+			}
 			break;
 		case SOLDIER:
 			CircleDefender.run();
@@ -72,7 +80,7 @@ public class BaseHandler {
 			Turret.run();
 			break;
 		case VIPER:
-			Noop.run();
+			RushViper.run();
 			break;
 		default:
 			break;

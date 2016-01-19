@@ -27,7 +27,7 @@ public class Archon extends BaseHandler {
 		archonGatheringSpot = rc.getInitialArchonLocations(us)[0];
 
 		MapEdges.initMapEdges();
-		
+
 		Pathfinding.PATIENCE = 1;
 
 		// priorities:
@@ -87,6 +87,12 @@ public class Archon extends BaseHandler {
 		RobotInfo[] neutrals = rc.senseNearbyRobots(sensorRangeSq, Team.NEUTRAL);
 		if (tryToActivate(neutrals)) {
 			return;
+		}
+
+		if (curStrategy.isRush()) {
+			if (tryToBuild()) {
+				return;
+			}
 		}
 
 		// move toward gathering loc
