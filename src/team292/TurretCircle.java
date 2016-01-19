@@ -6,7 +6,7 @@ import battlecode.common.MapLocation;
 import battlecode.common.RobotInfo;
 import battlecode.common.RobotType;
 
-public class TurretCircle implements Strategy {
+public class TurretCircle extends BaseHandler implements Strategy {
 
 	// these are radii squared of circles, and the corresponding number of tiles
 	// they contain. some radii are skipped, because they have the same area as
@@ -79,7 +79,7 @@ public class TurretCircle implements Strategy {
 
 	@Override
 	public RobotType getNextToBuild(RobotInfo[] nearbyAllies) {
-		if (numSoldiersBuilt < NUM_SOLDIERS_TO_BUILD) {
+		if (numSoldiersBuilt < NUM_SOLDIERS_TO_BUILD || rc.getRobotCount() < 10) {
 			return RobotType.SOLDIER;
 		}
 		// there are probably better ways to determine when to build a scout,
