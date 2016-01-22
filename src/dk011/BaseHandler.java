@@ -58,7 +58,7 @@ public class BaseHandler {
 		// often.
 		switch (type) {
 		case ARCHON:
-			Noop.run();
+			Archon.run();
 			break;
 		case GUARD:
 			Noop.run();
@@ -67,7 +67,7 @@ public class BaseHandler {
 			Noop.run();
 			break;
 		case SOLDIER:
-			Noop.run();
+			BasicAttacker.run();
 			break;
 		case TTM:
 			Noop.run();
