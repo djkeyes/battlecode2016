@@ -64,7 +64,7 @@ public class BaseHandler {
 			Noop.run();
 			break;
 		case SCOUT:
-			Noop.run();
+			ExploringScout.run();
 			break;
 		case SOLDIER:
 			BasicAttacker.run();

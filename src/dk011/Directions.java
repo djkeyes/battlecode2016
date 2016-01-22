@@ -64,4 +64,11 @@ public class Directions {
 		}
 	}
 
+	public static Direction[] getDirectionsStrictlyToward(Direction toDest) {
+		Direction[] dirs = { toDest, toDest.rotateLeft(), toDest.rotateRight() };
+
+		return dirs;
+	}
+
+	
 }
