@@ -26,7 +26,6 @@ public class SoldiersAndTurrets implements Strategy {
 
 	@Override
 	public void incrementNextToBuild() {
-		builtScout = true;
 	}
 
 }
