@@ -26,8 +26,9 @@ public abstract class Message {
 	// ideally, we'd have some kind of enum that provided a particular class
 	// constructor given a message ordinal. but imagine now many bytecodes that
 	// would cost :S
-	public static final int NUM_MESSAGE_TYPES = 1;
+	public static final int NUM_MESSAGE_TYPES = 2;
 	protected static final int MAP_EDGE_MESSAGE = 0;
+	protected static final int ENEMY_UNIT_MESSAGE = 1;
 
 	private long allBits;
 
@@ -49,12 +50,22 @@ public abstract class Message {
 		}
 
 		long allBits = intsToLong(signal.getMessage());
+
+		// System.out.println("recieve message with ints "
+		// + String.format("%32s",
+		// Integer.toBinaryString(signal.getMessage()[0])).replace(' ', '0')
+		// + String.format("%32s",
+		// Integer.toBinaryString(signal.getMessage()[1])).replace(' ', '0'));
+		// System.out.println("recieve message with bits "
+		// + String.format("%64s", Long.toBinaryString(allBits)).replace(' ', '0'));
 		int messageType = (int) (allBits % NUM_MESSAGE_TYPES);
 		allBits /= NUM_MESSAGE_TYPES;
 
 		switch (messageType) {
 		case MAP_EDGE_MESSAGE:
 			return new MapEdgeMessage(allBits);
+		case ENEMY_UNIT_MESSAGE:
+			return new EnemyUnitMessage(allBits, signal);
 		}
 
 		return null;
@@ -78,6 +89,11 @@ public abstract class Message {
 
 	public int[] encodeMessage() {
 		appendData(getMessageOrdinal(), NUM_MESSAGE_TYPES);
+//		System.out.println("sending message with bits "
+//				+ String.format("%64s", Long.toBinaryString(allBits)).replace(' ', '0'));
+//		System.out.println("sending message with ints "
+//				+ String.format("%32s", Integer.toBinaryString(longToInts(allBits)[0])).replace(' ', '0')
+//				+ String.format("%32s", Integer.toBinaryString(longToInts(allBits)[1])).replace(' ', '0'));
 		return longToInts(allBits);
 	}
 
@@ -89,7 +105,7 @@ public abstract class Message {
 
 	private final static long intsToLong(int[] intPair) {
 		long longBits = intPair[0];
-		longBits = (longBits << 32) | intPair[1];
+		longBits = (longBits << 32) | ((long) intPair[1] & 0xFFFFFFFFL);
 		return longBits;
 	}
 

@@ -3,6 +3,9 @@ package dk011;
 import java.util.Random;
 
 import battlecode.common.Direction;
+import battlecode.common.MapLocation;
+import battlecode.common.RobotInfo;
+import battlecode.common.RobotType;
 
 public class Directions {
 
@@ -70,5 +73,58 @@ public class Directions {
 		return dirs;
 	}
 
-	
+	public static boolean[] dirsAwayFrom(RobotInfo[] nearbyRobots, MapLocation curLoc) {
+		final int size = ACTUAL_DIRECTIONS.length;
+		if (nearbyRobots.length == 0) {
+			return new boolean[size];
+		}
+
+		boolean[] result = new boolean[size];
+		int total = 0; // checksum for early termination
+
+		for (int i = nearbyRobots.length; --i >= 0;) {
+			// ignore non-lethal for archon behavior
+			if (nearbyRobots[i].type == RobotType.SCOUT || nearbyRobots[i].type == RobotType.ARCHON
+					|| nearbyRobots[i].type == RobotType.ZOMBIEDEN) {
+				continue;
+			}
+			// also ignore enemies too far away
+			if (nearbyRobots[i].location.distanceSquaredTo(curLoc) > 25) {
+				continue;
+			}
+
+			Direction dir = nearbyRobots[i].location.directionTo(curLoc);
+			int asInt = dirToInt(dir);
+			// cw and ccw might be reversed here, but the effect is the same
+			int ccw, cw;
+			if (asInt == 0) {
+				ccw = size - 1;
+				cw = 1;
+			} else if (asInt == size - 1) {
+				ccw = size - 2;
+				cw = 0;
+			} else {
+				ccw = asInt - 1;
+				cw = asInt + 1;
+			}
+
+			if (!result[ccw]) {
+				total++;
+			}
+			if (!result[asInt]) {
+				total++;
+			}
+			if (!result[cw]) {
+				total++;
+			}
+
+			result[ccw] = result[asInt] = result[cw] = true;
+
+			if (total == size) {
+				break;
+			}
+		}
+		return result;
+	}
+
 }

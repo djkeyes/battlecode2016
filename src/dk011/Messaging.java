@@ -14,8 +14,7 @@ public class Messaging extends BaseHandler {
 		Signal[] signals = rc.emptySignalQueue();
 
 		for (Signal s : signals) {
-			Message decoded = Message.decodeMessage(s, us);
-
+			Message.decodeMessage(s, us);
 		}
 	}
 }

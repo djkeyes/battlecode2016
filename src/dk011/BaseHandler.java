@@ -51,6 +51,8 @@ public class BaseHandler {
 	public static void beginningOfLoop() {
 		curLoc = rc.getLocation();
 		curTurn = rc.getRoundNum();
+
+		EnemyUnitReceiver.pruneOldTurrets(curTurn);
 	}
 
 	public static void run() throws GameActionException {
