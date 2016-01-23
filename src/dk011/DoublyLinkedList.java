@@ -66,6 +66,9 @@ public class DoublyLinkedList<T> {
 		if (toMove == head) {
 			head = toMove.next;
 			toMove.next.prev = null;
+		} else {
+			toMove.next.prev = toMove.prev;
+			toMove.prev.next = toMove.next;
 		}
 
 		tail.next = toMove;

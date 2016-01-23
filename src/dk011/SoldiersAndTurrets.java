@@ -5,15 +5,23 @@ import battlecode.common.RobotType;
 
 public class SoldiersAndTurrets implements Strategy {
 
-	private static boolean builtScout = false;
-
 	@Override
 	public RobotType getNextToBuild(RobotInfo[] curAlliesInSight) {
 		// TODO: build a soldier in certain situations, if we need fast defense
-		if (!builtScout) {
-			return RobotType.SCOUT;
+
+		boolean shouldBuildScout = true;
+		for (RobotInfo ally : curAlliesInSight) {
+			if (ally.type == RobotType.SCOUT) {
+				shouldBuildScout = false;
+				break;
+			}
 		}
-		return RobotType.SOLDIER;
+
+		if (shouldBuildScout) {
+			return RobotType.SCOUT;
+		} else {
+			return RobotType.SOLDIER;
+		}
 	}
 
 	@Override

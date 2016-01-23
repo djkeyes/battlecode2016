@@ -63,7 +63,7 @@ public class BaseHandler {
 			Archon.run();
 			break;
 		case GUARD:
-			Noop.run();
+			BasicAttacker.run();
 			break;
 		case SCOUT:
 			ExploringScout.run();

@@ -17,6 +17,10 @@ public class EnemyUnitReporter extends EnemyUnitReceiver {
 			allMapRadius = MapEdgesReceiver.getMinAllMapRadius();
 		}
 		for (int i = 0; i < nearbyHostiles.length; i++) {
+			if(rc.getMessageSignalCount() == GameConstants.MESSAGE_SIGNALS_PER_TURN){
+				// :(
+				break;
+			}
 			RobotInfo cur = nearbyHostiles[i];
 			int health = (int) cur.health;
 			int coreDelay = (int) cur.coreDelay;
@@ -80,7 +84,7 @@ public class EnemyUnitReporter extends EnemyUnitReceiver {
 		// wrong den, they're still in the ballpark
 
 		if (curLoc.distanceSquaredTo(denLoc) < DEN_DEATH_REPORT_DISTANCE) {
-
+			// TODO
 		}
 	}
 }
