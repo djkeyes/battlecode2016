@@ -5,7 +5,7 @@ import battlecode.common.MapLocation;
 
 public class EnemyUnitReceiver extends BaseHandler {
 
-	public static final int APPROX_TURRET_TRANSFORM_DELAY = (int) (2.5 * GameConstants.TURRET_TRANSFORM_DELAY);
+	public static final int APPROX_TURRET_TRANSFORM_DELAY = (int) (5 * GameConstants.TURRET_TRANSFORM_DELAY);
 
 	public static DoublyLinkedList<MapLocation> zombieDenLocations = new DoublyLinkedList<>();
 	@SuppressWarnings("unchecked")

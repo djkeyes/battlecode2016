@@ -12,6 +12,7 @@ public class ExploringScout extends BaseHandler {
 
 	private static Direction defaultDirection = null;
 
+	private static final int broadcastRadiusSqVeryLoPriority = RobotType.SCOUT.sensorRadiusSquared;
 	// these seem to be the sizes that Future Perfect is using
 	private static final int broadcastRadiusSqLoPriority = RobotType.SCOUT.sensorRadiusSquared * 4;
 	private static final int broadcastRadiusSqMedPriority = RobotType.SCOUT.sensorRadiusSquared * 9;
@@ -51,13 +52,16 @@ public class ExploringScout extends BaseHandler {
 				hasEdgesInitially = false;
 			}
 
-			EnemyUnitReporter.reportEnemyUnits(nearbyHostiles, broadcastRadiusSqLoPriority, true);
+			if (!areAnyEnemiesClose || rc.getCoreDelay() < 2) {
+				EnemyUnitReporter.reportEnemyUnits(nearbyHostiles, broadcastRadiusSqVeryLoPriority,
+						broadcastRadiusSqLoPriority, true);
 
-			RobotInfo[] nearbyNeutrals = rc.senseNearbyRobots(sensorRangeSq, Team.NEUTRAL);
-			MapLocation[] nearbyParts = rc.sensePartLocations(sensorRangeSq);
-			FreeStuffReporter.reportFreeStuff(nearbyNeutrals, broadcastRadiusSqHiPriority, nearbyParts,
-					broadcastRadiusSqMedPriority, true);
-
+				RobotInfo[] nearbyNeutrals = rc.senseNearbyRobots(sensorRangeSq, Team.NEUTRAL);
+				MapLocation[] nearbyParts = rc.sensePartLocations(sensorRangeSq);
+				FreeStuffReporter.reportFreeStuff(nearbyNeutrals, broadcastRadiusSqHiPriority, nearbyParts,
+						broadcastRadiusSqMedPriority, true);
+			}
+			rc.setIndicatorString(1, "reported " + rc.getMessageSignalCount() + " things");
 			Clock.yield();
 		}
 	}
@@ -66,37 +70,49 @@ public class ExploringScout extends BaseHandler {
 
 		if (rc.isCoreReady()) {
 			// first, move away from enemies
-			if (tryMoveAwayFromEnemies(nearbyHostiles)) {
+			if (tryMoveAroundCloseEnemies(nearbyHostiles)) {
+				rc.setIndicatorString(2, "enemies");
 				return;
 			}
 
 			// 1.5 if we know the edge positions and we've very close, move away
 			// from the edge to maximize our scouting
 			if (tryMoveAwayFromEdge()) {
+				rc.setIndicatorString(2, "edge");
 				return;
 			}
 
 			// second, move away from nearby scouts
 			if (tryMoveAwayFromScouts(nearbyAllies)) {
+				rc.setIndicatorString(2, "scouts");
 				return;
 			}
 
 			// third, just travel in a straight line
 			if (tryMoveAway()) {
+				rc.setIndicatorString(2, "line");
 				return;
 			}
 		}
 
 	}
 
-	private static boolean tryMoveAwayFromEnemies(RobotInfo[] nearbyEnemies) throws GameActionException {
+	private static MapLocation closestNonZombie = null;
+	private static boolean areAnyEnemiesClose = false;
+
+	private static boolean tryMoveAroundCloseEnemies(RobotInfo[] nearbyEnemies) throws GameActionException {
 		if (nearbyEnemies.length == 0) {
 			return false;
 		}
 
 		final int size = Directions.ACTUAL_DIRECTIONS.length;
 
+		areAnyEnemiesClose = false;
+		closestNonZombie = null;
+		int minNonZombieDist = Integer.MAX_VALUE;
+
 		boolean[] pathableDirectionsAway = new boolean[size];
+		boolean[] dangerousDirectionsToward = new boolean[size];
 		int total = 0; // checksum for early termination
 		for (int i = nearbyEnemies.length; --i >= 0;) {
 			if (!nearbyEnemies[i].type.canAttack()) {
@@ -105,11 +121,31 @@ public class ExploringScout extends BaseHandler {
 
 			MapLocation enemyLoc = nearbyEnemies[i].location;
 			Direction enemyDir = enemyLoc.directionTo(curLoc);
-			MapLocation nextEnemyLoc = enemyLoc.add(enemyDir);
-			MapLocation nextNextEnemyLoc = nextEnemyLoc.add(nextEnemyLoc.directionTo(curLoc));
-			if (curLoc.distanceSquaredTo(nextNextEnemyLoc) > nearbyEnemies[i].type.attackRadiusSquared) {
+			// for enemies that can move, plan 1 tiles ahead (they might also
+			// move during the next turn)
+			if (nearbyEnemies[i].type.canMove() && nearbyEnemies[i].coreDelay < 2) {
+				enemyLoc = enemyLoc.add(enemyLoc.directionTo(curLoc));
+			}
+			int dist = curLoc.distanceSquaredTo(enemyLoc);
+			if (curLoc.distanceSquaredTo(enemyLoc) > nearbyEnemies[i].type.attackRadiusSquared) {
+				if (!areAnyEnemiesClose) {
+
+					for (Direction d : Directions.getDirectionsStrictlyToward(curLoc.directionTo(enemyLoc))) {
+						if (curLoc.add(d).distanceSquaredTo(enemyLoc) <= nearbyEnemies[i].type.attackRadiusSquared) {
+							dangerousDirectionsToward[Directions.dirToInt(d)] = true;
+						}
+					}
+
+					if (nearbyEnemies[i].team == them) {
+						if (dist < minNonZombieDist) {
+							minNonZombieDist = dist;
+							closestNonZombie = nearbyEnemies[i].location;
+						}
+					}
+				}
 				continue;
 			}
+			areAnyEnemiesClose = true;
 
 			int asInt = Directions.dirToInt(enemyDir);
 			// cw and ccw might be reversed here, but the effect is the same
@@ -142,6 +178,25 @@ public class ExploringScout extends BaseHandler {
 			}
 		}
 
+		// if no one is close, try keeping tabs on the opponent
+		if (!areAnyEnemiesClose) {
+			if (closestNonZombie != null) {
+
+				Direction[] dirs = Directions.getDirectionsWeaklyToward(curLoc.directionTo(closestNonZombie));
+				for (Direction d : dirs) {
+					if (rc.canMove(d) && !dangerousDirectionsToward[Directions.dirToInt(d)]) {
+						// it's possible for a scout to walk into turret range
+						// without seeing it first, but only in rare edge cases
+						if (checkIfSafeFromKnownTurrets(d)) {
+							rc.move(d);
+							return true;
+						}
+					}
+				}
+			}
+			return false;
+		}
+
 		for (int i = Directions.RANDOM_DIRECTION_PERMUTATION.length; --i >= 0;) {
 			Direction d = Directions.RANDOM_DIRECTION_PERMUTATION[i];
 			if (pathableDirectionsAway[Directions.dirToInt(d)]) {
@@ -156,6 +211,40 @@ public class ExploringScout extends BaseHandler {
 		}
 
 		return false;
+	}
+
+	private static boolean checkIfSafeFromKnownTurrets(Direction d) {
+		if (!d.isDiagonal()) {
+			return true;
+		}
+
+		// prior to the turret nerf (48->40 range) this was more likely
+		// currently, there's only way for a scout to walk into turret range
+		// without seeing it first. A scout has range 53.
+		// This happens if the turret is offset by (3,7) or (7,3) from the scout
+		// and the scout moves toward the turret diagonally
+		// in that case, the old scout tile was 3*3+7*7=58 square units away,
+		// whereas the next tile is 2*2+6*6=40 square units away.
+
+		int x1 = curLoc.x + 3 * d.dx;
+		int y1 = curLoc.y + 7 * d.dx;
+
+		int len = EnemyUnitReceiver.turretReferences.length;
+		if (x1 >= 0 && x1 < len && y1 >= 0 && y1 < len) {
+			if (EnemyUnitReceiver.turretReferences[x1][y1] != null) {
+				return false;
+			}
+		}
+
+		int x2 = curLoc.x + 3 * d.dx;
+		int y2 = curLoc.y + 7 * d.dx;
+		if (x2 >= 0 && x2 < len && y2 >= 0 && y2 < len) {
+			if (EnemyUnitReceiver.turretReferences[x2][y2] != null) {
+				return false;
+			}
+		}
+
+		return true;
 	}
 
 	private static final int MIN_EDGE_DIST = 5;

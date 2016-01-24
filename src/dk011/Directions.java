@@ -73,6 +73,13 @@ public class Directions {
 		return dirs;
 	}
 
+	public static Direction[] getDirectionsWeaklyToward(Direction toDest) {
+		Direction[] dirs = { toDest, toDest.rotateLeft(), toDest.rotateRight(), toDest.rotateLeft().rotateLeft(),
+				toDest.rotateRight().rotateRight() };
+
+		return dirs;
+	}
+
 	public static boolean[] dirsAwayFrom(RobotInfo[] nearbyRobots, MapLocation curLoc) {
 		final int size = ACTUAL_DIRECTIONS.length;
 		if (nearbyRobots.length == 0) {

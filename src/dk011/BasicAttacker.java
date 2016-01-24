@@ -10,7 +10,7 @@ import battlecode.common.RobotType;
 
 public class BasicAttacker extends BaseHandler {
 
-	private static final DigRubbleMovement digMovementStrategy = new DigRubbleMovement(true);
+	private static final DigRubbleMovement digMovementStrategy = new DigRubbleMovement(true, 500);
 
 	public static void run() throws GameActionException {
 

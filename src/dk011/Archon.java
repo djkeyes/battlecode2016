@@ -1,6 +1,5 @@
 package dk011;
 
-import dk011.DoublyLinkedList.DoublyLinkedListNode;
 import battlecode.common.Clock;
 import battlecode.common.Direction;
 import battlecode.common.GameActionException;
@@ -9,12 +8,16 @@ import battlecode.common.MapLocation;
 import battlecode.common.RobotInfo;
 import battlecode.common.RobotType;
 import battlecode.common.Team;
+import dk011.DoublyLinkedList.DoublyLinkedListNode;
 
 public class Archon extends BaseHandler {
 
 	private static Strategy curStrategy = new SoldiersAndTurrets();
 
-	private static DigRubbleMovement cautiouslyDigMovement = new DigRubbleMovement(true);
+	private static DigRubbleMovement cautiouslyDigMovement = new DigRubbleMovement(true,
+			GameConstants.RUBBLE_OBSTRUCTION_THRESH);
+
+	private static MapLocation initialLoc;
 
 	/******** state variables for the current turn ********/
 	private static RobotInfo[] curAlliesInSight;
@@ -22,6 +25,7 @@ public class Archon extends BaseHandler {
 	private static RobotInfo[] curHostilesInSight;
 
 	public static void run() throws GameActionException {
+		initialLoc = rc.getLocation();
 
 		Pathfinding.PATIENCE = 2;
 		while (true) {
@@ -148,6 +152,18 @@ public class Archon extends BaseHandler {
 			MapLocation bestNeutralArchon = null;
 			for (int i = curNeutralsInSight.length; --i >= 0;) {
 				int distSq = curNeutralsInSight[i].location.distanceSquaredTo(curLoc);
+
+				// don't bother moving toward neutrals in dangerous locations
+				// (unless we're already adjacent)
+				if (distSq > GameConstants.ARCHON_ACTIVATION_RANGE) {
+					if (distSq < minDistSq
+							|| (distSq < minArchonDistSq && curNeutralsInSight[i].type == RobotType.ARCHON)) {
+						if (CautiousMovement.inEnemyRange(curNeutralsInSight[i].location, curHostilesInSight)) {
+							continue;
+						}
+					}
+				}
+
 				if (distSq < minDistSq) {
 					minDistSq = distSq;
 					bestNeutral = curNeutralsInSight[i].location;
@@ -351,8 +367,33 @@ public class Archon extends BaseHandler {
 
 		// if it's null, check broadcasted parts
 		if (bestParts == null) {
-			// TODO: we need to know rubble amounts for this to be useful. maybe
-			// only broadcast parts if they've been mined out?
+			DoublyLinkedListNode<MapLocation> partsLoc = FreeStuffReceiver.partsLocations.head;
+
+			int minDistSq = Integer.MAX_VALUE;
+			for (int i = nearbyParts.length; --i >= 0;) {
+				int distSq = nearbyParts[i].distanceSquaredTo(curLoc);
+				if (distSq < minDistSq) {
+				}
+			}
+
+			while (partsLoc != null) {
+				int distSq = partsLoc.data.distanceSquaredTo(curLoc);
+				// this neutral is already activated, otherwise we would have
+				// marked it as the next neutral to get
+				if (distSq <= sensorRangeSq) {
+					FreeStuffReporter.announcePartsEaten();
+					DoublyLinkedListNode<MapLocation> next = partsLoc.next;
+					FreeStuffReceiver.removeParts(partsLoc);
+					partsLoc = next;
+					continue;
+				} else if (distSq < minDistSq) {
+					if (!CautiousMovement.inEnemyRange(partsLoc.data, curHostilesInSight)) {
+						minDistSq = distSq;
+						bestParts = partsLoc.data;
+					}
+				}
+				partsLoc = partsLoc.next;
+			}
 		}
 
 		if (bestParts != null) {
@@ -391,6 +432,24 @@ public class Archon extends BaseHandler {
 		// if it's null, check broadcasted archons
 		if (closestArchon == null) {
 			// TODO: do this
+		}
+
+		// if it's still null, try the start location
+		// maybe this is a bad idea--if we left the start location, it was
+		// probably for good reason
+		if (closestArchon == null) {
+			MapLocation[] initialLocs = rc.getInitialArchonLocations(us);
+			int minDistSq = Integer.MAX_VALUE;
+			for (int i = 0; i < initialLocs.length; i++) {
+				if (!initialLocs[i].equals(initialLoc)) {
+					int distSq = curLoc.distanceSquaredTo(initialLocs[i]);
+					if (distSq < minDistSq) {
+						minDistSq = distSq;
+						closestArchon = initialLocs[i];
+					}
+				}
+			}
+
 		}
 
 		if (closestArchon != null) {

@@ -8,8 +8,8 @@ import battlecode.common.RobotType;
 
 public class EnemyUnitReporter extends EnemyUnitReceiver {
 
-	public static void reportEnemyUnits(RobotInfo[] nearbyHostiles, int defaultMessageRadius, boolean okayToShoutDens)
-			throws GameActionException {
+	public static void reportEnemyUnits(RobotInfo[] nearbyHostiles, int defaultMessageRadius, int turretMessageRadius,
+			boolean okayToShoutDens) throws GameActionException {
 		// if there are a lot of enemies, this could get costly. consider
 		// terminating early if we're running out of bytecodes.
 		int allMapRadius = 0;
@@ -45,7 +45,11 @@ public class EnemyUnitReporter extends EnemyUnitReceiver {
 
 			Message m = new EnemyUnitMessage(zombism, locOffsetX, locOffsetY, type, health, coreDelay, curTurn);
 			if (!okayToShoutDens || cur.type != RobotType.ZOMBIEDEN) {
-				Messaging.sendMessage(m, defaultMessageRadius);
+				if (cur.type == RobotType.TURRET) {
+					Messaging.sendMessage(m, turretMessageRadius);
+				} else {
+					Messaging.sendMessage(m, defaultMessageRadius);
+				}
 			} else {
 				Messaging.sendMessage(m, allMapRadius);
 			}

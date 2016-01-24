@@ -43,6 +43,10 @@ public class FreeStuffReporter extends FreeStuffReceiver {
 				break;
 			}
 			MapLocation cur = nearbyParts[i];
+			double rubble = rc.senseRubble(cur);
+			if (rubble >= GameConstants.RUBBLE_OBSTRUCTION_THRESH) {
+				continue;
+			}
 
 			if (!tryAddParts(cur)) {
 				continue;
