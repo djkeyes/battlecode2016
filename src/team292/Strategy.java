@@ -5,7 +5,8 @@ import battlecode.common.RobotType;
 
 public interface Strategy {
 
-	public RobotType getNextToBuild(RobotInfo[] nearbyAllies);
+	void incrementNextToBuild();
 
-	public void incrementNextToBuild();
+	RobotType getNextToBuild(RobotInfo[] curAlliesInSight);
+
 }

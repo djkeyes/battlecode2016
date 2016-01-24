@@ -1,7 +1,5 @@
 package dk011;
 
-import dk011.DoublyLinkedList.DoublyLinkedListNode;
-import dk011.EnemyUnitReceiver.TimedTurret;
 import battlecode.common.Direction;
 import battlecode.common.GameActionException;
 import battlecode.common.GameConstants;
@@ -72,7 +70,7 @@ public class CautiousMovement extends BaseHandler implements Movement {
 		}
 
 		// also check stored turrets
-		DoublyLinkedListNode<EnemyUnitReceiver.TimedTurret> cur = EnemyUnitReporter.turretLocations.head;
+		DoublyLinkedList.DoublyLinkedListNode<EnemyUnitReceiver.TimedTurret> cur = EnemyUnitReporter.turretLocations.head;
 		while (cur != null) {
 			int distSq = cur.data.turretLocation.distanceSquaredTo(loc);
 			if (distSq <= RobotType.TURRET.attackRadiusSquared) {

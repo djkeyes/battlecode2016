@@ -8,7 +8,6 @@ import battlecode.common.MapLocation;
 import battlecode.common.RobotInfo;
 import battlecode.common.RobotType;
 import battlecode.common.Team;
-import dk011.DoublyLinkedList.DoublyLinkedListNode;
 
 public class Archon extends BaseHandler {
 
@@ -50,36 +49,30 @@ public class Archon extends BaseHandler {
 		repairWeakest();
 
 		if (tryWhisperingIfBuilding()) {
-			rc.setIndicatorString(2, "building");
 			return;
 		}
 
 		// everything after this requires core delay
 		if (!rc.isCoreReady()) {
-			rc.setIndicatorString(2, "core delay");
 			return;
 		}
 
 		// check for adj free units
 		if (tryToActivate()) {
-			rc.setIndicatorString(2, "activating");
 			return;
 		}
 
 		// run away
 		if (canAnyAttackUs(curHostilesInSight)) {
 			Micro.retreat(curHostilesInSight, false);
-			rc.setIndicatorString(2, "retreating");
 			return;
 		}
 
 		if (moveToNearbyNeutrals()) {
-			rc.setIndicatorString(2, "move to near neutrals");
 			return;
 		}
 
 		if (tryToBuild()) {
-			rc.setIndicatorString(2, "starting building");
 			// if we started building something, immediately try whispering
 			// stuff
 			// (the timing variable is set to expect this extra call)
@@ -88,17 +81,14 @@ public class Archon extends BaseHandler {
 		}
 
 		if (moveToFarAwayNeutrals()) {
-			rc.setIndicatorString(2, "move to far neutrals");
 			return;
 		}
 
 		if (moveToNearbyParts()) {
-			rc.setIndicatorString(2, "move to parts");
 			return;
 		}
 
 		if (moveToNearbyArchons()) {
-			rc.setIndicatorString(2, "move to archons");
 			return;
 		}
 
@@ -217,7 +207,7 @@ public class Archon extends BaseHandler {
 
 	private static int startBuildDir = 0;
 
-	private static DoublyLinkedListNode<MapLocation> nextZombieDenToReport = null;
+	private static DoublyLinkedList.DoublyLinkedListNode<MapLocation> nextZombieDenToReport = null;
 
 	private static RobotType nextToBuild = null;
 	private static boolean atTurretPairingPhase = false;
@@ -267,7 +257,6 @@ public class Archon extends BaseHandler {
 
 	private static boolean tryWhisperingIfBuilding() throws GameActionException {
 		if (turnsBuilding <= 0) {
-			rc.setIndicatorString(1, "finished building on turn " + curTurn);
 			return false;
 		}
 
@@ -333,14 +322,14 @@ public class Archon extends BaseHandler {
 
 		if (bestNeutral == null) {
 			int minNeutralDistSq = Integer.MAX_VALUE;
-			DoublyLinkedListNode<MapLocation> neutralLoc = FreeStuffReceiver.neutralUnitLocations.head;
+			DoublyLinkedList.DoublyLinkedListNode<MapLocation> neutralLoc = FreeStuffReceiver.neutralUnitLocations.head;
 			while (neutralLoc != null) {
 				int distSq = neutralLoc.data.distanceSquaredTo(curLoc);
 				// this neutral is already activated, otherwise we would have
 				// marked it as the next neutral to get
 				if (distSq <= sensorRangeSq) {
 					FreeStuffReporter.maybeAnnounceNeutralActivated(neutralLoc.data);
-					DoublyLinkedListNode<MapLocation> next = neutralLoc.next;
+					DoublyLinkedList.DoublyLinkedListNode<MapLocation> next = neutralLoc.next;
 					FreeStuffReceiver.removeNeutral(neutralLoc);
 					neutralLoc = next;
 					continue;
@@ -396,7 +385,7 @@ public class Archon extends BaseHandler {
 
 		// if it's null, check broadcasted parts
 		if (bestParts == null) {
-			DoublyLinkedListNode<MapLocation> partsLoc = FreeStuffReceiver.partsLocations.head;
+			DoublyLinkedList.DoublyLinkedListNode<MapLocation> partsLoc = FreeStuffReceiver.partsLocations.head;
 
 			int minDistSq = Integer.MAX_VALUE;
 			for (int i = nearbyParts.length; --i >= 0;) {
@@ -411,7 +400,7 @@ public class Archon extends BaseHandler {
 				// marked it as the next neutral to get
 				if (distSq <= sensorRangeSq) {
 					FreeStuffReporter.announcePartsEaten();
-					DoublyLinkedListNode<MapLocation> next = partsLoc.next;
+					DoublyLinkedList.DoublyLinkedListNode<MapLocation> next = partsLoc.next;
 					FreeStuffReceiver.removeParts(partsLoc);
 					partsLoc = next;
 					continue;

@@ -26,6 +26,7 @@ public class CautiousMovement extends BaseHandler implements Movement {
 
 	@Override
 	public void move(Direction dirToMove) throws GameActionException {
+
 		double rubble = rc.senseRubble(curLoc.add(dirToMove));
 		if (rubble >= GameConstants.RUBBLE_SLOW_THRESH) {
 			rc.clearRubble(dirToMove);
@@ -60,13 +61,24 @@ public class CautiousMovement extends BaseHandler implements Movement {
 			if (enemy.type == RobotType.SCOUT || enemy.type == RobotType.TTM || enemy.type == RobotType.ARCHON) {
 				continue;
 			}
-			// TODO: also check broadcasted enemies
-			// TODO: also store turret positions. turrets have a long enough
-			// range that (in some situations on diagonals), scouts won't see
-			// them until it's too late.
-			if (loc.distanceSquaredTo(enemy.location) <= enemy.type.attackRadiusSquared) {
-				return true;
+			int distSq = loc.distanceSquaredTo(enemy.location);
+			if (distSq <= enemy.type.attackRadiusSquared) {
+				if (!(enemy.type == RobotType.TURRET && distSq < GameConstants.TURRET_MINIMUM_RANGE)) {
+					return true;
+				}
 			}
+		}
+
+		// also check stored turrets
+		DoublyLinkedList.DoublyLinkedListNode<EnemyUnitReceiver.TimedTurret> cur = EnemyUnitReporter.turretLocations.head;
+		while (cur != null) {
+			int distSq = cur.data.turretLocation.distanceSquaredTo(loc);
+			if (distSq <= RobotType.TURRET.attackRadiusSquared) {
+				if (distSq >= GameConstants.TURRET_MINIMUM_RANGE) {
+					return true;
+				}
+			}
+			cur = cur.next;
 		}
 		return false;
 	}

@@ -1,4 +1,4 @@
-package dk011;
+package team292;
 
 import battlecode.common.Clock;
 import battlecode.common.Direction;

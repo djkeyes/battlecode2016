@@ -15,8 +15,7 @@ public class Micro extends BaseHandler {
 	// TODO: none of this takes into account min turret range
 	// with lone turrets, your best strategy is to rush them and get under their
 	// minimum range
-	public static void doMicro(RobotInfo[] nearbyAllies, RobotInfo[] nearbyEnemies, SignalContents[] decodedSignals)
-			throws GameActionException {
+	public static void doMicro(RobotInfo[] nearbyAllies, RobotInfo[] nearbyEnemies) throws GameActionException {
 		// TODO: this doesn't take into account broadcasted signals
 		// if enemy turrets are broadcasted, that's important for pathing. but
 		// if there are duplicate messages, then all our heuristics are fucked.
@@ -42,7 +41,11 @@ public class Micro extends BaseHandler {
 		double highestAtk = 0;
 		MapLocation weakestThreat = null;
 		boolean canWeOutrangeAnyThreats = false;
+		boolean onlyZombieDens = true;
 		for (RobotInfo enemy : nearbyEnemies) {
+			if (enemy.type != RobotType.ZOMBIEDEN) {
+				onlyZombieDens = false;
+			}
 			// TODO: take turret min range into account here.
 			if (enemy.type == RobotType.ARCHON || enemy.type == RobotType.ZOMBIEDEN || enemy.type == RobotType.SCOUT) {
 				continue;
@@ -111,10 +114,10 @@ public class Micro extends BaseHandler {
 					if (rc.isCoreReady()) {
 						RobotInfo weakest = getWeakestThreat(nearbyEnemies);
 						MapLocation weakestLoc = null;
-						if (weakest == null) {
-							weakestLoc = getWeakestThreat(decodedSignals);
-						} else {
+						if (weakest != null) {
 							weakestLoc = weakest.location;
+						} else {
+							weakestLoc = EnemyUnitReceiver.weakestBroadcastedEnemy;
 						}
 						if (weakestLoc != null) {
 							Pathfinding.setTarget(weakestLoc, aggressive);
@@ -136,6 +139,10 @@ public class Micro extends BaseHandler {
 			if (weakest != null) {
 				if (rc.isWeaponReady()) {
 					rc.attackLocation(weakest.location);
+				} else if (onlyZombieDens && rc.isCoreReady() && curLoc.distanceSquaredTo(weakest.location) >= 9) {
+					// be aggressive, to maximize dps
+					Pathfinding.setTarget(weakest.location, aggressive);
+					Pathfinding.pathfindToward();
 				}
 				return;
 			} else {
@@ -143,10 +150,10 @@ public class Micro extends BaseHandler {
 				if (rc.isCoreReady()) {
 					weakest = getWeakest(nearbyEnemies);
 					MapLocation weakestLoc = null;
-					if (weakest == null) {
-						weakestLoc = getWeakest(decodedSignals);
-					} else {
+					if (weakest != null) {
 						weakestLoc = weakest.location;
+					} else {
+						weakestLoc = EnemyUnitReceiver.weakestBroadcastedEnemy;
 					}
 					if (weakestLoc != null) {
 						if (nearbyAllies.length > nearbyEnemies.length) {
@@ -168,18 +175,18 @@ public class Micro extends BaseHandler {
 
 	public static boolean retreat(RobotInfo[] nearbyEnemies, boolean clearRubbleAggressively)
 			throws GameActionException {
-		boolean[] isAwayFromEnemy = Util.dirsAwayFrom(nearbyEnemies, curLoc);
+		boolean[] isAwayFromEnemy = Directions.dirsAwayFrom(nearbyEnemies, curLoc);
 
 		Direction dirToMove = null;
 		Direction dirToDig = null;
 		Direction unsafeDirToMove = null;
 		double minRubble = Double.MAX_VALUE;
-		int dirLen = Util.RANDOM_DIRECTION_PERMUTATION.length;
+		int dirLen = Directions.RANDOM_DIRECTION_PERMUTATION.length;
 		int start = gen.nextInt(dirLen);
 		int i = start;
 		do {
-			Direction d = Util.RANDOM_DIRECTION_PERMUTATION[i];
-			if (isAwayFromEnemy[Util.dirToInt(d)]) {
+			Direction d = Directions.RANDOM_DIRECTION_PERMUTATION[i];
+			if (isAwayFromEnemy[Directions.dirToInt(d)]) {
 				MapLocation next = curLoc.add(d);
 				double rubble = rc.senseRubble(next);
 				if (rubble >= GameConstants.RUBBLE_SLOW_THRESH && rc.senseRobotAtLocation(next) == null) {
@@ -258,23 +265,6 @@ public class Micro extends BaseHandler {
 		return result;
 	}
 
-	private static MapLocation getWeakest(SignalContents[] decodedSignals) {
-		MapLocation result = null;
-		double minHealth = Double.MAX_VALUE;
-		for (int i = decodedSignals.length; --i >= 0;) {
-			SignalContents cur = decodedSignals[i];
-			double health = cur.health;
-			if (cur.isZombie && type == RobotType.GUARD) {
-				health /= GameConstants.GUARD_ZOMBIE_MULTIPLIER;
-			}
-			if (health < minHealth) {
-				minHealth = health;
-				result = new MapLocation(cur.x, cur.y);
-			}
-		}
-		return result;
-	}
-
 	private static RobotInfo getWeakestThreat(RobotInfo[] nearby) {
 		RobotInfo result = null;
 		double minHealth = Double.MAX_VALUE;
@@ -290,27 +280,6 @@ public class Micro extends BaseHandler {
 			if (health < minHealth) {
 				minHealth = health;
 				result = enemy;
-			}
-		}
-		return result;
-	}
-
-	private static MapLocation getWeakestThreat(SignalContents[] decodedSignals) {
-		MapLocation result = null;
-		double minHealth = Double.MAX_VALUE;
-		for (int i = decodedSignals.length; --i >= 0;) {
-			SignalContents cur = decodedSignals[i];
-			MapLocation loc = new MapLocation(cur.x, cur.y);
-			if (loc.distanceSquaredTo(curLoc) > cur.type.attackRadiusSquared) {
-				continue;
-			}
-			double health = cur.health;
-			if (cur.isZombie && type == RobotType.GUARD) {
-				health /= GameConstants.GUARD_ZOMBIE_MULTIPLIER;
-			}
-			if (health < minHealth) {
-				minHealth = health;
-				result = loc;
 			}
 		}
 		return result;
