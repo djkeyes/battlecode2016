@@ -6,6 +6,7 @@ import battlecode.common.GameActionException;
 import battlecode.common.MapLocation;
 import battlecode.common.RobotInfo;
 import battlecode.common.RobotType;
+import battlecode.common.Team;
 
 public class ExploringScout extends BaseHandler {
 
@@ -51,6 +52,11 @@ public class ExploringScout extends BaseHandler {
 			}
 
 			EnemyUnitReporter.reportEnemyUnits(nearbyHostiles, broadcastRadiusSqLoPriority, true);
+
+			RobotInfo[] nearbyNeutrals = rc.senseNearbyRobots(sensorRangeSq, Team.NEUTRAL);
+			MapLocation[] nearbyParts = rc.sensePartLocations(sensorRangeSq);
+			FreeStuffReporter.reportFreeStuff(nearbyNeutrals, broadcastRadiusSqHiPriority, nearbyParts,
+					broadcastRadiusSqMedPriority, true);
 
 			Clock.yield();
 		}

@@ -17,7 +17,7 @@ public class EnemyUnitReporter extends EnemyUnitReceiver {
 			allMapRadius = MapEdgesReceiver.getMinAllMapRadius();
 		}
 		for (int i = 0; i < nearbyHostiles.length; i++) {
-			if(rc.getMessageSignalCount() == GameConstants.MESSAGE_SIGNALS_PER_TURN){
+			if (rc.getMessageSignalCount() == GameConstants.MESSAGE_SIGNALS_PER_TURN) {
 				// :(
 				break;
 			}

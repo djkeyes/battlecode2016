@@ -4,6 +4,7 @@ import battlecode.common.MapLocation;
 import battlecode.common.RobotType;
 import battlecode.common.Signal;
 
+// to be honest, this class should probably be declared in EnemyUnitReceiver, since it access so may things in that class
 public class EnemyUnitMessage extends Message {
 
 	@Override
@@ -61,6 +62,11 @@ public class EnemyUnitMessage extends Message {
 		MapLocation baseLoc = signal.getLocation();
 		MapLocation actualLoc = new MapLocation(xLoc + baseLoc.x - ActualGameConstants.MAP_MAX_WIDTH, yLoc + baseLoc.y
 				- ActualGameConstants.MAP_MAX_HEIGHT);
+
+		if (this.health < EnemyUnitReceiver.weakestBroadcastedEnemyHealth) {
+			EnemyUnitReceiver.weakestBroadcastedEnemyHealth = this.health;
+			EnemyUnitReceiver.weakestBroadcastedEnemy = actualLoc;
+		}
 
 		// System.out
 		// .println(String

@@ -14,6 +14,8 @@ public class Archon extends BaseHandler {
 
 	private static Strategy curStrategy = new SoldiersAndTurrets();
 
+	private static DigRubbleMovement cautiouslyDigMovement = new DigRubbleMovement(true);
+
 	/******** state variables for the current turn ********/
 	private static RobotInfo[] curAlliesInSight;
 	private static RobotInfo[] curNeutralsInSight;
@@ -21,6 +23,7 @@ public class Archon extends BaseHandler {
 
 	public static void run() throws GameActionException {
 
+		Pathfinding.PATIENCE = 2;
 		while (true) {
 			beginningOfLoop();
 
@@ -40,30 +43,55 @@ public class Archon extends BaseHandler {
 		repairWeakest();
 
 		if (tryWhisperingIfBuilding()) {
+			rc.setIndicatorString(2, "building");
 			return;
 		}
 
 		// everything after this requires core delay
 		if (!rc.isCoreReady()) {
+			rc.setIndicatorString(2, "core delay");
 			return;
 		}
 
 		// check for adj free units
 		if (tryToActivate()) {
+			rc.setIndicatorString(2, "activating");
 			return;
 		}
 
 		// run away
 		if (canAnyAttackUs(curHostilesInSight)) {
 			Micro.retreat(curHostilesInSight, false);
+			rc.setIndicatorString(2, "retreating");
+			return;
+		}
+
+		if (moveToNearbyNeutrals()) {
+			rc.setIndicatorString(2, "move to near neutrals");
 			return;
 		}
 
 		if (tryToBuild()) {
+			rc.setIndicatorString(2, "starting building");
 			// if we started building something, immediately try whispering
 			// stuff
 			// (the timing variable is set to expect this extra call)
 			tryWhisperingIfBuilding();
+			return;
+		}
+
+		if (moveToFarAwayNeutrals()) {
+			rc.setIndicatorString(2, "move to far neutrals");
+			return;
+		}
+
+		if (moveToNearbyParts()) {
+			rc.setIndicatorString(2, "move to parts");
+			return;
+		}
+
+		if (moveToNearbyArchons()) {
+			rc.setIndicatorString(2, "move to archons");
 			return;
 		}
 
@@ -239,4 +267,140 @@ public class Archon extends BaseHandler {
 		return true;
 
 	}
+
+	/******** moving *********/
+
+	private static boolean bestNeutralIsFarAway = false;
+
+	private static boolean moveToNearbyNeutrals() throws GameActionException {
+
+		// earlier we already computed the best neutral robot to activate
+		// if that's still null, we can check our broadcast results and move
+		// toward a neutral unit
+
+		// now, we *could* have a threshold for the maximum distance to go to
+		// get a neutral unit (it takes 12 turns to build a soldier, so you
+		// probably shouldn't walk more than 12^2 sq units to find a neutral).
+		// but I think there's a tactical advantage to repositioning your
+		// archons, so don't bother.
+
+		bestNeutralIsFarAway = false;
+
+		if (bestNeutral == null) {
+			int minNeutralDistSq = Integer.MAX_VALUE;
+			DoublyLinkedListNode<MapLocation> neutralLoc = FreeStuffReceiver.neutralUnitLocations.head;
+			while (neutralLoc != null) {
+				int distSq = neutralLoc.data.distanceSquaredTo(curLoc);
+				// this neutral is already activated, otherwise we would have
+				// marked it as the next neutral to get
+				if (distSq <= sensorRangeSq) {
+					FreeStuffReporter.maybeAnnounceNeutralActivated(neutralLoc.data);
+					DoublyLinkedListNode<MapLocation> next = neutralLoc.next;
+					FreeStuffReceiver.removeNeutral(neutralLoc);
+					neutralLoc = next;
+					continue;
+				} else if (distSq < minNeutralDistSq) {
+					if (!CautiousMovement.inEnemyRange(neutralLoc.data, curHostilesInSight)) {
+						minNeutralDistSq = distSq;
+						bestNeutral = neutralLoc.data;
+					}
+				}
+				neutralLoc = neutralLoc.next;
+			}
+
+			if (minNeutralDistSq > 12 * 12) {
+				bestNeutralIsFarAway = true;
+			}
+		}
+
+		if (bestNeutral != null && !bestNeutralIsFarAway) {
+			cautiouslyDigMovement.setNearbyEnemies(curHostilesInSight);
+			Pathfinding.setTarget(bestNeutral, cautiouslyDigMovement);
+			Pathfinding.pathfindToward();
+			return true;
+		}
+		return false;
+	}
+
+	private static boolean moveToFarAwayNeutrals() throws GameActionException {
+		if (bestNeutral != null) {
+			cautiouslyDigMovement.setNearbyEnemies(curHostilesInSight);
+			Pathfinding.setTarget(bestNeutral, cautiouslyDigMovement);
+			Pathfinding.pathfindToward();
+			return true;
+		}
+		return false;
+	}
+
+	private static boolean moveToNearbyParts() throws GameActionException {
+		MapLocation bestParts = null;
+		MapLocation[] nearbyParts = rc.sensePartLocations(sensorRangeSq);
+		if (nearbyParts.length > 0) {
+			// find the closest one
+			int minDistSq = Integer.MAX_VALUE;
+			for (int i = nearbyParts.length; --i >= 0;) {
+				int distSq = nearbyParts[i].distanceSquaredTo(curLoc);
+				if (distSq < minDistSq) {
+					if (rc.senseRubble(nearbyParts[i]) < GameConstants.RUBBLE_OBSTRUCTION_THRESH) {
+						minDistSq = distSq;
+						bestParts = nearbyParts[i];
+					}
+				}
+			}
+		}
+
+		// if it's null, check broadcasted parts
+		if (bestParts == null) {
+			// TODO: we need to know rubble amounts for this to be useful. maybe
+			// only broadcast parts if they've been mined out?
+		}
+
+		if (bestParts != null) {
+			cautiouslyDigMovement.setNearbyEnemies(curHostilesInSight);
+			Pathfinding.setTarget(bestParts, cautiouslyDigMovement);
+			Pathfinding.pathfindToward();
+			return true;
+		}
+
+		return false;
+	}
+
+	private static boolean moveToNearbyArchons() throws GameActionException {
+		// just move toward friendly archons
+
+		// right now, this behavior results in pairing--if you have four
+		// archons, they'll stick together in pairs, since they only search for
+		// the closest one. Maybe we want to use some kind of centroid-gathering
+		// behavior? or maybe pairing is desirable?
+
+		MapLocation closestArchon = null;
+		if (curAlliesInSight.length > 0) {
+			// find the closest one
+			int minDistSq = Integer.MAX_VALUE;
+			for (int i = curAlliesInSight.length; --i >= 0;) {
+				if (curAlliesInSight[i].type == RobotType.ARCHON) {
+					int distSq = curAlliesInSight[i].location.distanceSquaredTo(curLoc);
+					if (distSq < minDistSq) {
+						minDistSq = distSq;
+						closestArchon = curAlliesInSight[i].location;
+					}
+				}
+			}
+		}
+
+		// if it's null, check broadcasted archons
+		if (closestArchon == null) {
+			// TODO: do this
+		}
+
+		if (closestArchon != null) {
+			cautiouslyDigMovement.setNearbyEnemies(curHostilesInSight);
+			Pathfinding.setTarget(closestArchon, cautiouslyDigMovement);
+			Pathfinding.pathfindToward();
+			return true;
+		}
+
+		return false;
+	}
+
 }

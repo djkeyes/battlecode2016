@@ -116,6 +116,8 @@ public class Micro extends BaseHandler {
 						MapLocation weakestLoc = null;
 						if (weakest != null) {
 							weakestLoc = weakest.location;
+						} else {
+							weakestLoc = EnemyUnitReceiver.weakestBroadcastedEnemy;
 						}
 						if (weakestLoc != null) {
 							Pathfinding.setTarget(weakestLoc, aggressive);
@@ -150,6 +152,8 @@ public class Micro extends BaseHandler {
 					MapLocation weakestLoc = null;
 					if (weakest != null) {
 						weakestLoc = weakest.location;
+					} else {
+						weakestLoc = EnemyUnitReceiver.weakestBroadcastedEnemy;
 					}
 					if (weakestLoc != null) {
 						if (nearbyAllies.length > nearbyEnemies.length) {

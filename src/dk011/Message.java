@@ -26,9 +26,10 @@ public abstract class Message {
 	// ideally, we'd have some kind of enum that provided a particular class
 	// constructor given a message ordinal. but imagine now many bytecodes that
 	// would cost :S
-	public static final int NUM_MESSAGE_TYPES = 2;
+	public static final int NUM_MESSAGE_TYPES = 3;
 	protected static final int MAP_EDGE_MESSAGE = 0;
 	protected static final int ENEMY_UNIT_MESSAGE = 1;
+	protected static final int FREE_STUFF_MESSAGE = 2;
 
 	private long allBits;
 
@@ -66,6 +67,8 @@ public abstract class Message {
 			return new MapEdgeMessage(allBits);
 		case ENEMY_UNIT_MESSAGE:
 			return new EnemyUnitMessage(allBits, signal);
+		case FREE_STUFF_MESSAGE:
+			return new FreeStuffMessage(allBits);
 		}
 
 		return null;

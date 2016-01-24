@@ -12,6 +12,9 @@ public class Messaging extends BaseHandler {
 
 	public static void receiveAndProcessMessages() {
 		Signal[] signals = rc.emptySignalQueue();
+		
+		EnemyUnitReceiver.weakestBroadcastedEnemy = null;
+		EnemyUnitReceiver.weakestBroadcastedEnemyHealth = Integer.MAX_VALUE;
 
 		for (Signal s : signals) {
 			Message.decodeMessage(s, us);

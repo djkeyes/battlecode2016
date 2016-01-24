@@ -21,6 +21,8 @@ public class BasicAttacker extends BaseHandler {
 
 			Messaging.receiveAndProcessMessages();
 
+			rc.setIndicatorString(1, "dens: " + EnemyUnitReceiver.zombieDenLocations.toString());
+			rc.setIndicatorString(2, "turrets: " + EnemyUnitReceiver.turretLocations.toString());
 			loop();
 
 			Clock.yield();
@@ -81,7 +83,7 @@ public class BasicAttacker extends BaseHandler {
 			while (denLoc != null) {
 				int distSq = denLoc.data.distanceSquaredTo(curLoc);
 				// this den is already dead
-				if (distSq < sensorRangeSq) {
+				if (distSq <= sensorRangeSq) {
 					EnemyUnitReporter.maybeAnnounceDenDeath(denLoc.data);
 					DoublyLinkedListNode<MapLocation> next = denLoc.next;
 					EnemyUnitReceiver.removeDen(denLoc);

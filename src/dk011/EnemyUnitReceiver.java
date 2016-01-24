@@ -28,7 +28,7 @@ public class EnemyUnitReceiver extends BaseHandler {
 		denReferences[denLoc.data.x][denLoc.data.y] = null;
 	}
 
-	private static class TimedTurret {
+	public static class TimedTurret {
 		MapLocation turretLocation;
 		int lastTurretTurn;
 
@@ -77,4 +77,7 @@ public class EnemyUnitReceiver extends BaseHandler {
 		}
 	}
 
+
+	public static MapLocation weakestBroadcastedEnemy = null;
+	public static int weakestBroadcastedEnemyHealth = Integer.MAX_VALUE;
 }
