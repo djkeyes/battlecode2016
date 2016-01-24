@@ -80,15 +80,15 @@ public class EnemyUnitReporter extends EnemyUnitReceiver {
 		return cur;
 	}
 
-	public static final int DEN_DEATH_REPORT_DISTANCE = 8;
+	public static final int DEN_DEATH_REPORT_DISTANCE = 24;
 
-	public static void maybeAnnounceDenDeath(MapLocation denLoc) {
+	public static void maybeAnnounceDenDeath(MapLocation denLoc) throws GameActionException {
 		// only announce the den is dead if we're close enough
 		// that way, even if someone misinterprets our message and removes the
 		// wrong den, they're still in the ballpark
 
-		if (curLoc.distanceSquaredTo(denLoc) < DEN_DEATH_REPORT_DISTANCE) {
-			// TODO
+		if (curLoc.distanceSquaredTo(denLoc) <= DEN_DEATH_REPORT_DISTANCE) {
+			Messaging.sendDenDeathMessage();
 		}
 	}
 }

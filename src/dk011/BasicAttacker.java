@@ -62,41 +62,11 @@ public class BasicAttacker extends BaseHandler {
 	}
 
 	private static boolean tryMoveToNearestDen(RobotInfo[] nearbyEnemies) throws GameActionException {
-		MapLocation nearestDen = null;
-		// path toward dens
-		// TODO: I think FP might have a slightly different metric--find the
-		// closest archon, then path to the den closest to that archon. which
-		// keeps archons a little safe and the army a little more coordinated.
-		int minDenDistSq = Integer.MAX_VALUE;
-		for (int i = nearbyEnemies.length; --i >= 0;) {
-			if (nearbyEnemies[i].type == RobotType.ZOMBIEDEN) {
-				int distSq = nearbyEnemies[i].location.distanceSquaredTo(curLoc);
-				if (distSq < minDenDistSq) {
-					minDenDistSq = distSq;
-					nearestDen = nearbyEnemies[i].location;
-				}
-			}
-		}
-		if (nearestDen == null) {
-			// check broadcast queue
-			DoublyLinkedListNode<MapLocation> denLoc = EnemyUnitReceiver.zombieDenLocations.head;
-			while (denLoc != null) {
-				int distSq = denLoc.data.distanceSquaredTo(curLoc);
-				// this den is already dead
-				if (distSq <= sensorRangeSq) {
-					EnemyUnitReporter.maybeAnnounceDenDeath(denLoc.data);
-					DoublyLinkedListNode<MapLocation> next = denLoc.next;
-					EnemyUnitReceiver.removeDen(denLoc);
-					denLoc = next;
-					continue;
-				} else if (distSq < minDenDistSq) {
-					minDenDistSq = distSq;
-					nearestDen = denLoc.data;
-				}
+		MapLocation nearestDen = getNearestDen(nearbyEnemies);
 
-				denLoc = denLoc.next;
-			}
-
+		// we send a death announcement if we've found a dead den.
+		if (!rc.isCoreReady()) {
+			return true;
 		}
 
 		if (nearestDen != null) {
@@ -110,30 +80,8 @@ public class BasicAttacker extends BaseHandler {
 
 	private static void moveToNearestArchon(RobotInfo[] nearbyAllies, RobotInfo[] nearbyEnemies)
 			throws GameActionException {
-		MapLocation nearestArchon = null;
 		// path toward allied archons
-		int minArchonDistSq = Integer.MAX_VALUE;
-		for (int i = nearbyAllies.length; --i >= 0;) {
-			if (nearbyAllies[i].type == RobotType.ARCHON) {
-				int distSq = nearbyAllies[i].location.distanceSquaredTo(curLoc);
-				if (distSq < minArchonDistSq) {
-					minArchonDistSq = distSq;
-					nearestArchon = nearbyAllies[i].location;
-				}
-			}
-		}
-		if (nearestArchon == null) {
-			// return to the closest start position
-			MapLocation[] initialArchonPositions = rc.getInitialArchonLocations(us);
-
-			for (int i = initialArchonPositions.length; --i >= 0;) {
-				int distSq = initialArchonPositions[i].distanceSquaredTo(curLoc);
-				if (distSq < minArchonDistSq) {
-					minArchonDistSq = distSq;
-					nearestArchon = initialArchonPositions[i];
-				}
-			}
-		}
+		MapLocation nearestArchon = getNearestArchon(nearbyAllies);
 
 		digMovementStrategy.setNearbyEnemies(nearbyEnemies);
 		Pathfinding.setTarget(nearestArchon, digMovementStrategy);

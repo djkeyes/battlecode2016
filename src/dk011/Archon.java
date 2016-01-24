@@ -27,7 +27,7 @@ public class Archon extends BaseHandler {
 	public static void run() throws GameActionException {
 		initialLoc = rc.getLocation();
 
-		Pathfinding.PATIENCE = 2;
+		Pathfinding.PATIENCE = 1;
 		while (true) {
 			beginningOfLoop();
 
@@ -42,6 +42,9 @@ public class Archon extends BaseHandler {
 	}
 
 	public static void loop() throws GameActionException {
+		if (curTurn > 160) {
+			Pathfinding.PATIENCE = 2;
+		}
 
 		// repairing is free, so just do this first
 		repairWeakest();
@@ -216,8 +219,14 @@ public class Archon extends BaseHandler {
 
 	private static DoublyLinkedListNode<MapLocation> nextZombieDenToReport = null;
 
+	private static RobotType nextToBuild = null;
+	private static boolean atTurretPairingPhase = false;
+	private static boolean needToSetDestiny = false;
+
+	private static int lastBuiltTurretId = 0;
+
 	private static boolean tryToBuild() throws GameActionException {
-		RobotType nextToBuild = curStrategy.getNextToBuild(curAlliesInSight);
+		nextToBuild = curStrategy.getNextToBuild(curAlliesInSight);
 		if (nextToBuild != null && rc.hasBuildRequirements(nextToBuild)) {
 			boolean built = false;
 
@@ -228,6 +237,9 @@ public class Archon extends BaseHandler {
 			do {
 				if (rc.canBuild(dirs[i], nextToBuild)) {
 					rc.build(dirs[i], nextToBuild);
+					if (nextToBuild == RobotType.TURRET) {
+						lastBuiltTurretId = rc.senseRobotAtLocation(curLoc.add(dirs[i])).ID;
+					}
 					built = true;
 					break;
 				}
@@ -238,6 +250,13 @@ public class Archon extends BaseHandler {
 			if (built) {
 				curStrategy.incrementNextToBuild();
 				turnsBuilding = nextToBuild.buildTurns;
+
+				if (nextToBuild == RobotType.TURRET) {
+					atTurretPairingPhase = true;
+					needToSetDestiny = true;
+				} else if (atTurretPairingPhase && nextToBuild == RobotType.SCOUT) {
+					needToSetDestiny = true;
+				}
 
 				nextZombieDenToReport = EnemyUnitReceiver.zombieDenLocations.head;
 				return true;
@@ -268,6 +287,16 @@ public class Archon extends BaseHandler {
 		// -zombie dens
 		// -turret locations
 		// -enemy unit positions
+
+		if (needToSetDestiny) {
+			DestinyReporter.setDestiny(DestinyReceiver.PAIRED_TURRET_SCOUT, lastBuiltTurretId);
+			// in some situations, we build two scouts in a row. we really need
+			// a more robust way to handle this.
+			if (nextToBuild == RobotType.SCOUT) {
+				lastBuiltTurretId = 0;
+			}
+			needToSetDestiny = false;
+		}
 
 		if (nextZombieDenToReport != null) {
 			nextZombieDenToReport = EnemyUnitReporter.rereportZombieDens(nextZombieDenToReport, sensorRangeSq);

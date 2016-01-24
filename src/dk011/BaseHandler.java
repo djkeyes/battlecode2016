@@ -5,6 +5,7 @@ import java.util.Random;
 import battlecode.common.GameActionException;
 import battlecode.common.MapLocation;
 import battlecode.common.RobotController;
+import battlecode.common.RobotInfo;
 import battlecode.common.RobotType;
 import battlecode.common.Team;
 
@@ -72,10 +73,10 @@ public class BaseHandler {
 			BasicAttacker.run();
 			break;
 		case TTM:
-			Noop.run();
+			UnaccompaniedTurret.run();
 			break;
 		case TURRET:
-			Noop.run();
+			UnaccompaniedTurret.run();
 			break;
 		case VIPER:
 			Noop.run();
@@ -84,5 +85,72 @@ public class BaseHandler {
 			break;
 
 		}
+	}
+
+	// fyi, this can hose the core delay, if we're announcing a den death.
+	protected static MapLocation getNearestDen(RobotInfo[] nearbyEnemies) throws GameActionException {
+		MapLocation nearestDen = null;
+		// TODO: I think FP might have a slightly different metric--find the
+		// closest archon, then path to the den closest to that archon. which
+		// keeps archons a little safe and the army a little more coordinated.
+		int minDenDistSq = Integer.MAX_VALUE;
+		for (int i = nearbyEnemies.length; --i >= 0;) {
+			if (nearbyEnemies[i].type == RobotType.ZOMBIEDEN) {
+				int distSq = nearbyEnemies[i].location.distanceSquaredTo(curLoc);
+				if (distSq < minDenDistSq) {
+					minDenDistSq = distSq;
+					nearestDen = nearbyEnemies[i].location;
+				}
+			}
+		}
+		if (nearestDen == null) {
+			// check broadcast queue
+			DoublyLinkedList.DoublyLinkedListNode<MapLocation> denLoc = EnemyUnitReceiver.zombieDenLocations.head;
+			while (denLoc != null) {
+				int distSq = denLoc.data.distanceSquaredTo(curLoc);
+				// this den is already dead
+				if (distSq <= sensorRangeSq) {
+					EnemyUnitReporter.maybeAnnounceDenDeath(denLoc.data);
+					DoublyLinkedList.DoublyLinkedListNode<MapLocation> next = denLoc.next;
+					EnemyUnitReceiver.removeDen(denLoc);
+					denLoc = next;
+					continue;
+				} else if (distSq < minDenDistSq) {
+					minDenDistSq = distSq;
+					nearestDen = denLoc.data;
+				}
+
+				denLoc = denLoc.next;
+			}
+		}
+
+		return nearestDen;
+	}
+
+	protected static MapLocation getNearestArchon(RobotInfo[] nearbyAllies) {
+		MapLocation nearestArchon = null;
+		int minArchonDistSq = Integer.MAX_VALUE;
+		for (int i = nearbyAllies.length; --i >= 0;) {
+			if (nearbyAllies[i].type == RobotType.ARCHON) {
+				int distSq = nearbyAllies[i].location.distanceSquaredTo(curLoc);
+				if (distSq < minArchonDistSq) {
+					minArchonDistSq = distSq;
+					nearestArchon = nearbyAllies[i].location;
+				}
+			}
+		}
+		if (nearestArchon == null) {
+			// return to the closest start position
+			MapLocation[] initialArchonPositions = rc.getInitialArchonLocations(us);
+
+			for (int i = initialArchonPositions.length; --i >= 0;) {
+				int distSq = initialArchonPositions[i].distanceSquaredTo(curLoc);
+				if (distSq < minArchonDistSq) {
+					minArchonDistSq = distSq;
+					nearestArchon = initialArchonPositions[i];
+				}
+			}
+		}
+		return nearestArchon;
 	}
 }

@@ -12,21 +12,35 @@ public class ExploringScout extends BaseHandler {
 
 	private static Direction defaultDirection = null;
 
-	private static final int broadcastRadiusSqVeryLoPriority = RobotType.SCOUT.sensorRadiusSquared;
+	protected static final int broadcastRadiusSqVeryLoPriority = RobotType.SCOUT.sensorRadiusSquared;
 	// these seem to be the sizes that Future Perfect is using
-	private static final int broadcastRadiusSqLoPriority = RobotType.SCOUT.sensorRadiusSquared * 4;
-	private static final int broadcastRadiusSqMedPriority = RobotType.SCOUT.sensorRadiusSquared * 9;
+	protected static final int broadcastRadiusSqLoPriority = RobotType.SCOUT.sensorRadiusSquared * 4;
+	protected static final int broadcastRadiusSqMedPriority = RobotType.SCOUT.sensorRadiusSquared * 9;
 	// FP actually uses 30, but 33 tiles costs 0.98 coredelay--which is
 	// still enough to move the same turn. but maybe they have experimental
 	// evidence that 30 (0.89 coredelay) is better.
-	private static final int broadcastRadiusSqHiPriority = RobotType.SCOUT.sensorRadiusSquared * 33;
+	protected static final int broadcastRadiusSqHiPriority = RobotType.SCOUT.sensorRadiusSquared * 33;
 
-	private static final ScoutCautiousMovement cautiousMovement = new ScoutCautiousMovement();
+	protected static final ScoutCautiousMovement cautiousMovement = new ScoutCautiousMovement();
 
-	private static RobotInfo[] nearbyHostiles, nearbyAllies;
+	protected static RobotInfo[] nearbyHostiles, nearbyAllies;
 
 	public static void run() throws GameActionException {
 
+		Messaging.receiveAndProcessDestinyMessage();
+		rc.setIndicatorString(0,
+				String.format("destiny is %d, paird with robot %d", DestinyReceiver.destiny, DestinyReceiver.friendId));
+		if (DestinyReceiver.destiny == DestinyReceiver.PAIRED_TURRET_SCOUT) {
+			int turretId = DestinyReceiver.friendId;
+			if (rc.canSenseRobot(turretId)) {
+				AccompaniedScout.run();
+			}
+		}
+
+		mainRun();
+	}
+
+	protected static void mainRun() throws GameActionException {
 		defaultDirection = getInitialDirection();
 
 		MapEdgesReporter.initMapEdges();
@@ -374,22 +388,16 @@ public class ExploringScout extends BaseHandler {
 			}
 		}
 
-		// if these don't work, try rotating 90 degrees
-		Direction right = defaultDirection.rotateRight().rotateRight();
-		if (rc.canMove(right) && !isDirNearEdge(right)) {
-			defaultDirection = right;
-			rc.move(right);
-			return true;
+		// if these don't work, try every possible direction
+		Direction cur = defaultDirection;
+		for (int i = 0; i < 8; i++) {
+			cur = cur.rotateRight();
+			if (rc.canMove(cur) && !isDirNearEdge(cur)) {
+				defaultDirection = cur;
+				rc.move(cur);
+				return true;
+			}
 		}
-		right = right.rotateRight();
-		if (rc.canMove(right) && !isDirNearEdge(right)) {
-			defaultDirection = right;
-			rc.move(right);
-			return true;
-		}
-
-		// TODO: can scouts get stuck in corners using this logic? should we
-		// just try every other possible direction?
 
 		return false;
 	}

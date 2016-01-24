@@ -26,12 +26,13 @@ public abstract class Message {
 	// ideally, we'd have some kind of enum that provided a particular class
 	// constructor given a message ordinal. but imagine now many bytecodes that
 	// would cost :S
-	public static final int NUM_MESSAGE_TYPES = 3;
+	public static final int NUM_MESSAGE_TYPES = 4;
 	protected static final int MAP_EDGE_MESSAGE = 0;
 	protected static final int ENEMY_UNIT_MESSAGE = 1;
 	protected static final int FREE_STUFF_MESSAGE = 2;
+	protected static final int DESTINY_MESSAGE = 3;
 
-	private long allBits;
+	protected long allBits;
 
 	protected Message() {
 
@@ -41,13 +42,15 @@ public abstract class Message {
 		this.allBits = allBits;
 	}
 
-	public static Message decodeMessage(Signal signal, Team us) {
+	public static void decodeMessage(Signal signal, Team us) {
 		if (signal.getTeam() != us) {
-			// should probably return a custom message type here
-			return null;
+			EnemyUnitMessage.processEnemyMessage(signal);
+			return;
 		}
 		if (signal.getMessage() == null) {
-			return null;
+			// this is a den death message
+			EnemyUnitReceiver.processDenDeath(signal.getLocation());
+			return;
 		}
 
 		long allBits = intsToLong(signal.getMessage());
@@ -58,20 +61,25 @@ public abstract class Message {
 		// + String.format("%32s",
 		// Integer.toBinaryString(signal.getMessage()[1])).replace(' ', '0'));
 		// System.out.println("recieve message with bits "
-		// + String.format("%64s", Long.toBinaryString(allBits)).replace(' ', '0'));
+		// + String.format("%64s", Long.toBinaryString(allBits)).replace(' ',
+		// '0'));
 		int messageType = (int) (allBits % NUM_MESSAGE_TYPES);
 		allBits /= NUM_MESSAGE_TYPES;
 
 		switch (messageType) {
 		case MAP_EDGE_MESSAGE:
-			return new MapEdgeMessage(allBits);
+			new MapEdgeMessage(allBits);
+			break;
 		case ENEMY_UNIT_MESSAGE:
-			return new EnemyUnitMessage(allBits, signal);
+			new EnemyUnitMessage(allBits, signal);
+			break;
 		case FREE_STUFF_MESSAGE:
-			return new FreeStuffMessage(allBits);
+			new FreeStuffMessage(allBits);
+			break;
+		case DESTINY_MESSAGE:
+			break;
 		}
 
-		return null;
 	}
 
 	/**
@@ -92,11 +100,14 @@ public abstract class Message {
 
 	public int[] encodeMessage() {
 		appendData(getMessageOrdinal(), NUM_MESSAGE_TYPES);
-//		System.out.println("sending message with bits "
-//				+ String.format("%64s", Long.toBinaryString(allBits)).replace(' ', '0'));
-//		System.out.println("sending message with ints "
-//				+ String.format("%32s", Integer.toBinaryString(longToInts(allBits)[0])).replace(' ', '0')
-//				+ String.format("%32s", Integer.toBinaryString(longToInts(allBits)[1])).replace(' ', '0'));
+		// System.out.println("sending message with bits "
+		// + String.format("%64s", Long.toBinaryString(allBits)).replace(' ',
+		// '0'));
+		// System.out.println("sending message with ints "
+		// + String.format("%32s",
+		// Integer.toBinaryString(longToInts(allBits)[0])).replace(' ', '0')
+		// + String.format("%32s",
+		// Integer.toBinaryString(longToInts(allBits)[1])).replace(' ', '0'));
 		return longToInts(allBits);
 	}
 
@@ -106,7 +117,7 @@ public abstract class Message {
 	 */
 	protected abstract long getMessageOrdinal();
 
-	private final static long intsToLong(int[] intPair) {
+	final static long intsToLong(int[] intPair) {
 		long longBits = intPair[0];
 		longBits = (longBits << 32) | ((long) intPair[1] & 0xFFFFFFFFL);
 		return longBits;

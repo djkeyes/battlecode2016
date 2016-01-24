@@ -1,5 +1,6 @@
 package dk011;
 
+import battlecode.common.GameConstants;
 import battlecode.common.MapLocation;
 import battlecode.common.RobotType;
 import battlecode.common.Signal;
@@ -67,6 +68,12 @@ public class EnemyUnitMessage extends Message {
 			EnemyUnitReceiver.weakestBroadcastedEnemyHealth = this.health;
 			EnemyUnitReceiver.weakestBroadcastedEnemy = actualLoc;
 		}
+		int distSq = BaseHandler.curLoc.distanceSquaredTo(actualLoc);
+		if (distSq <= RobotType.TURRET.attackRadiusSquared && distSq >= GameConstants.TURRET_MINIMUM_RANGE
+				&& this.health < EnemyUnitReceiver.weakestBroadcastedEnemyHealthInTurretRange) {
+			EnemyUnitReceiver.weakestBroadcastedEnemyHealthInTurretRange = this.health;
+			EnemyUnitReceiver.weakestBroadcastedEnemyInTurretRange = actualLoc;
+		}
 
 		// System.out
 		// .println(String
@@ -78,7 +85,31 @@ public class EnemyUnitMessage extends Message {
 			EnemyUnitReceiver.tryAddDen(actualLoc);
 		} else if (RobotType.values()[typeOrdinal] == RobotType.TURRET) {
 			EnemyUnitReceiver.addTurret(actualLoc, this.curTurn + EnemyUnitReporter.APPROX_TURRET_TRANSFORM_DELAY);
+
+			if (distSq <= RobotType.TURRET.attackRadiusSquared && distSq >= GameConstants.TURRET_MINIMUM_RANGE
+					&& this.health < EnemyUnitReceiver.weakestBroadcastedEnemyHealthInTurretRange) {
+				EnemyUnitReceiver.weakestBroadcastedTurretHealthInTurretRange = this.health;
+				EnemyUnitReceiver.weakestBroadcastedTurretInTurretRange = actualLoc;
+
+				if (this.health < EnemyUnitReceiver.weakestBroadcastedTimestampedTurretHealthInTurretRange) {
+					EnemyUnitReceiver.weakestBroadcastedTimestampedTurretHealthInTurretRange = this.health;
+					EnemyUnitReceiver.weakestBroadcastedTimestampedTurretInTurretRange = actualLoc;
+					EnemyUnitReceiver.weakestBroadcastedTimestampedTurretInTurretRangeTimestamp = curTurn
+							+ EnemyUnitReceiver.APPROX_TURRET_TRANSFORM_DELAY;
+				}
+			}
 		}
 
+	}
+
+	public static void processEnemyMessage(Signal signal) {
+		MapLocation loc = signal.getLocation();
+
+		int distSq = BaseHandler.curLoc.distanceSquaredTo(loc);
+
+		if (distSq < EnemyUnitReceiver.weakestBroadcastedEnemyHealth) {
+			EnemyUnitReceiver.closestHeardEnemyDistSq = distSq;
+			EnemyUnitReceiver.closestHeardEnemy = loc;
+		}
 	}
 }

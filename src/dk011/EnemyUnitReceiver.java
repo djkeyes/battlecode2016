@@ -28,6 +28,21 @@ public class EnemyUnitReceiver extends BaseHandler {
 		denReferences[denLoc.data.x][denLoc.data.y] = null;
 	}
 
+	public static void processDenDeath(MapLocation location) {
+		int xStart = Math.max(0, location.x - 4);
+		int xEnd = Math.min(580, location.x + 4);
+		int yStart = Math.max(0, location.y - 4);
+		int yEnd = Math.min(580, location.y + 4);
+		for (int x = xStart; x <= xEnd; x++) {
+			for (int y = yStart; y <= yEnd; y++) {
+				if (denReferences[x][y] != null) {
+					removeDen(denReferences[x][y]);
+					return;
+				}
+			}
+		}
+	}
+
 	public static class TimedTurret {
 		MapLocation turretLocation;
 		int lastTurretTurn;
@@ -77,7 +92,31 @@ public class EnemyUnitReceiver extends BaseHandler {
 		}
 	}
 
-
 	public static MapLocation weakestBroadcastedEnemy = null;
-	public static int weakestBroadcastedEnemyHealth = Integer.MAX_VALUE;
+	public static int weakestBroadcastedEnemyHealth = 0;
+	public static MapLocation weakestBroadcastedEnemyInTurretRange = null;
+	public static int weakestBroadcastedEnemyHealthInTurretRange = 0;
+	public static MapLocation weakestBroadcastedTurretInTurretRange = null;
+	public static int weakestBroadcastedTurretHealthInTurretRange = 0;
+	public static MapLocation weakestBroadcastedTimestampedTurretInTurretRange = null;
+	public static int weakestBroadcastedTimestampedTurretHealthInTurretRange = 0;
+	public static int weakestBroadcastedTimestampedTurretInTurretRangeTimestamp = Integer.MIN_VALUE;
+	public static MapLocation closestHeardEnemy = null;
+	public static int closestHeardEnemyDistSq = 0;
+
+	public static void resetRound() {
+		weakestBroadcastedEnemy = null;
+		weakestBroadcastedEnemyHealth = Integer.MAX_VALUE;
+		weakestBroadcastedEnemyInTurretRange = null;
+		weakestBroadcastedEnemyHealthInTurretRange = Integer.MAX_VALUE;
+		weakestBroadcastedTurretInTurretRange = null;
+		weakestBroadcastedTurretHealthInTurretRange = Integer.MAX_VALUE;
+		if (curTurn > weakestBroadcastedTimestampedTurretInTurretRangeTimestamp) {
+			weakestBroadcastedTimestampedTurretInTurretRange = null;
+			weakestBroadcastedTimestampedTurretHealthInTurretRange = Integer.MAX_VALUE;
+		}
+		closestHeardEnemy = null;
+		closestHeardEnemyDistSq = Integer.MAX_VALUE;
+	}
+
 }
