@@ -34,13 +34,13 @@ public class FreeStuffMessage extends Message {
 
 	/******* RECEIVING ********/
 
-	public FreeStuffMessage(long bits) {
-		super(bits);
+	public static void processMessage(long bits) {
+		setBits(bits);
 
 		int yLoc = (int) consumeData(MAX_Y);
 		int xLoc = (int) consumeData(MAX_X);
-		this.loc = new MapLocation(xLoc, yLoc);
-		this.isNeutralUnit = consumeData(2) > 0;
+		MapLocation loc = new MapLocation(xLoc, yLoc);
+		boolean isNeutralUnit = consumeData(2) > 0;
 
 		if (BaseHandler.rc.getType() == RobotType.ARCHON) {
 			if (isNeutralUnit) {

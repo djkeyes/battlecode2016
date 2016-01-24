@@ -1,11 +1,9 @@
 package dk011;
 
 import battlecode.common.Clock;
-import battlecode.common.Direction;
 import battlecode.common.GameActionException;
 import battlecode.common.MapLocation;
 import battlecode.common.RobotInfo;
-import battlecode.common.RobotType;
 import battlecode.common.Team;
 
 public class AccompaniedScout extends ExploringScout {

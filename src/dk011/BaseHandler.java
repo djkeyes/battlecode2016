@@ -139,6 +139,29 @@ public class BaseHandler {
 				}
 			}
 		}
+
+		if (nearestArchon == null) {
+			for (int i = 0; i < ArchonReceiver.MAX_NUM_ARCHONS; ++i) {
+				if (ArchonReceiver.archonLocs[i] == null) {
+					continue;
+				}
+				int dist = curLoc.distanceSquaredTo(ArchonReceiver.archonLocs[i]);
+				if (dist <= sensorRangeSq) {
+					// the last reported position was here, but we didn't see it
+					// earlier
+					// null it out and continue
+					ArchonReceiver.archonLocs[i] = null;
+					continue;
+				}
+
+				if (dist < minArchonDistSq) {
+					minArchonDistSq = dist;
+					nearestArchon = ArchonReceiver.archonLocs[i];
+				}
+			}
+
+		}
+
 		if (nearestArchon == null) {
 			// return to the closest start position
 			MapLocation[] initialArchonPositions = rc.getInitialArchonLocations(us);

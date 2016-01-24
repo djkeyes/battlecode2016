@@ -74,6 +74,8 @@ public class ExploringScout extends BaseHandler {
 				MapLocation[] nearbyParts = rc.sensePartLocations(sensorRangeSq);
 				FreeStuffReporter.reportFreeStuff(nearbyNeutrals, broadcastRadiusSqHiPriority, nearbyParts,
 						broadcastRadiusSqMedPriority, true);
+
+				ArchonReporter.reportArchonLocations(nearbyAllies, broadcastRadiusSqMedPriority);
 			}
 			rc.setIndicatorString(1, "reported " + rc.getMessageSignalCount() + " things");
 			Clock.yield();

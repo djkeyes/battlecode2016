@@ -1,6 +1,5 @@
 package dk011;
 
-
 /**
  * A message representing information about the min/max row/column, or the map
  * height/width. In fact, since each of those quantities are pretty small, and
@@ -54,11 +53,12 @@ public class MapEdgeMessage extends Message {
 
 	/******* RECEIVING ********/
 
-	public MapEdgeMessage(long bits) {
-		super(bits);
+	public static void processMessage(long bits) {
 		// this directly modifies variables in MapEdgesReceiver.
 		// we could wait and store this message in some kind of queue, but we
 		// might as well use the information as soon as possible.
+
+		setBits(bits);
 
 		int tmp;
 		tmp = (int) consumeData(ActualGameConstants.MAP_MAX_HEIGHT + 1);

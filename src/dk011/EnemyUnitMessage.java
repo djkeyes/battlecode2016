@@ -50,28 +50,29 @@ public class EnemyUnitMessage extends Message {
 
 	/******* RECEIVING ********/
 
-	public EnemyUnitMessage(long bits, Signal signal) {
-		super(bits);
-		this.isZombie = consumeData(2) > 0;
-		this.yLoc = (int) consumeData(MAX_Y_OFFSET);
-		this.xLoc = (int) consumeData(MAX_X_OFFSET);
-		this.typeOrdinal = (int) consumeData(NUM_TYPES);
-		this.curTurn = (int) consumeData(MAX_NUM_ROUNDS);
-		this.coreDelay = (int) consumeData(MAX_CORE_DELAY);
-		this.health = (int) consumeData(MAX_HEALTH);
+	public static void processMessage(long allBits, Signal signal) {
+		setBits(allBits);
+
+		boolean isZombie = consumeData(2) > 0;
+		int yLoc = (int) consumeData(MAX_Y_OFFSET);
+		int xLoc = (int) consumeData(MAX_X_OFFSET);
+		int typeOrdinal = (int) consumeData(NUM_TYPES);
+		int curTurn = (int) consumeData(MAX_NUM_ROUNDS);
+		int coreDelay = (int) consumeData(MAX_CORE_DELAY);
+		int health = (int) consumeData(MAX_HEALTH);
 
 		MapLocation baseLoc = signal.getLocation();
 		MapLocation actualLoc = new MapLocation(xLoc + baseLoc.x - ActualGameConstants.MAP_MAX_WIDTH, yLoc + baseLoc.y
 				- ActualGameConstants.MAP_MAX_HEIGHT);
 
-		if (this.health < EnemyUnitReceiver.weakestBroadcastedEnemyHealth) {
-			EnemyUnitReceiver.weakestBroadcastedEnemyHealth = this.health;
+		if (health < EnemyUnitReceiver.weakestBroadcastedEnemyHealth) {
+			EnemyUnitReceiver.weakestBroadcastedEnemyHealth = health;
 			EnemyUnitReceiver.weakestBroadcastedEnemy = actualLoc;
 		}
 		int distSq = BaseHandler.curLoc.distanceSquaredTo(actualLoc);
 		if (distSq <= RobotType.TURRET.attackRadiusSquared && distSq >= GameConstants.TURRET_MINIMUM_RANGE
-				&& this.health < EnemyUnitReceiver.weakestBroadcastedEnemyHealthInTurretRange) {
-			EnemyUnitReceiver.weakestBroadcastedEnemyHealthInTurretRange = this.health;
+				&& health < EnemyUnitReceiver.weakestBroadcastedEnemyHealthInTurretRange) {
+			EnemyUnitReceiver.weakestBroadcastedEnemyHealthInTurretRange = health;
 			EnemyUnitReceiver.weakestBroadcastedEnemyInTurretRange = actualLoc;
 		}
 
@@ -84,15 +85,15 @@ public class EnemyUnitMessage extends Message {
 		if (RobotType.values()[typeOrdinal] == RobotType.ZOMBIEDEN) {
 			EnemyUnitReceiver.tryAddDen(actualLoc);
 		} else if (RobotType.values()[typeOrdinal] == RobotType.TURRET) {
-			EnemyUnitReceiver.addTurret(actualLoc, this.curTurn + EnemyUnitReporter.APPROX_TURRET_TRANSFORM_DELAY);
+			EnemyUnitReceiver.addTurret(actualLoc, curTurn + EnemyUnitReporter.APPROX_TURRET_TRANSFORM_DELAY);
 
 			if (distSq <= RobotType.TURRET.attackRadiusSquared && distSq >= GameConstants.TURRET_MINIMUM_RANGE
-					&& this.health < EnemyUnitReceiver.weakestBroadcastedEnemyHealthInTurretRange) {
-				EnemyUnitReceiver.weakestBroadcastedTurretHealthInTurretRange = this.health;
+					&& health < EnemyUnitReceiver.weakestBroadcastedEnemyHealthInTurretRange) {
+				EnemyUnitReceiver.weakestBroadcastedTurretHealthInTurretRange = health;
 				EnemyUnitReceiver.weakestBroadcastedTurretInTurretRange = actualLoc;
 
-				if (this.health < EnemyUnitReceiver.weakestBroadcastedTimestampedTurretHealthInTurretRange) {
-					EnemyUnitReceiver.weakestBroadcastedTimestampedTurretHealthInTurretRange = this.health;
+				if (health < EnemyUnitReceiver.weakestBroadcastedTimestampedTurretHealthInTurretRange) {
+					EnemyUnitReceiver.weakestBroadcastedTimestampedTurretHealthInTurretRange = health;
 					EnemyUnitReceiver.weakestBroadcastedTimestampedTurretInTurretRange = actualLoc;
 					EnemyUnitReceiver.weakestBroadcastedTimestampedTurretInTurretRangeTimestamp = curTurn
 							+ EnemyUnitReceiver.APPROX_TURRET_TRANSFORM_DELAY;
@@ -112,4 +113,5 @@ public class EnemyUnitMessage extends Message {
 			EnemyUnitReceiver.closestHeardEnemy = loc;
 		}
 	}
+
 }

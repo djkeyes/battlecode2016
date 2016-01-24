@@ -26,20 +26,17 @@ public abstract class Message {
 	// ideally, we'd have some kind of enum that provided a particular class
 	// constructor given a message ordinal. but imagine now many bytecodes that
 	// would cost :S
-	public static final int NUM_MESSAGE_TYPES = 4;
+	public static final int NUM_MESSAGE_TYPES = 5;
 	protected static final int MAP_EDGE_MESSAGE = 0;
 	protected static final int ENEMY_UNIT_MESSAGE = 1;
 	protected static final int FREE_STUFF_MESSAGE = 2;
 	protected static final int DESTINY_MESSAGE = 3;
+	protected static final int ARCHON_LOCATION_MESSAGE = 4;
 
 	protected long allBits;
 
 	protected Message() {
 
-	}
-
-	protected Message(long allBits) {
-		this.allBits = allBits;
 	}
 
 	public static void decodeMessage(Signal signal, Team us) {
@@ -68,26 +65,35 @@ public abstract class Message {
 
 		switch (messageType) {
 		case MAP_EDGE_MESSAGE:
-			new MapEdgeMessage(allBits);
+			MapEdgeMessage.processMessage(allBits);
 			break;
 		case ENEMY_UNIT_MESSAGE:
-			new EnemyUnitMessage(allBits, signal);
+			EnemyUnitMessage.processMessage(allBits, signal);
 			break;
 		case FREE_STUFF_MESSAGE:
-			new FreeStuffMessage(allBits);
+			FreeStuffMessage.processMessage(allBits);
 			break;
 		case DESTINY_MESSAGE:
+			break;
+		case ARCHON_LOCATION_MESSAGE:
+			ArchonReporter.ArchonLocationMessage.processMessage(allBits);
 			break;
 		}
 
 	}
 
+	private static long processedBits;
+
+	protected static void setBits(long allBits) {
+		processedBits = allBits;
+	}
+
 	/**
-	 * consumes some more bits off the current message
+	 * consumes some more bits off the current message, set by setBits(long)
 	 */
-	protected long consumeData(long dataSize) {
-		long result = allBits % dataSize;
-		allBits /= dataSize;
+	protected static long consumeData(long dataSize) {
+		long result = processedBits % dataSize;
+		processedBits /= dataSize;
 		return result;
 	}
 

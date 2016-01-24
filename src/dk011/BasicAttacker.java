@@ -53,11 +53,21 @@ public class BasicAttacker extends BaseHandler {
 				}
 			}
 
+			// go home for repairs
+			if (rc.getHealth() < type.maxHealth) {
+				MapLocation nearestArchon = getNearestArchon(nearbyAllies);
+				if (curLoc.distanceSquaredTo(nearestArchon) > 8) {
+					moveToNearestArchon(nearbyAllies, nearbyEnemies, nearestArchon);
+				}
+				return;
+			}
+
 			if (tryMoveToNearestDen(nearbyEnemies)) {
 				return;
 			}
 
-			moveToNearestArchon(nearbyAllies, nearbyEnemies);
+			MapLocation nearestArchon = getNearestArchon(nearbyAllies);
+			moveToNearestArchon(nearbyAllies, nearbyEnemies, nearestArchon);
 		}
 	}
 
@@ -78,11 +88,9 @@ public class BasicAttacker extends BaseHandler {
 		return false;
 	}
 
-	private static void moveToNearestArchon(RobotInfo[] nearbyAllies, RobotInfo[] nearbyEnemies)
-			throws GameActionException {
+	private static void moveToNearestArchon(RobotInfo[] nearbyAllies, RobotInfo[] nearbyEnemies,
+			MapLocation nearestArchon) throws GameActionException {
 		// path toward allied archons
-		MapLocation nearestArchon = getNearestArchon(nearbyAllies);
-
 		digMovementStrategy.setNearbyEnemies(nearbyEnemies);
 		Pathfinding.setTarget(nearestArchon, digMovementStrategy);
 		Pathfinding.pathfindToward();
