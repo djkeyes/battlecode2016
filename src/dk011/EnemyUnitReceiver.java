@@ -1,7 +1,9 @@
 package dk011;
 
+import battlecode.common.GameActionException;
 import battlecode.common.GameConstants;
 import battlecode.common.MapLocation;
+import battlecode.common.RobotType;
 
 public class EnemyUnitReceiver extends BaseHandler {
 
@@ -27,13 +29,18 @@ public class EnemyUnitReceiver extends BaseHandler {
 		}
 	}
 
-	public static void removeDen(DoublyLinkedList.DoublyLinkedListNode<MapLocation> denLoc) {
+	public static void removeDen(DoublyLinkedList.DoublyLinkedListNode<MapLocation> denLoc) throws GameActionException {
 		zombieDenLocations.remove(denLoc);
 		denReferences[denLoc.data.x][denLoc.data.y] = null;
 		lastDenRemovedTurn = curTurn;
+
+		if (rc.getType() == RobotType.SCOUT) {
+			// extra announcements, in case we're shadowing a deaf turret
+			EnemyUnitReporter.announceDenDeathMessage(denLoc.data, ExploringScout.broadcastRadiusSqVeryLoPriority);
+		}
 	}
 
-	public static void processDenDeath(MapLocation location) {
+	public static void processDenDeath(MapLocation location) throws GameActionException {
 		int xStart = Math.max(0, location.x - 4);
 		int xEnd = Math.min(580, location.x + 4);
 		int yStart = Math.max(0, location.y - 4);

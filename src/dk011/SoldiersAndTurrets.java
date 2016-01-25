@@ -14,8 +14,8 @@ public class SoldiersAndTurrets extends BaseHandler implements Strategy {
 	private RobotType lastUnitType = null;
 	private boolean builtTurretLast = false;
 
-	private static final int NUM_TURRETS_PER_VIPER = 4;
-	private int numTurretsSinceLastViper = 4;
+	private static final int NUM_TURRETS_PER_VIPER = 6;
+	private int numTurretsSinceLastViper = 6;
 
 	@Override
 	public RobotType getNextToBuild(RobotInfo[] curAlliesInSight) {

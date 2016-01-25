@@ -57,19 +57,7 @@ public class ArchonReporter extends ArchonReceiver {
 
 			MapLocation loc = new MapLocation(x, y);
 
-			int i = 0;
-			for (; i < MAX_NUM_ARCHONS && archonIds[i] != robotId; ++i)
-				;
-
-			// if our id isn't already in the list, find an entry that's null
-			// and use it
-			if (i == MAX_NUM_ARCHONS) {
-				for (i = 0; archonLocs[i] != null; ++i)
-					;
-			}
-
-			archonLocs[i] = loc;
-			archonIds[i] = robotId;
+			ArchonReceiver.recordArchonPosition(loc, robotId);
 		}
 	}
 }

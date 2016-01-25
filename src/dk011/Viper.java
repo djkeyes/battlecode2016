@@ -26,6 +26,8 @@ public class Viper extends BasicAttacker {
 		RobotInfo[] nearbyAllies = rc.senseNearbyRobots(curLoc, sensorRangeSq, us);
 		RobotInfo[] nearbyEnemies = rc.senseHostileRobots(curLoc, sensorRangeSq);
 
+		ArchonReceiver.updateWithVisibleArchons(nearbyAllies);
+
 		// do micro if we're near enemies
 		// TODO: use previous micro code here
 		if (nearbyEnemies.length > 0) {

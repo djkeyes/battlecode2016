@@ -33,6 +33,8 @@ public class BasicAttacker extends BaseHandler {
 		RobotInfo[] nearbyAllies = rc.senseNearbyRobots(curLoc, sensorRangeSq, us);
 		RobotInfo[] nearbyEnemies = rc.senseHostileRobots(curLoc, sensorRangeSq);
 
+		ArchonReceiver.updateWithVisibleArchons(nearbyAllies);
+
 		// do micro if we're near enemies
 		if (nearbyEnemies.length > 0) {
 			Micro.doMicro(nearbyAllies, nearbyEnemies);
@@ -85,9 +87,11 @@ public class BasicAttacker extends BaseHandler {
 		}
 
 		if (nearestDen != null) {
-			digMovementStrategy.setNearbyEnemies(nearbyEnemies);
-			Pathfinding.setTarget(nearestDen, digMovementStrategy);
-			Pathfinding.pathfindToward();
+			if (curLoc.distanceSquaredTo(nearestDen) > 8) {
+				digMovementStrategy.setNearbyEnemies(nearbyEnemies);
+				Pathfinding.setTarget(nearestDen, digMovementStrategy);
+				Pathfinding.pathfindToward();
+			}
 			return true;
 		}
 		return false;

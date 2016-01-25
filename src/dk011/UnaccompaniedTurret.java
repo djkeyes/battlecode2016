@@ -47,6 +47,8 @@ public class UnaccompaniedTurret extends BaseHandler {
 		RobotInfo[] nearbyAllies = rc.senseNearbyRobots(curLoc, sensorRangeSq, us);
 		RobotInfo[] nearbyEnemies = rc.senseHostileRobots(curLoc, sensorRangeSq);
 
+		ArchonReceiver.updateWithVisibleArchons(nearbyAllies);
+
 		MapLocation nearestDen = getNearestDen(nearbyEnemies);
 		if (tryToAttack(nearestDen)) {
 			rc.unpack();

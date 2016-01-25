@@ -34,14 +34,17 @@ public class Archon extends BaseHandler {
 
 			updateCurState();
 
+			ArchonReceiver.updateWithVisibleArchons(curAlliesInSight);
+
 			loop();
 
 			Clock.yield();
 		}
 	}
 
+	private static final double PARTS_THRESHOLD_TO_IGNORE_NEUTRALS = 500;
+
 	public static void loop() throws GameActionException {
-		rc.setIndicatorString(0, "personal assistant: " + personalAssistant);
 		if (curTurn > 160) {
 			Pathfinding.PATIENCE = 2;
 		}
@@ -50,27 +53,34 @@ public class Archon extends BaseHandler {
 		repairWeakest();
 
 		if (tryWhisperingIfBuilding()) {
+			rc.setIndicatorString(0, "building, whispering");
 			return;
 		}
 
 		// everything after this requires core delay
 		if (!rc.isCoreReady()) {
+			rc.setIndicatorString(0, "coredelay");
 			return;
 		}
 
 		// check for adj free units
 		if (tryToActivate()) {
+			rc.setIndicatorString(0, "activating");
 			return;
 		}
 
 		// run away
 		if (canAnyAttackUs(curHostilesInSight)) {
+			rc.setIndicatorString(0, "retreating");
 			Micro.retreat(curHostilesInSight, false);
 			return;
 		}
 
-		if (moveToNearbyNeutrals()) {
-			return;
+		if (rc.getTeamParts() < PARTS_THRESHOLD_TO_IGNORE_NEUTRALS) {
+			if (moveToNearbyNeutrals()) {
+				rc.setIndicatorString(0, "move to neutrals");
+				return;
+			}
 		}
 
 		if (tryToBuild()) {
@@ -78,18 +88,26 @@ public class Archon extends BaseHandler {
 			// stuff
 			// (the timing variable is set to expect this extra call)
 			tryWhisperingIfBuilding();
-			return;
-		}
-
-		if (moveToFarAwayNeutrals()) {
+			rc.setIndicatorString(0, "building");
 			return;
 		}
 
 		if (moveToNearbyParts()) {
+			rc.setIndicatorString(0, "move to parts");
+			return;
+		}
+
+		if (moveToFarAwayNeutrals()) {
+			rc.setIndicatorString(0, "move to far neutrals");
+			return;
+		}
+		if (moveToFarAwayParts()) {
+			rc.setIndicatorString(0, "move to far parts");
 			return;
 		}
 
 		if (moveToNearbyArchons()) {
+			rc.setIndicatorString(0, "move to archons");
 			return;
 		}
 
@@ -146,6 +164,25 @@ public class Archon extends BaseHandler {
 			MapLocation bestNeutralArchon = null;
 			for (int i = curNeutralsInSight.length; --i >= 0;) {
 				int distSq = curNeutralsInSight[i].location.distanceSquaredTo(curLoc);
+
+				// don't move toward a neutral if another archon is closer
+				boolean otherIsCloser = false;
+				for (int j = 0; j < ArchonReporter.MAX_NUM_ARCHONS; j++) {
+					if (ArchonReporter.archonLocs[j] == null) {
+						continue;
+					}
+					if (ArchonReporter.archonIds[j] == rc.getID()) {
+						continue;
+					}
+
+					if (ArchonReporter.archonLocs[j].distanceSquaredTo(curNeutralsInSight[i].location) <= distSq) {
+						otherIsCloser = true;
+						break;
+					}
+				}
+				if (otherIsCloser) {
+					continue;
+				}
 
 				// don't bother moving toward neutrals in dangerous locations
 				// (unless we're already adjacent)
@@ -322,10 +359,13 @@ public class Archon extends BaseHandler {
 
 	/******** moving *********/
 
+	// only get these if we have time
+	private static final int FAR_AWAY_THRESHOLD = 12 * 12;
+	// don't even bother with these
+	private static final int REALLY_FAR_AWAY_THRESHOLD = 22 * 22;
 	private static boolean bestNeutralIsFarAway = false;
 
 	private static boolean moveToNearbyNeutrals() throws GameActionException {
-
 		// earlier we already computed the best neutral robot to activate
 		// if that's still null, we can check our broadcast results and move
 		// toward a neutral unit
@@ -351,7 +391,7 @@ public class Archon extends BaseHandler {
 					FreeStuffReceiver.removeNeutral(neutralLoc);
 					neutralLoc = next;
 					continue;
-				} else if (distSq < minNeutralDistSq) {
+				} else if (distSq < minNeutralDistSq && distSq <= REALLY_FAR_AWAY_THRESHOLD) {
 					if (!CautiousMovement.inEnemyRange(neutralLoc.data, curHostilesInSight)) {
 						minNeutralDistSq = distSq;
 						bestNeutral = neutralLoc.data;
@@ -360,7 +400,7 @@ public class Archon extends BaseHandler {
 				neutralLoc = neutralLoc.next;
 			}
 
-			if (minNeutralDistSq > 12 * 12) {
+			if (minNeutralDistSq > FAR_AWAY_THRESHOLD) {
 				bestNeutralIsFarAway = true;
 			}
 		}
@@ -384,8 +424,11 @@ public class Archon extends BaseHandler {
 		return false;
 	}
 
+	private static MapLocation bestParts = null;
+
 	private static boolean moveToNearbyParts() throws GameActionException {
-		MapLocation bestParts = null;
+		bestParts = null;
+		boolean bestPartsAreFarAway = false;
 		MapLocation[] nearbyParts = rc.sensePartLocations(sensorRangeSq);
 		if (nearbyParts.length > 0) {
 			// find the closest one
@@ -422,23 +465,36 @@ public class Archon extends BaseHandler {
 					FreeStuffReceiver.removeParts(partsLoc);
 					partsLoc = next;
 					continue;
-				} else if (distSq < minDistSq) {
+				} else if (distSq < minDistSq && distSq <= REALLY_FAR_AWAY_THRESHOLD) {
 					if (!CautiousMovement.inEnemyRange(partsLoc.data, curHostilesInSight)) {
 						minDistSq = distSq;
 						bestParts = partsLoc.data;
 					}
 				}
+				if (minDistSq > FAR_AWAY_THRESHOLD) {
+					bestPartsAreFarAway = true;
+				}
 				partsLoc = partsLoc.next;
 			}
 		}
 
-		if (bestParts != null) {
+		if (bestParts != null && !bestPartsAreFarAway) {
 			cautiouslyDigMovement.setNearbyEnemies(curHostilesInSight);
 			Pathfinding.setTarget(bestParts, cautiouslyDigMovement);
 			Pathfinding.pathfindToward();
 			return true;
 		}
 
+		return false;
+	}
+
+	private static boolean moveToFarAwayParts() throws GameActionException {
+		if (bestParts != null) {
+			cautiouslyDigMovement.setNearbyEnemies(curHostilesInSight);
+			Pathfinding.setTarget(bestParts, cautiouslyDigMovement);
+			Pathfinding.pathfindToward();
+			return true;
+		}
 		return false;
 	}
 

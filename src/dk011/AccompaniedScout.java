@@ -50,6 +50,7 @@ public class AccompaniedScout extends ExploringScout {
 			if (isAccompanyingArchon) {
 				EnemyUnitReporter.reportEnemyUnits(nearbyHostiles, broadcastRadiusSqVeryLoPriority,
 						broadcastRadiusSqVeryLoPriority, false);
+				EnemyUnitReporter.reportDenDeaths(broadcastRadiusSqVeryLoPriority);
 
 				RobotInfo[] nearbyNeutrals = rc.senseNearbyRobots(sensorRangeSq, Team.NEUTRAL);
 				MapLocation[] nearbyParts = rc.sensePartLocations(sensorRangeSq);
@@ -70,6 +71,7 @@ public class AccompaniedScout extends ExploringScout {
 
 				EnemyUnitReporter.reportEnemyUnits(nearbyHostiles, broadcastRadiusSqVeryLoPriority,
 						broadcastRadiusSqLoPriority, true);
+				EnemyUnitReporter.reportDenDeaths(broadcastRadiusSqVeryLoPriority);
 
 				RobotInfo[] nearbyNeutrals = rc.senseNearbyRobots(sensorRangeSq, Team.NEUTRAL);
 				MapLocation[] nearbyParts = rc.sensePartLocations(sensorRangeSq);

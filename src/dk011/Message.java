@@ -26,12 +26,13 @@ public abstract class Message {
 	// ideally, we'd have some kind of enum that provided a particular class
 	// constructor given a message ordinal. but imagine now many bytecodes that
 	// would cost :S
-	public static final int NUM_MESSAGE_TYPES = 5;
+	public static final int NUM_MESSAGE_TYPES = 6;
 	protected static final int MAP_EDGE_MESSAGE = 0;
 	protected static final int ENEMY_UNIT_MESSAGE = 1;
 	protected static final int FREE_STUFF_MESSAGE = 2;
 	protected static final int DESTINY_MESSAGE = 3;
 	protected static final int ARCHON_LOCATION_MESSAGE = 4;
+	protected static final int PRECISE_DEN_DEATH_MESSAGE = 5;
 
 	protected long allBits;
 
@@ -77,6 +78,9 @@ public abstract class Message {
 			break;
 		case ARCHON_LOCATION_MESSAGE:
 			ArchonReporter.ArchonLocationMessage.processMessage(allBits);
+			break;
+		case PRECISE_DEN_DEATH_MESSAGE:
+			EnemyUnitReporter.DenDeathMessage.processDenDeathMessage(allBits);
 			break;
 		}
 
