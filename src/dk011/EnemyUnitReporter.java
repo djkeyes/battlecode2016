@@ -1,7 +1,5 @@
 package dk011;
 
-import dk011.DoublyLinkedList.DoublyLinkedListNode;
-import dk011.EnemyUnitReceiver.TimedTurret;
 import battlecode.common.GameActionException;
 import battlecode.common.GameConstants;
 import battlecode.common.MapLocation;

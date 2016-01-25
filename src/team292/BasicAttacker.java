@@ -8,7 +8,7 @@ import battlecode.common.RobotInfo;
 
 public class BasicAttacker extends BaseHandler {
 
-	private static final DigRubbleMovement digMovementStrategy = new DigRubbleMovement(true, 500);
+	protected static final DigRubbleMovement digMovementStrategy = new DigRubbleMovement(true, 500);
 
 	public static void run() throws GameActionException {
 
@@ -19,18 +19,21 @@ public class BasicAttacker extends BaseHandler {
 
 			Messaging.receiveAndProcessMessages();
 
-//			rc.setIndicatorString(1, "dens: " + EnemyUnitReceiver.zombieDenLocations.toString());
-//			rc.setIndicatorString(2, "turrets: " + EnemyUnitReceiver.turretLocations.toString());
+			// rc.setIndicatorString(1, "dens: " +
+			// EnemyUnitReceiver.zombieDenLocations.toString());
+			// rc.setIndicatorString(2, "turrets: " +
+			// EnemyUnitReceiver.turretLocations.toString());
 			loop();
 
 			Clock.yield();
-
 		}
 	}
 
-	public static void loop() throws GameActionException {
+	private static void loop() throws GameActionException {
 		RobotInfo[] nearbyAllies = rc.senseNearbyRobots(curLoc, sensorRangeSq, us);
 		RobotInfo[] nearbyEnemies = rc.senseHostileRobots(curLoc, sensorRangeSq);
+
+		ArchonReceiver.updateWithVisibleArchons(nearbyAllies);
 
 		// do micro if we're near enemies
 		if (nearbyEnemies.length > 0) {
@@ -63,13 +66,19 @@ public class BasicAttacker extends BaseHandler {
 			if (tryMoveToNearestDen(nearbyEnemies)) {
 				return;
 			}
+			if (tryMoveToNearestBroadcastEnemy(nearbyEnemies)) {
+				return;
+			}
+			if (tryMoveToEnemyHq(nearbyEnemies)) {
+				return;
+			}
 
 			MapLocation nearestArchon = getNearestArchon(nearbyAllies);
 			moveToNearestArchon(nearbyAllies, nearbyEnemies, nearestArchon);
 		}
 	}
 
-	private static boolean tryMoveToNearestDen(RobotInfo[] nearbyEnemies) throws GameActionException {
+	protected static boolean tryMoveToNearestDen(RobotInfo[] nearbyEnemies) throws GameActionException {
 		MapLocation nearestDen = getNearestDen(nearbyEnemies);
 
 		// we send a death announcement if we've found a dead den.
@@ -78,15 +87,47 @@ public class BasicAttacker extends BaseHandler {
 		}
 
 		if (nearestDen != null) {
+			if (curLoc.distanceSquaredTo(nearestDen) > 8) {
+				digMovementStrategy.setNearbyEnemies(nearbyEnemies);
+				Pathfinding.setTarget(nearestDen, digMovementStrategy);
+				Pathfinding.pathfindToward();
+			}
+			return true;
+		}
+		return false;
+	}
+
+	protected static boolean tryMoveToNearestBroadcastEnemy(RobotInfo[] nearbyEnemies) throws GameActionException {
+		MapLocation enemyLoc = EnemyUnitReceiver.closestEnemyOutsideSensorRange;
+		if (enemyLoc != null) {
 			digMovementStrategy.setNearbyEnemies(nearbyEnemies);
-			Pathfinding.setTarget(nearestDen, digMovementStrategy);
+			Pathfinding.setTarget(enemyLoc, digMovementStrategy);
 			Pathfinding.pathfindToward();
 			return true;
 		}
 		return false;
 	}
 
-	private static void moveToNearestArchon(RobotInfo[] nearbyAllies, RobotInfo[] nearbyEnemies,
+	private static MapLocation enemyArchonLoc = null;
+
+	protected static boolean tryMoveToEnemyHq(RobotInfo[] nearbyEnemies) throws GameActionException {
+		// if all the dens are dead and we haven't seen any enemies, they're
+		// probably huddled in a corner
+		if (EnemyUnitReceiver.areAllDensProbablyDeadOrUnreachable()) {
+			if (enemyArchonLoc == null || curLoc.distanceSquaredTo(enemyArchonLoc) <= 15) {
+				MapLocation[] enemyArchonLocs = rc.getInitialArchonLocations(them);
+				enemyArchonLoc = enemyArchonLocs[gen.nextInt(enemyArchonLocs.length)];
+			}
+
+			digMovementStrategy.setNearbyEnemies(nearbyEnemies);
+			Pathfinding.setTarget(enemyArchonLoc, digMovementStrategy);
+			Pathfinding.pathfindToward();
+			return true;
+		}
+		return false;
+	}
+
+	protected static void moveToNearestArchon(RobotInfo[] nearbyAllies, RobotInfo[] nearbyEnemies,
 			MapLocation nearestArchon) throws GameActionException {
 		// path toward allied archons
 		digMovementStrategy.setNearbyEnemies(nearbyEnemies);

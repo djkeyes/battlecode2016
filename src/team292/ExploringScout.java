@@ -67,6 +67,7 @@ public class ExploringScout extends BaseHandler {
 			if (!areAnyEnemiesClose || rc.getCoreDelay() < 2) {
 				EnemyUnitReporter.reportEnemyUnits(nearbyHostiles, broadcastRadiusSqVeryLoPriority,
 						broadcastRadiusSqLoPriority, true);
+				EnemyUnitReporter.reportDenDeaths(MapEdgesReceiver.getMinAllMapRadius());
 
 				RobotInfo[] nearbyNeutrals = rc.senseNearbyRobots(sensorRangeSq, Team.NEUTRAL);
 				MapLocation[] nearbyParts = rc.sensePartLocations(sensorRangeSq);

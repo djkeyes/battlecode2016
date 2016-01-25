@@ -1,8 +1,6 @@
 package dk011;
 
-import battlecode.common.Clock;
 import battlecode.common.GameActionException;
-import battlecode.common.MapLocation;
 import battlecode.common.RobotType;
 import battlecode.common.Signal;
 
@@ -27,10 +25,10 @@ public class Messaging extends BaseHandler {
 		rc.broadcastSignal(MapEdgesReceiver.getMinAllMapRadius());
 	}
 
-	public static void receiveAndProcessMessages() {
+	public static void receiveAndProcessMessages() throws GameActionException {
 		Signal[] signals = rc.emptySignalQueue();
 
-		rc.setIndicatorString(0, "starting to process " + signals.length + " messages at bc=" + Clock.getBytecodeNum());
+//		rc.setIndicatorString(0, "starting to process " + signals.length + " messages at bc=" + Clock.getBytecodeNum());
 
 		EnemyUnitReceiver.resetRound();
 
@@ -41,8 +39,9 @@ public class Messaging extends BaseHandler {
 				break;
 			}
 		}
-		rc.setIndicatorString(2, "finished processing " + messagesProcessed + "/" + signals.length + " messages at bc="
-				+ Clock.getBytecodeNum());
+		// rc.setIndicatorString(2, "finished processing " + messagesProcessed +
+		// "/" + signals.length + " messages at bc="
+		//			+ Clock.getBytecodeNum());
 	}
 
 	public static void receiveAndProcessDestinyMessage() {

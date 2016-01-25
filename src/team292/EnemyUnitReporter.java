@@ -88,7 +88,59 @@ public class EnemyUnitReporter extends EnemyUnitReceiver {
 		// wrong den, they're still in the ballpark
 
 		if (curLoc.distanceSquaredTo(denLoc) <= DEN_DEATH_REPORT_DISTANCE) {
-			Messaging.sendDenDeathMessage();
+			Messaging.sendDenDeathBasicSignal();
+		}
+	}
+
+	public static void announceDenDeathMessage(MapLocation denLoc, int broadcastRadiusSq) throws GameActionException {
+		Messaging.sendMessage(new DenDeathMessage(denLoc), broadcastRadiusSq);
+	}
+
+	public static void reportDenDeaths(int broadcastRadiusSq) throws GameActionException {
+
+		DoublyLinkedList.DoublyLinkedListNode<MapLocation> cur = zombieDenLocations.head;
+		while (cur != null) {
+			DoublyLinkedList.DoublyLinkedListNode<MapLocation> next = cur.next;
+			if (cur.data.distanceSquaredTo(curLoc) <= sensorRangeSq) {
+				RobotInfo supposedDen = rc.senseRobotAtLocation(cur.data);
+				if (supposedDen == null || supposedDen.type != RobotType.ZOMBIEDEN) {
+					removeDen(cur);
+					announceDenDeathMessage(cur.data, broadcastRadiusSq);
+				}
+			}
+			cur = next;
+		}
+
+	}
+
+	public static class DenDeathMessage extends Message {
+
+		private MapLocation loc;
+
+		public DenDeathMessage(MapLocation denLoc) {
+			loc = denLoc;
+		}
+
+		@Override
+		public int[] encodeMessage() {
+			appendData(loc.x, 581);
+			appendData(loc.y, 581);
+			return super.encodeMessage();
+		}
+
+		@Override
+		protected long getMessageOrdinal() {
+			return PRECISE_DEN_DEATH_MESSAGE;
+		}
+
+		public static void processDenDeathMessage(long allBits) throws GameActionException {
+			setBits(allBits);
+			int y = (int) consumeData(581);
+			int x = (int) consumeData(581);
+
+			if (denReferences[x][y] != null) {
+				removeDen(denReferences[x][y]);
+			}
 		}
 	}
 }

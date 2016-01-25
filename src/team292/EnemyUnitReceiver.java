@@ -1,7 +1,9 @@
 package team292;
 
+import battlecode.common.GameActionException;
 import battlecode.common.GameConstants;
 import battlecode.common.MapLocation;
+import battlecode.common.RobotType;
 
 public class EnemyUnitReceiver extends BaseHandler {
 
@@ -11,6 +13,9 @@ public class EnemyUnitReceiver extends BaseHandler {
 	@SuppressWarnings("unchecked")
 	public static DoublyLinkedList.DoublyLinkedListNode<MapLocation>[][] denReferences = new DoublyLinkedList.DoublyLinkedListNode[581][581];
 
+	public static int lastDenAddedTurn = 0;
+	public static int lastDenRemovedTurn = 0;
+
 	public static boolean tryAddDen(MapLocation loc) {
 		// don't re-add dens that are already known
 		DoublyLinkedList.DoublyLinkedListNode<MapLocation> prevValue = denReferences[loc.x][loc.y];
@@ -19,16 +24,23 @@ public class EnemyUnitReceiver extends BaseHandler {
 		} else {
 			DoublyLinkedList.DoublyLinkedListNode<MapLocation> ref = zombieDenLocations.append(loc);
 			denReferences[loc.x][loc.y] = ref;
+			lastDenAddedTurn = curTurn;
 			return true;
 		}
 	}
 
-	public static void removeDen(DoublyLinkedList.DoublyLinkedListNode<MapLocation> denLoc) {
+	public static void removeDen(DoublyLinkedList.DoublyLinkedListNode<MapLocation> denLoc) throws GameActionException {
 		zombieDenLocations.remove(denLoc);
 		denReferences[denLoc.data.x][denLoc.data.y] = null;
+		lastDenRemovedTurn = curTurn;
+
+		if (rc.getType() == RobotType.SCOUT) {
+			// extra announcements, in case we're shadowing a deaf turret
+			EnemyUnitReporter.announceDenDeathMessage(denLoc.data, ExploringScout.broadcastRadiusSqVeryLoPriority);
+		}
 	}
 
-	public static void processDenDeath(MapLocation location) {
+	public static void processDenDeath(MapLocation location) throws GameActionException {
 		int xStart = Math.max(0, location.x - 4);
 		int xEnd = Math.min(580, location.x + 4);
 		int yStart = Math.max(0, location.y - 4);
@@ -41,6 +53,14 @@ public class EnemyUnitReceiver extends BaseHandler {
 				}
 			}
 		}
+	}
+
+	private static final int DEN_EXPIRATION_TIME = 1000;
+	private static final int ALL_IN_TIME = 2500;
+
+	public static boolean areAllDensProbablyDeadOrUnreachable() {
+		return lastDenAddedTurn + DEN_EXPIRATION_TIME < curTurn && lastDenRemovedTurn + DEN_EXPIRATION_TIME < curTurn
+				&& curTurn > ALL_IN_TIME;
 	}
 
 	public static class TimedTurret {
@@ -103,6 +123,8 @@ public class EnemyUnitReceiver extends BaseHandler {
 	public static int weakestBroadcastedTimestampedTurretInTurretRangeTimestamp = Integer.MIN_VALUE;
 	public static MapLocation closestHeardEnemy = null;
 	public static int closestHeardEnemyDistSq = 0;
+	public static MapLocation closestEnemyOutsideSensorRange = null;
+	public static int closestEnemyOutsideSensorRangeDistSq = 0;
 
 	public static void resetRound() {
 		weakestBroadcastedEnemy = null;
@@ -117,6 +139,8 @@ public class EnemyUnitReceiver extends BaseHandler {
 		}
 		closestHeardEnemy = null;
 		closestHeardEnemyDistSq = Integer.MAX_VALUE;
+		closestEnemyOutsideSensorRange = null;
+		closestEnemyOutsideSensorRangeDistSq = Integer.MAX_VALUE;
 	}
 
 }

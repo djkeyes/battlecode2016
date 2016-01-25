@@ -25,7 +25,8 @@ public class UnaccompaniedTurret extends BaseHandler {
 
 			// rc.setIndicatorString(1, "dens: " +
 			// EnemyUnitReceiver.zombieDenLocations.toString());
-			// rc.setIndicatorString(2, "turrets: " + EnemyUnitReceiver.turretLocations.toString());
+			// rc.setIndicatorString(2, "turrets: " +
+			// EnemyUnitReceiver.turretLocations.toString());
 
 			if (rc.getType() == RobotType.TURRET) {
 				turretLoop();
@@ -46,6 +47,8 @@ public class UnaccompaniedTurret extends BaseHandler {
 		RobotInfo[] nearbyAllies = rc.senseNearbyRobots(curLoc, sensorRangeSq, us);
 		RobotInfo[] nearbyEnemies = rc.senseHostileRobots(curLoc, sensorRangeSq);
 
+		ArchonReceiver.updateWithVisibleArchons(nearbyAllies);
+
 		MapLocation nearestDen = getNearestDen(nearbyEnemies);
 		if (tryToAttack(nearestDen)) {
 			rc.unpack();
@@ -57,6 +60,14 @@ public class UnaccompaniedTurret extends BaseHandler {
 		}
 
 		if (tryMoveToNearestDen(nearbyEnemies, nearestDen)) {
+			return;
+		}
+
+		if (tryMoveToNearestBroadcastEnemy()) {
+			return;
+		}
+
+		if (tryMoveToEnemyHq()) {
 			return;
 		}
 
@@ -165,6 +176,34 @@ public class UnaccompaniedTurret extends BaseHandler {
 
 		if (nearestDen != null) {
 			Pathfinding.setTarget(nearestDen, ttmMovement);
+			Pathfinding.pathfindToward();
+			return true;
+		}
+		return false;
+	}
+
+	private static boolean tryMoveToNearestBroadcastEnemy() throws GameActionException {
+		MapLocation enemyLoc = EnemyUnitReceiver.closestEnemyOutsideSensorRange;
+		if (enemyLoc != null) {
+			Pathfinding.setTarget(enemyLoc, ttmMovement);
+			Pathfinding.pathfindToward();
+			return true;
+		}
+		return false;
+	}
+
+	private static MapLocation enemyArchonLoc = null;
+
+	private static boolean tryMoveToEnemyHq() throws GameActionException {
+		// if all the dens are dead and we haven't seen any enemies, they're
+		// probably huddled in a corner
+		if (EnemyUnitReceiver.areAllDensProbablyDeadOrUnreachable()) {
+			if (enemyArchonLoc == null || curLoc.distanceSquaredTo(enemyArchonLoc) <= 15) {
+				MapLocation[] enemyArchonLocs = rc.getInitialArchonLocations(them);
+				enemyArchonLoc = enemyArchonLocs[gen.nextInt(enemyArchonLocs.length)];
+			}
+
+			Pathfinding.setTarget(enemyArchonLoc, ttmMovement);
 			Pathfinding.pathfindToward();
 			return true;
 		}

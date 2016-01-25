@@ -1,5 +1,6 @@
 package dk011;
 
+import battlecode.common.GameActionException;
 import battlecode.common.Signal;
 import battlecode.common.Team;
 
@@ -40,7 +41,7 @@ public abstract class Message {
 
 	}
 
-	public static void decodeMessage(Signal signal, Team us) {
+	public static void decodeMessage(Signal signal, Team us) throws GameActionException {
 		if (signal.getTeam() != us) {
 			EnemyUnitMessage.processEnemyMessage(signal);
 			return;

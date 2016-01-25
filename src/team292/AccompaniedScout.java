@@ -4,6 +4,7 @@ import battlecode.common.Clock;
 import battlecode.common.GameActionException;
 import battlecode.common.MapLocation;
 import battlecode.common.RobotInfo;
+import battlecode.common.RobotType;
 import battlecode.common.Team;
 
 public class AccompaniedScout extends ExploringScout {
@@ -14,12 +15,19 @@ public class AccompaniedScout extends ExploringScout {
 
 	public static void run() throws GameActionException {
 
+		// if we're paired with an archon instead of a turret, we need to be
+		// more brief with some broadcasts
+		ally = rc.senseRobot(DestinyReceiver.friendId);
+		boolean isAccompanyingArchon = ally.type == RobotType.ARCHON;
+
 		MapEdgesReporter.initMapEdges();
 
 		beginningOfLoop();
 		boolean hasEdgesInitially = MapEdgesReporter.checkMapEdges();
 
 		while (true) {
+			beginningOfLoop();
+
 			if (rc.canSenseRobot(DestinyReceiver.friendId)) {
 				ally = rc.senseRobot(DestinyReceiver.friendId);
 				lastAllyDetectionTurn = curTurn;
@@ -30,8 +38,6 @@ public class AccompaniedScout extends ExploringScout {
 				ExploringScout.mainRun();
 			}
 
-			beginningOfLoop();
-
 			Messaging.receiveAndProcessMessages();
 
 			nearbyAllies = rc.senseNearbyRobots(sensorRangeSq, us);
@@ -40,20 +46,39 @@ public class AccompaniedScout extends ExploringScout {
 			loop();
 
 			beginningOfLoop();
-			// check the map edges after moving, so we're the most up-to-date
-			// and we don't hose our core delay
-			if (MapEdgesReporter.checkMapEdges() || hasEdgesInitially) {
-				MapEdgesReporter.sendMessages(Integer.MAX_VALUE);
-				hasEdgesInitially = false;
+
+			if (isAccompanyingArchon) {
+				EnemyUnitReporter.reportEnemyUnits(nearbyHostiles, broadcastRadiusSqVeryLoPriority,
+						broadcastRadiusSqVeryLoPriority, false);
+				EnemyUnitReporter.reportDenDeaths(broadcastRadiusSqVeryLoPriority);
+
+				RobotInfo[] nearbyNeutrals = rc.senseNearbyRobots(sensorRangeSq, Team.NEUTRAL);
+				MapLocation[] nearbyParts = rc.sensePartLocations(sensorRangeSq);
+				FreeStuffReporter.reportFreeStuff(nearbyNeutrals, broadcastRadiusSqVeryLoPriority, nearbyParts,
+						broadcastRadiusSqVeryLoPriority, false);
+
+				if (lastAllyDetectionTurn == curTurn && rc.getCoreDelay() < 1.0 && lastDistanceToAlly <= 2) {
+					ArchonReporter.reportArchonLocation(ally.location, ally.ID, broadcastRadiusSqHiPriority);
+				}
+			} else {
+				// check the map edges after moving, so we're the most
+				// up-to-date
+				// and we don't hose our core delay
+				if (MapEdgesReporter.checkMapEdges() || hasEdgesInitially) {
+					MapEdgesReporter.sendMessages(Integer.MAX_VALUE);
+					hasEdgesInitially = false;
+				}
+
+				EnemyUnitReporter.reportEnemyUnits(nearbyHostiles, broadcastRadiusSqVeryLoPriority,
+						broadcastRadiusSqLoPriority, true);
+				EnemyUnitReporter.reportDenDeaths(broadcastRadiusSqVeryLoPriority);
+
+				RobotInfo[] nearbyNeutrals = rc.senseNearbyRobots(sensorRangeSq, Team.NEUTRAL);
+				MapLocation[] nearbyParts = rc.sensePartLocations(sensorRangeSq);
+				FreeStuffReporter.reportFreeStuff(nearbyNeutrals, broadcastRadiusSqHiPriority, nearbyParts,
+						broadcastRadiusSqMedPriority, true);
+				ArchonReporter.reportArchonLocations(nearbyNeutrals, broadcastRadiusSqVeryLoPriority);
 			}
-
-			EnemyUnitReporter.reportEnemyUnits(nearbyHostiles, broadcastRadiusSqVeryLoPriority,
-					broadcastRadiusSqLoPriority, true);
-
-			RobotInfo[] nearbyNeutrals = rc.senseNearbyRobots(sensorRangeSq, Team.NEUTRAL);
-			MapLocation[] nearbyParts = rc.sensePartLocations(sensorRangeSq);
-			FreeStuffReporter.reportFreeStuff(nearbyNeutrals, broadcastRadiusSqHiPriority, nearbyParts,
-					broadcastRadiusSqMedPriority, true);
 
 			Clock.yield();
 		}

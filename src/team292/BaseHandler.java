@@ -41,6 +41,8 @@ public class BaseHandler {
 		Directions.initRandomDirections(gen);
 
 		zombieSpawnTurns = rc.getZombieSpawnSchedule().getRounds();
+
+		Messaging.init();
 	}
 
 	// current location, in game coordinates
@@ -79,7 +81,7 @@ public class BaseHandler {
 			UnaccompaniedTurret.run();
 			break;
 		case VIPER:
-			Noop.run();
+			Viper.run();
 			break;
 		default:
 			break;
