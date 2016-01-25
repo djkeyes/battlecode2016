@@ -75,6 +75,10 @@ public class EnemyUnitMessage extends Message {
 			EnemyUnitReceiver.weakestBroadcastedEnemyHealthInTurretRange = health;
 			EnemyUnitReceiver.weakestBroadcastedEnemyInTurretRange = actualLoc;
 		}
+		if (distSq > BaseHandler.sensorRangeSq && distSq < EnemyUnitReceiver.closestEnemyOutsideSensorRangeDistSq) {
+			EnemyUnitReceiver.closestEnemyOutsideSensorRangeDistSq = distSq;
+			EnemyUnitReceiver.closestEnemyOutsideSensorRange = actualLoc;
+		}
 
 		// System.out
 		// .println(String
@@ -108,9 +112,14 @@ public class EnemyUnitMessage extends Message {
 
 		int distSq = BaseHandler.curLoc.distanceSquaredTo(loc);
 
-		if (distSq < EnemyUnitReceiver.weakestBroadcastedEnemyHealth) {
+		if (distSq < EnemyUnitReceiver.closestHeardEnemyDistSq) {
 			EnemyUnitReceiver.closestHeardEnemyDistSq = distSq;
 			EnemyUnitReceiver.closestHeardEnemy = loc;
+		}
+
+		if (distSq > BaseHandler.sensorRangeSq && distSq < EnemyUnitReceiver.closestEnemyOutsideSensorRangeDistSq) {
+			EnemyUnitReceiver.closestEnemyOutsideSensorRangeDistSq = distSq;
+			EnemyUnitReceiver.closestEnemyOutsideSensorRange = loc;
 		}
 	}
 

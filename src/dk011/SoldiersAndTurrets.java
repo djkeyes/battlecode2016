@@ -33,7 +33,7 @@ public class SoldiersAndTurrets extends BaseHandler implements Strategy {
 			return lastUnitType = RobotType.SOLDIER;
 		}
 
-		if (rc.getRobotCount() >= POP_TO_MASS_TURRETS) {
+		if (isMassingTurrets()) {
 			if (builtTurretLast) {
 				return lastUnitType = RobotType.SCOUT;
 			} else {
@@ -54,6 +54,10 @@ public class SoldiersAndTurrets extends BaseHandler implements Strategy {
 		} else {
 			return lastUnitType = RobotType.SOLDIER;
 		}
+	}
+
+	public boolean isMassingTurrets() {
+		return rc.getRobotCount() >= POP_TO_MASS_TURRETS;
 	}
 
 	@Override

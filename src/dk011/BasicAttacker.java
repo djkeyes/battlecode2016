@@ -5,6 +5,7 @@ import battlecode.common.Direction;
 import battlecode.common.GameActionException;
 import battlecode.common.MapLocation;
 import battlecode.common.RobotInfo;
+import battlecode.doc.CostlyMethodTaglet;
 
 public class BasicAttacker extends BaseHandler {
 
@@ -19,8 +20,10 @@ public class BasicAttacker extends BaseHandler {
 
 			Messaging.receiveAndProcessMessages();
 
-//			rc.setIndicatorString(1, "dens: " + EnemyUnitReceiver.zombieDenLocations.toString());
-//			rc.setIndicatorString(2, "turrets: " + EnemyUnitReceiver.turretLocations.toString());
+			// rc.setIndicatorString(1, "dens: " +
+			// EnemyUnitReceiver.zombieDenLocations.toString());
+			// rc.setIndicatorString(2, "turrets: " +
+			// EnemyUnitReceiver.turretLocations.toString());
 			loop();
 
 			Clock.yield();
@@ -63,6 +66,12 @@ public class BasicAttacker extends BaseHandler {
 			if (tryMoveToNearestDen(nearbyEnemies)) {
 				return;
 			}
+			if (tryMoveToNearestBroadcastEnemy(nearbyEnemies)) {
+				return;
+			}
+			if (tryMoveToEnemyHq(nearbyEnemies)) {
+				return;
+			}
 
 			MapLocation nearestArchon = getNearestArchon(nearbyAllies);
 			moveToNearestArchon(nearbyAllies, nearbyEnemies, nearestArchon);
@@ -80,6 +89,36 @@ public class BasicAttacker extends BaseHandler {
 		if (nearestDen != null) {
 			digMovementStrategy.setNearbyEnemies(nearbyEnemies);
 			Pathfinding.setTarget(nearestDen, digMovementStrategy);
+			Pathfinding.pathfindToward();
+			return true;
+		}
+		return false;
+	}
+
+	private static boolean tryMoveToNearestBroadcastEnemy(RobotInfo[] nearbyEnemies) throws GameActionException {
+		MapLocation enemyLoc = EnemyUnitReceiver.closestEnemyOutsideSensorRange;
+		if (enemyLoc != null) {
+			digMovementStrategy.setNearbyEnemies(nearbyEnemies);
+			Pathfinding.setTarget(enemyLoc, digMovementStrategy);
+			Pathfinding.pathfindToward();
+			return true;
+		}
+		return false;
+	}
+
+	private static MapLocation enemyArchonLoc = null;
+
+	private static boolean tryMoveToEnemyHq(RobotInfo[] nearbyEnemies) throws GameActionException {
+		// if all the dens are dead and we haven't seen any enemies, they're
+		// probably huddled in a corner
+		if (EnemyUnitReceiver.areAllDensProbablyDeadOrUnreachable()) {
+			if (enemyArchonLoc == null || curLoc.distanceSquaredTo(enemyArchonLoc) <= 15) {
+				MapLocation[] enemyArchonLocs = rc.getInitialArchonLocations(them);
+				enemyArchonLoc = enemyArchonLocs[gen.nextInt(enemyArchonLocs.length)];
+			}
+
+			digMovementStrategy.setNearbyEnemies(nearbyEnemies);
+			Pathfinding.setTarget(enemyArchonLoc, digMovementStrategy);
 			Pathfinding.pathfindToward();
 			return true;
 		}

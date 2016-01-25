@@ -11,7 +11,7 @@ import battlecode.common.Team;
 
 public class Archon extends BaseHandler {
 
-	private static Strategy curStrategy = new SoldiersAndTurrets();
+	private static SoldiersAndTurrets curStrategy = new SoldiersAndTurrets();
 
 	private static DigRubbleMovement cautiouslyDigMovement = new DigRubbleMovement(true,
 			GameConstants.RUBBLE_OBSTRUCTION_THRESH);
@@ -41,6 +41,7 @@ public class Archon extends BaseHandler {
 	}
 
 	public static void loop() throws GameActionException {
+		rc.setIndicatorString(0, "personal assistant: " + personalAssistant);
 		if (curTurn > 160) {
 			Pathfinding.PATIENCE = 2;
 		}
@@ -213,10 +214,20 @@ public class Archon extends BaseHandler {
 	private static boolean atTurretPairingPhase = false;
 	private static boolean needToSetDestiny = false;
 
-	private static int lastBuiltTurretId = 0;
+	private static int lastBuiltScoutAccompanimentId = 0;
+
+	private static int personalAssistant = -1;
 
 	private static boolean tryToBuild() throws GameActionException {
-		nextToBuild = curStrategy.getNextToBuild(curAlliesInSight);
+		boolean buildingPersonalAssistant = false;
+		if (curStrategy.isMassingTurrets() && !rc.canSenseRobot(personalAssistant)) {
+			// if we've started massing turrets, we might want a scout to sight
+			// enemy turrets for us.
+			nextToBuild = RobotType.SCOUT;
+			buildingPersonalAssistant = true;
+		} else {
+			nextToBuild = curStrategy.getNextToBuild(curAlliesInSight);
+		}
 		if (nextToBuild != null && rc.hasBuildRequirements(nextToBuild)) {
 			boolean built = false;
 
@@ -228,7 +239,10 @@ public class Archon extends BaseHandler {
 				if (rc.canBuild(dirs[i], nextToBuild)) {
 					rc.build(dirs[i], nextToBuild);
 					if (nextToBuild == RobotType.TURRET) {
-						lastBuiltTurretId = rc.senseRobotAtLocation(curLoc.add(dirs[i])).ID;
+						lastBuiltScoutAccompanimentId = rc.senseRobotAtLocation(curLoc.add(dirs[i])).ID;
+					} else if (buildingPersonalAssistant) {
+						personalAssistant = rc.senseRobotAtLocation(curLoc.add(dirs[i])).ID;
+						lastBuiltScoutAccompanimentId = rc.getID();
 					}
 					built = true;
 					break;
@@ -238,13 +252,17 @@ public class Archon extends BaseHandler {
 			startBuildDir %= 8;
 
 			if (built) {
-				curStrategy.incrementNextToBuild();
+				if (!buildingPersonalAssistant) {
+					curStrategy.incrementNextToBuild();
+				}
 				turnsBuilding = nextToBuild.buildTurns;
 
 				if (nextToBuild == RobotType.TURRET) {
 					atTurretPairingPhase = true;
 					needToSetDestiny = true;
 				} else if (atTurretPairingPhase && nextToBuild == RobotType.SCOUT) {
+					needToSetDestiny = true;
+				} else if (buildingPersonalAssistant) {
 					needToSetDestiny = true;
 				}
 
@@ -278,11 +296,11 @@ public class Archon extends BaseHandler {
 		// -enemy unit positions
 
 		if (needToSetDestiny) {
-			DestinyReporter.setDestiny(DestinyReceiver.PAIRED_TURRET_SCOUT, lastBuiltTurretId);
+			DestinyReporter.setDestiny(DestinyReceiver.PAIRED_TURRET_SCOUT, lastBuiltScoutAccompanimentId);
 			// in some situations, we build two scouts in a row. we really need
 			// a more robust way to handle this.
 			if (nextToBuild == RobotType.SCOUT) {
-				lastBuiltTurretId = 0;
+				lastBuiltScoutAccompanimentId = 0;
 			}
 			needToSetDestiny = false;
 		}

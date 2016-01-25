@@ -28,6 +28,7 @@ public class ExploringScout extends BaseHandler {
 	public static void run() throws GameActionException {
 
 		Messaging.receiveAndProcessDestinyMessage();
+		rc.setIndicatorString(2, "destiny=" + DestinyReceiver.destiny + ", friendid=" + DestinyReceiver.friendId);
 		if (DestinyReceiver.destiny == DestinyReceiver.PAIRED_TURRET_SCOUT) {
 			int turretId = DestinyReceiver.friendId;
 			if (rc.canSenseRobot(turretId)) {
