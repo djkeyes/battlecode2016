@@ -5,10 +5,17 @@ import battlecode.common.RobotType;
 
 public class SoldiersAndTurrets extends BaseHandler implements Strategy {
 
-	public static final int POP_TO_MASS_TURRETS = 30;
+	public final int POP_TO_MASS_TURRETS;
+
+	public SoldiersAndTurrets() {
+		POP_TO_MASS_TURRETS = rc.getInitialArchonLocations(us).length * 13;
+	}
 
 	private RobotType lastUnitType = null;
 	private boolean builtTurretLast = false;
+
+	private static final int NUM_TURRETS_PER_VIPER = 4;
+	private int numTurretsSinceLastViper = 4;
 
 	@Override
 	public RobotType getNextToBuild(RobotInfo[] curAlliesInSight) {
@@ -37,7 +44,11 @@ public class SoldiersAndTurrets extends BaseHandler implements Strategy {
 			if (builtTurretLast) {
 				return lastUnitType = RobotType.SCOUT;
 			} else {
-				return lastUnitType = RobotType.TURRET;
+				if (numTurretsSinceLastViper >= NUM_TURRETS_PER_VIPER) {
+					return lastUnitType = RobotType.VIPER;
+				} else {
+					return lastUnitType = RobotType.TURRET;
+				}
 			}
 		}
 
@@ -63,6 +74,12 @@ public class SoldiersAndTurrets extends BaseHandler implements Strategy {
 	@Override
 	public void incrementNextToBuild() {
 		builtTurretLast = lastUnitType == RobotType.TURRET;
+
+		if (builtTurretLast) {
+			numTurretsSinceLastViper++;
+		} else if (lastUnitType == RobotType.VIPER) {
+			numTurretsSinceLastViper = 0;
+		}
 	}
 
 }

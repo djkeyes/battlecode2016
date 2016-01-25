@@ -79,7 +79,7 @@ public class BaseHandler {
 			UnaccompaniedTurret.run();
 			break;
 		case VIPER:
-			Noop.run();
+			Viper.run();
 			break;
 		default:
 			break;
