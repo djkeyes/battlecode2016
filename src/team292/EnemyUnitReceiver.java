@@ -40,7 +40,7 @@ public class EnemyUnitReceiver extends BaseHandler {
 		}
 	}
 
-	private static final int DEN_EXPIRATION_TIME = 1000;
+	private static final int DEN_EXPIRATION_TIME = 600;
 	private static final int ALL_IN_TIME = 2400;
 
 	public static boolean areAllDensProbablyDeadOrUnreachable() {
@@ -110,6 +110,8 @@ public class EnemyUnitReceiver extends BaseHandler {
 	public static int closestHeardEnemyDistSq = 0;
 	public static MapLocation closestEnemyOutsideSensorRange = null;
 	public static int closestEnemyOutsideSensorRangeDistSq = 0;
+	public static MapLocation closestZombieOutsideSensorRange = null;
+	public static int closestZombieOutsideSensorRangeDistSq = 0;
 
 	public static void resetRound() {
 		weakestBroadcastedEnemy = null;
@@ -124,6 +126,8 @@ public class EnemyUnitReceiver extends BaseHandler {
 		}
 		closestHeardEnemy = null;
 		closestHeardEnemyDistSq = Integer.MAX_VALUE;
+		closestZombieOutsideSensorRange = null;
+		closestZombieOutsideSensorRangeDistSq = Integer.MAX_VALUE;
 		closestEnemyOutsideSensorRange = null;
 		closestEnemyOutsideSensorRangeDistSq = Integer.MAX_VALUE;
 	}

@@ -5,9 +5,12 @@ import battlecode.common.Signal;
 
 public class FriendlyClumpCommunicator extends BaseHandler {
 
-	public static final int CLUMP_MIN_SIZE = 6;
+	// a better definition for a clump might be
+	// "given a round number, how many soldiers do we need to kill one den's worth of spawns?"
+	// but that requires time to calculate, and the deadline is in 4 hours.
+	public static final int CLUMP_MIN_SIZE = 9;
 
-	public static final int CLUMP_EXPIRATION_TIME = 100;
+	public static final int CLUMP_EXPIRATION_TIME = 50;
 
 	// since this is updated by soldiers, and message-passing is fallible so
 	// there could be duplicate messages, we need it to be decently fast.
@@ -15,7 +18,7 @@ public class FriendlyClumpCommunicator extends BaseHandler {
 	public static final int BUCKET_EDGE_SIZE = 11;
 	public static final int HALF_BUCKET_EDGE_SIZE = BUCKET_EDGE_SIZE / 2;
 
-	private static class TimedClump {
+	public static class TimedClump {
 		public TimedClump(int x, int y, int expiration) {
 			this.x = x;
 			this.y = y;
@@ -26,7 +29,7 @@ public class FriendlyClumpCommunicator extends BaseHandler {
 
 		@Override
 		public String toString() {
-			return "[" + bucketCoordsToMapLoc(x, y)+ ": " + expiration + "]";
+			return "[" + bucketCoordsToMapLoc(this) + ": " + expiration + "]";
 		}
 	}
 
@@ -92,7 +95,7 @@ public class FriendlyClumpCommunicator extends BaseHandler {
 		MapLocation result = null;
 		int minDistSq = Integer.MAX_VALUE;
 		while (cur != null) {
-			MapLocation loc = bucketCoordsToMapLoc(cur.data.x, cur.data.y);
+			MapLocation loc = bucketCoordsToMapLoc(cur.data);
 			int distSq = curLoc.distanceSquaredTo(loc);
 			if (distSq < minDistSq) {
 				minDistSq = distSq;
@@ -107,8 +110,8 @@ public class FriendlyClumpCommunicator extends BaseHandler {
 		return x / BUCKET_EDGE_SIZE;
 	}
 
-	private static MapLocation bucketCoordsToMapLoc(int x, int y) {
-		return new MapLocation(BUCKET_EDGE_SIZE * x + HALF_BUCKET_EDGE_SIZE, BUCKET_EDGE_SIZE * y
+	public static MapLocation bucketCoordsToMapLoc(TimedClump clump) {
+		return new MapLocation(BUCKET_EDGE_SIZE * clump.x + HALF_BUCKET_EDGE_SIZE, BUCKET_EDGE_SIZE * clump.y
 				+ HALF_BUCKET_EDGE_SIZE);
 	}
 

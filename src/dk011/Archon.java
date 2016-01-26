@@ -30,7 +30,7 @@ public class Archon extends BaseHandler {
 		while (true) {
 			beginningOfLoop();
 
-			rc.setIndicatorString(1, "friendly clumps: " + FriendlyClumpCommunicator.friendlyUnitClumps.toString());
+//			rc.setIndicatorString(1, "friendly clumps: " + FriendlyClumpCommunicator.friendlyUnitClumps.toString());
 
 			Messaging.receiveAndProcessMessages();
 
@@ -55,39 +55,39 @@ public class Archon extends BaseHandler {
 		repairWeakest();
 
 		if (tryWhisperingIfBuilding()) {
-			rc.setIndicatorString(0, "building, whispering");
+//			rc.setIndicatorString(0, "building, whispering");
 			return;
 		}
 
 		// everything after this requires core delay
 		if (!rc.isCoreReady()) {
-			rc.setIndicatorString(0, "coredelay");
+//			rc.setIndicatorString(0, "coredelay");
 			return;
 		}
 
 		// check for adj free units
 		if (tryToActivate()) {
-			rc.setIndicatorString(0, "activating");
+//			rc.setIndicatorString(0, "activating");
 			return;
 		}
 
 		// run away
 		if (canAnyAttackUs(curHostilesInSight)) {
-			rc.setIndicatorString(0, "retreating");
+//			rc.setIndicatorString(0, "retreating");
 			Micro.retreat(curHostilesInSight, false);
 			return;
 		}
 
 		if (hasArchonStrayedTooFarAway()) {
 			if (tryMoveNearestClump()) {
-				rc.setIndicatorString(0, "move to friendlies because it's dangerous out");
+//				rc.setIndicatorString(0, "move to friendlies because it's dangerous out");
 				return;
 			}
 		}
 
 		if (rc.getTeamParts() < PARTS_THRESHOLD_TO_IGNORE_NEUTRALS) {
 			if (moveToNearbyNeutrals()) {
-				rc.setIndicatorString(0, "move to neutrals");
+//				rc.setIndicatorString(0, "move to neutrals");
 				return;
 			}
 		}
@@ -97,31 +97,31 @@ public class Archon extends BaseHandler {
 			// stuff
 			// (the timing variable is set to expect this extra call)
 			tryWhisperingIfBuilding();
-			rc.setIndicatorString(0, "building");
+//			rc.setIndicatorString(0, "building");
 			return;
 		}
 
 		if (moveToNearbyParts()) {
-			rc.setIndicatorString(0, "move to parts");
+//			rc.setIndicatorString(0, "move to parts");
 			return;
 		}
 
 		if (tryMoveNearestClump()) {
-			rc.setIndicatorString(0, "move to friendlies");
+//			rc.setIndicatorString(0, "move to friendlies");
 			return;
 		}
 
 		if (moveToFarAwayNeutrals()) {
-			rc.setIndicatorString(0, "move to far neutrals");
+//			rc.setIndicatorString(0, "move to far neutrals");
 			return;
 		}
 		if (moveToFarAwayParts()) {
-			rc.setIndicatorString(0, "move to far parts");
+//			rc.setIndicatorString(0, "move to far parts");
 			return;
 		}
 
 		if (moveToNearbyArchons()) {
-			rc.setIndicatorString(0, "move to archons");
+//			rc.setIndicatorString(0, "move to archons");
 			return;
 		}
 

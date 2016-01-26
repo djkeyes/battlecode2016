@@ -15,7 +15,8 @@ public class BasicAttacker extends BaseHandler {
 		Pathfinding.PATIENCE = 1;
 
 		while (true) {
-			rc.setIndicatorString(0, "friendly clumps: " + FriendlyClumpCommunicator.friendlyUnitClumps.toString());
+			// rc.setIndicatorString(0, "friendly clumps: " +
+			// FriendlyClumpCommunicator.friendlyUnitClumps.toString());
 			beginningOfLoop();
 
 			Messaging.receiveAndProcessMessages();
@@ -56,7 +57,7 @@ public class BasicAttacker extends BaseHandler {
 			}
 
 			// go home for repairs
-			if (rc.getHealth() < type.maxHealth) {
+			if (rc.getHealth() < type.maxHealth * 0.9) {
 				MapLocation nearestArchon = getNearestArchon(nearbyAllies);
 				if (curLoc.distanceSquaredTo(nearestArchon) > 8) {
 					moveToNearestArchon(nearbyAllies, nearbyEnemies, nearestArchon);
@@ -68,6 +69,9 @@ public class BasicAttacker extends BaseHandler {
 				return;
 			}
 
+			if (tryMoveToNearestBroadcastZombie(nearbyEnemies)) {
+				return;
+			}
 			if (tryMoveToNearestDen(nearbyEnemies)) {
 				return;
 			}
@@ -136,6 +140,17 @@ public class BasicAttacker extends BaseHandler {
 				Pathfinding.setTarget(nearestDen, digMovementStrategy);
 				Pathfinding.pathfindToward();
 			}
+			return true;
+		}
+		return false;
+	}
+
+	private static boolean tryMoveToNearestBroadcastZombie(RobotInfo[] nearbyEnemies) throws GameActionException {
+		MapLocation enemyLoc = EnemyUnitReceiver.closestZombieOutsideSensorRange;
+		if (enemyLoc != null) {
+			digMovementStrategy.setNearbyEnemies(nearbyEnemies);
+			Pathfinding.setTarget(enemyLoc, digMovementStrategy);
+			Pathfinding.pathfindToward();
 			return true;
 		}
 		return false;

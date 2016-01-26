@@ -2,7 +2,6 @@ package team292;
 
 import battlecode.common.MapLocation;
 import battlecode.common.RobotType;
-import battlecode.common.Signal;
 
 // to be honest, this class should probably be declared in EnemyUnitReceiver, since it access so may things in that class
 public class FreeStuffMessage extends Message {
