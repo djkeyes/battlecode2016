@@ -47,8 +47,8 @@ public abstract class Message {
 			return;
 		}
 		if (signal.getMessage() == null) {
-			// this is a den death message
-			EnemyUnitReceiver.processDenDeath(signal.getLocation());
+			// this is a friendly clump message
+			FriendlyClumpCommunicator.addClump(signal);
 			return;
 		}
 

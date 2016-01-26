@@ -75,9 +75,17 @@ public class EnemyUnitMessage extends Message {
 			EnemyUnitReceiver.weakestBroadcastedEnemyHealthInTurretRange = health;
 			EnemyUnitReceiver.weakestBroadcastedEnemyInTurretRange = actualLoc;
 		}
-		if (distSq > BaseHandler.sensorRangeSq && distSq < EnemyUnitReceiver.closestEnemyOutsideSensorRangeDistSq) {
-			EnemyUnitReceiver.closestEnemyOutsideSensorRangeDistSq = distSq;
-			EnemyUnitReceiver.closestEnemyOutsideSensorRange = actualLoc;
+		if (isZombie) {
+			if (distSq > BaseHandler.sensorRangeSq && distSq < EnemyUnitReceiver.closestZombieOutsideSensorRangeDistSq) {
+				EnemyUnitReceiver.closestZombieOutsideSensorRangeDistSq = distSq;
+				EnemyUnitReceiver.closestZombieOutsideSensorRange = actualLoc;
+			}
+		} else {
+			if (distSq > BaseHandler.sensorRangeSq && distSq < EnemyUnitReceiver.closestEnemyOutsideSensorRangeDistSq) {
+				EnemyUnitReceiver.closestEnemyOutsideSensorRangeDistSq = distSq;
+				EnemyUnitReceiver.closestEnemyOutsideSensorRange = actualLoc;
+			}
+
 		}
 
 		// System.out

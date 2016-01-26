@@ -86,6 +86,15 @@ public class Micro extends BaseHandler {
 			}
 		}
 
+		DoublyLinkedList.DoublyLinkedListNode<EnemyUnitReceiver.TimedTurret> cur = EnemyUnitReceiver.turretLocations.head;
+		while (cur != null) {
+			int distSq = cur.data.turretLocation.distanceSquaredTo(curLoc);
+			if (distSq <= RobotType.TURRET.attackRadiusSquared && distSq >= GameConstants.TURRET_MINIMUM_RANGE) {
+				numCanShootUs++;
+			}
+			cur = cur.next;
+		}
+
 		if (numCanShootUs > 0) {
 			int numCanShootThem = 0;
 			for (int i = canShootThem.length; --i >= 0;) {

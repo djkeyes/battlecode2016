@@ -97,6 +97,11 @@ public class Archon extends BaseHandler {
 			return;
 		}
 
+		if (tryMoveNearestClump()) {
+			rc.setIndicatorString(0, "move to friendlies");
+			return;
+		}
+
 		if (moveToFarAwayNeutrals()) {
 			rc.setIndicatorString(0, "move to far neutrals");
 			return;
@@ -167,17 +172,19 @@ public class Archon extends BaseHandler {
 
 				// don't move toward a neutral if another archon is closer
 				boolean otherIsCloser = false;
-				for (int j = 0; j < ArchonReporter.MAX_NUM_ARCHONS; j++) {
-					if (ArchonReporter.archonLocs[j] == null) {
-						continue;
-					}
-					if (ArchonReporter.archonIds[j] == rc.getID()) {
-						continue;
-					}
+				if (distSq > GameConstants.ARCHON_ACTIVATION_RANGE) {
+					for (int j = 0; j < ArchonReporter.MAX_NUM_ARCHONS; j++) {
+						if (ArchonReporter.archonLocs[j] == null) {
+							continue;
+						}
+						if (ArchonReporter.archonIds[j] == rc.getID()) {
+							continue;
+						}
 
-					if (ArchonReporter.archonLocs[j].distanceSquaredTo(curNeutralsInSight[i].location) <= distSq) {
-						otherIsCloser = true;
-						break;
+						if (ArchonReporter.archonLocs[j].distanceSquaredTo(curNeutralsInSight[i].location) <= distSq) {
+							otherIsCloser = true;
+							break;
+						}
 					}
 				}
 				if (otherIsCloser) {
@@ -492,6 +499,20 @@ public class Archon extends BaseHandler {
 		if (bestParts != null) {
 			cautiouslyDigMovement.setNearbyEnemies(curHostilesInSight);
 			Pathfinding.setTarget(bestParts, cautiouslyDigMovement);
+			Pathfinding.pathfindToward();
+			return true;
+		}
+		return false;
+	}
+
+	private static boolean tryMoveNearestClump() throws GameActionException {
+		if (curAlliesInSight.length >= 10) {
+			return false;
+		}
+		MapLocation closestClump = FriendlyClumpCommunicator.getClosestClump();
+		if (closestClump != null) {
+			cautiouslyDigMovement.setNearbyEnemies(curHostilesInSight);
+			Pathfinding.setTarget(closestClump, cautiouslyDigMovement);
 			Pathfinding.pathfindToward();
 			return true;
 		}

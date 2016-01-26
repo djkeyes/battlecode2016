@@ -40,23 +40,8 @@ public class EnemyUnitReceiver extends BaseHandler {
 		}
 	}
 
-	public static void processDenDeath(MapLocation location) throws GameActionException {
-		int xStart = Math.max(0, location.x - 4);
-		int xEnd = Math.min(580, location.x + 4);
-		int yStart = Math.max(0, location.y - 4);
-		int yEnd = Math.min(580, location.y + 4);
-		for (int x = xStart; x <= xEnd; x++) {
-			for (int y = yStart; y <= yEnd; y++) {
-				if (denReferences[x][y] != null) {
-					removeDen(denReferences[x][y]);
-					return;
-				}
-			}
-		}
-	}
-
-	private static final int DEN_EXPIRATION_TIME = 1000;
-	private static final int ALL_IN_TIME = 2500;
+	private static final int DEN_EXPIRATION_TIME = 600;
+	private static final int ALL_IN_TIME = 2400;
 
 	public static boolean areAllDensProbablyDeadOrUnreachable() {
 		return lastDenAddedTurn + DEN_EXPIRATION_TIME < curTurn && lastDenRemovedTurn + DEN_EXPIRATION_TIME < curTurn
@@ -125,6 +110,8 @@ public class EnemyUnitReceiver extends BaseHandler {
 	public static int closestHeardEnemyDistSq = 0;
 	public static MapLocation closestEnemyOutsideSensorRange = null;
 	public static int closestEnemyOutsideSensorRangeDistSq = 0;
+	public static MapLocation closestZombieOutsideSensorRange = null;
+	public static int closestZombieOutsideSensorRangeDistSq = 0;
 
 	public static void resetRound() {
 		weakestBroadcastedEnemy = null;
@@ -139,6 +126,8 @@ public class EnemyUnitReceiver extends BaseHandler {
 		}
 		closestHeardEnemy = null;
 		closestHeardEnemyDistSq = Integer.MAX_VALUE;
+		closestZombieOutsideSensorRange = null;
+		closestZombieOutsideSensorRangeDistSq = Integer.MAX_VALUE;
 		closestEnemyOutsideSensorRange = null;
 		closestEnemyOutsideSensorRangeDistSq = Integer.MAX_VALUE;
 	}

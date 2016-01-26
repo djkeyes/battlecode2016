@@ -12,7 +12,7 @@ public class Messaging extends BaseHandler {
 		if (rc.getType() == RobotType.ARCHON || rc.getType() == RobotType.SCOUT) {
 			maxMessagesToProcessPerTurn = 70;
 		} else {
-			maxMessagesToProcessPerTurn = 30;
+			maxMessagesToProcessPerTurn = 25;
 		}
 	}
 
@@ -21,14 +21,15 @@ public class Messaging extends BaseHandler {
 		rc.broadcastMessageSignal(encoded[0], encoded[1], broadcastRadiusSq);
 	}
 
-	public static void sendDenDeathBasicSignal() throws GameActionException {
+	public static void sendFriendlyClumpBasicSignal() throws GameActionException {
 		rc.broadcastSignal(MapEdgesReceiver.getMinAllMapRadius());
 	}
 
 	public static void receiveAndProcessMessages() throws GameActionException {
 		Signal[] signals = rc.emptySignalQueue();
 
-//		rc.setIndicatorString(0, "starting to process " + signals.length + " messages at bc=" + Clock.getBytecodeNum());
+		// rc.setIndicatorString(0, "starting to process " + signals.length +
+		// " messages at bc=" + Clock.getBytecodeNum());
 
 		EnemyUnitReceiver.resetRound();
 
@@ -41,7 +42,7 @@ public class Messaging extends BaseHandler {
 		}
 		// rc.setIndicatorString(2, "finished processing " + messagesProcessed +
 		// "/" + signals.length + " messages at bc="
-		//			+ Clock.getBytecodeNum());
+		// + Clock.getBytecodeNum());
 	}
 
 	public static void receiveAndProcessDestinyMessage() {

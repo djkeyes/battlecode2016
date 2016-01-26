@@ -30,6 +30,8 @@ public class Archon extends BaseHandler {
 		while (true) {
 			beginningOfLoop();
 
+			rc.setIndicatorString(1, "friendly clumps: " + FriendlyClumpCommunicator.friendlyUnitClumps.toString());
+
 			Messaging.receiveAndProcessMessages();
 
 			updateCurState();
@@ -76,6 +78,13 @@ public class Archon extends BaseHandler {
 			return;
 		}
 
+		if (hasArchonStrayedTooFarAway()) {
+			if (tryMoveNearestClump()) {
+				rc.setIndicatorString(0, "move to friendlies because it's dangerous out");
+				return;
+			}
+		}
+
 		if (rc.getTeamParts() < PARTS_THRESHOLD_TO_IGNORE_NEUTRALS) {
 			if (moveToNearbyNeutrals()) {
 				rc.setIndicatorString(0, "move to neutrals");
@@ -97,6 +106,11 @@ public class Archon extends BaseHandler {
 			return;
 		}
 
+		if (tryMoveNearestClump()) {
+			rc.setIndicatorString(0, "move to friendlies");
+			return;
+		}
+
 		if (moveToFarAwayNeutrals()) {
 			rc.setIndicatorString(0, "move to far neutrals");
 			return;
@@ -111,6 +125,43 @@ public class Archon extends BaseHandler {
 			return;
 		}
 
+	}
+
+	private static boolean hasArchonStrayedTooFarAway() {
+		// if there are no clumps, it's anyone's game
+		if (FriendlyClumpCommunicator.friendlyUnitClumps.head == null) {
+			return false;
+		}
+
+		// that being said, if there *are* clumps, and there's a zombie den
+		// that's closer to us than it is to every other clump, we should
+		// probably move somewhere safer
+
+		DoublyLinkedList.DoublyLinkedListNode<MapLocation> curDen = EnemyUnitReceiver.zombieDenLocations.head;
+		while (curDen != null) {
+			int ourDist = curLoc.distanceSquaredTo(curDen.data);
+
+			boolean anyClumpsCloser = false;
+			DoublyLinkedList.DoublyLinkedListNode<FriendlyClumpCommunicator.TimedClump> curClump = FriendlyClumpCommunicator.friendlyUnitClumps.head;
+			while (curClump != null) {
+				int clumpDist = curDen.data.distanceSquaredTo(FriendlyClumpCommunicator
+						.bucketCoordsToMapLoc(curClump.data));
+
+				if (clumpDist < ourDist) {
+					anyClumpsCloser = true;
+					break;
+				}
+
+				curClump = curClump.next;
+			}
+
+			if (!anyClumpsCloser) {
+				return true;
+			}
+			curDen = curDen.next;
+		}
+
+		return false;
 	}
 
 	private static void updateCurState() {
@@ -167,17 +218,19 @@ public class Archon extends BaseHandler {
 
 				// don't move toward a neutral if another archon is closer
 				boolean otherIsCloser = false;
-				for (int j = 0; j < ArchonReporter.MAX_NUM_ARCHONS; j++) {
-					if (ArchonReporter.archonLocs[j] == null) {
-						continue;
-					}
-					if (ArchonReporter.archonIds[j] == rc.getID()) {
-						continue;
-					}
+				if (distSq > GameConstants.ARCHON_ACTIVATION_RANGE) {
+					for (int j = 0; j < ArchonReporter.MAX_NUM_ARCHONS; j++) {
+						if (ArchonReporter.archonLocs[j] == null) {
+							continue;
+						}
+						if (ArchonReporter.archonIds[j] == rc.getID()) {
+							continue;
+						}
 
-					if (ArchonReporter.archonLocs[j].distanceSquaredTo(curNeutralsInSight[i].location) <= distSq) {
-						otherIsCloser = true;
-						break;
+						if (ArchonReporter.archonLocs[j].distanceSquaredTo(curNeutralsInSight[i].location) <= distSq) {
+							otherIsCloser = true;
+							break;
+						}
 					}
 				}
 				if (otherIsCloser) {
@@ -492,6 +545,20 @@ public class Archon extends BaseHandler {
 		if (bestParts != null) {
 			cautiouslyDigMovement.setNearbyEnemies(curHostilesInSight);
 			Pathfinding.setTarget(bestParts, cautiouslyDigMovement);
+			Pathfinding.pathfindToward();
+			return true;
+		}
+		return false;
+	}
+
+	private static boolean tryMoveNearestClump() throws GameActionException {
+		if (curAlliesInSight.length >= 10) {
+			return false;
+		}
+		MapLocation closestClump = FriendlyClumpCommunicator.getClosestClump();
+		if (closestClump != null) {
+			cautiouslyDigMovement.setNearbyEnemies(curHostilesInSight);
+			Pathfinding.setTarget(closestClump, cautiouslyDigMovement);
 			Pathfinding.pathfindToward();
 			return true;
 		}

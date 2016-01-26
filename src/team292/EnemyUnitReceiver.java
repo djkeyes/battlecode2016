@@ -40,23 +40,8 @@ public class EnemyUnitReceiver extends BaseHandler {
 		}
 	}
 
-	public static void processDenDeath(MapLocation location) throws GameActionException {
-		int xStart = Math.max(0, location.x - 4);
-		int xEnd = Math.min(580, location.x + 4);
-		int yStart = Math.max(0, location.y - 4);
-		int yEnd = Math.min(580, location.y + 4);
-		for (int x = xStart; x <= xEnd; x++) {
-			for (int y = yStart; y <= yEnd; y++) {
-				if (denReferences[x][y] != null) {
-					removeDen(denReferences[x][y]);
-					return;
-				}
-			}
-		}
-	}
-
 	private static final int DEN_EXPIRATION_TIME = 1000;
-	private static final int ALL_IN_TIME = 2500;
+	private static final int ALL_IN_TIME = 2400;
 
 	public static boolean areAllDensProbablyDeadOrUnreachable() {
 		return lastDenAddedTurn + DEN_EXPIRATION_TIME < curTurn && lastDenRemovedTurn + DEN_EXPIRATION_TIME < curTurn

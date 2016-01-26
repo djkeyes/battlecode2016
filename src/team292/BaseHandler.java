@@ -56,6 +56,7 @@ public class BaseHandler {
 		curTurn = rc.getRoundNum();
 
 		EnemyUnitReceiver.pruneOldTurrets(curTurn);
+		FriendlyClumpCommunicator.pruneOldClumps(curTurn);
 	}
 
 	public static void run() throws GameActionException {
@@ -112,7 +113,6 @@ public class BaseHandler {
 				int distSq = denLoc.data.distanceSquaredTo(curLoc);
 				// this den is already dead
 				if (distSq <= sensorRangeSq) {
-					EnemyUnitReporter.maybeAnnounceDenDeath(denLoc.data);
 					DoublyLinkedList.DoublyLinkedListNode<MapLocation> next = denLoc.next;
 					EnemyUnitReceiver.removeDen(denLoc);
 					denLoc = next;
@@ -129,7 +129,10 @@ public class BaseHandler {
 		return nearestDen;
 	}
 
+	protected static boolean returnedInitialArchonPos = false;
+
 	protected static MapLocation getNearestArchon(RobotInfo[] nearbyAllies) {
+		returnedInitialArchonPos = false;
 		MapLocation nearestArchon = null;
 		int minArchonDistSq = Integer.MAX_VALUE;
 		for (int i = nearbyAllies.length; --i >= 0;) {
@@ -167,6 +170,7 @@ public class BaseHandler {
 		if (nearestArchon == null) {
 			// return to the closest start position
 			MapLocation[] initialArchonPositions = rc.getInitialArchonLocations(us);
+			returnedInitialArchonPos = true;
 
 			for (int i = initialArchonPositions.length; --i >= 0;) {
 				int distSq = initialArchonPositions[i].distanceSquaredTo(curLoc);

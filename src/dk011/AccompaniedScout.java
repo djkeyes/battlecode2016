@@ -2,6 +2,7 @@ package dk011;
 
 import battlecode.common.Clock;
 import battlecode.common.GameActionException;
+import battlecode.common.GameConstants;
 import battlecode.common.MapLocation;
 import battlecode.common.RobotInfo;
 import battlecode.common.RobotType;
@@ -57,8 +58,19 @@ public class AccompaniedScout extends ExploringScout {
 				FreeStuffReporter.reportFreeStuff(nearbyNeutrals, broadcastRadiusSqVeryLoPriority, nearbyParts,
 						broadcastRadiusSqVeryLoPriority, false);
 
-				if (lastAllyDetectionTurn == curTurn && rc.getCoreDelay() < 1.0 && lastDistanceToAlly <= 2) {
-					ArchonReporter.reportArchonLocation(ally.location, ally.ID, broadcastRadiusSqHiPriority);
+				if (lastAllyDetectionTurn == curTurn && ally.coreDelay >= 9 && rc.getCoreDelay() < 2.0) {
+					// if the archon is building something, we can talk really
+					// loudly
+					if (rc.getMessageSignalCount() < GameConstants.MESSAGE_SIGNALS_PER_TURN) {
+						ArchonReporter.reportArchonLocation(ally.location, ally.ID,
+								MapEdgesReceiver.getMinAllMapRadius());
+					}
+				} else if (lastAllyDetectionTurn == curTurn && rc.getCoreDelay() < 1.0 && lastDistanceToAlly <= 2) {
+					// otherwise, be a little more judicious, so we don't lose
+					// our ally
+					if (rc.getMessageSignalCount() < GameConstants.MESSAGE_SIGNALS_PER_TURN) {
+						ArchonReporter.reportArchonLocation(ally.location, ally.ID, broadcastRadiusSqHiPriority);
+					}
 				}
 			} else {
 				// check the map edges after moving, so we're the most

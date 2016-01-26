@@ -102,6 +102,11 @@ public class UnaccompaniedTurret extends BaseHandler {
 			return;
 		}
 
+		if (EnemyUnitReceiver.areAllDensProbablyDeadOrUnreachable()) {
+			rc.pack();
+			return;
+		}
+
 	}
 
 	private static boolean tryToAttack(MapLocation nearestDen) throws GameActionException {

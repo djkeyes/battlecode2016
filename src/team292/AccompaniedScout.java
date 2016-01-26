@@ -57,7 +57,13 @@ public class AccompaniedScout extends ExploringScout {
 				FreeStuffReporter.reportFreeStuff(nearbyNeutrals, broadcastRadiusSqVeryLoPriority, nearbyParts,
 						broadcastRadiusSqVeryLoPriority, false);
 
-				if (lastAllyDetectionTurn == curTurn && rc.getCoreDelay() < 1.0 && lastDistanceToAlly <= 2) {
+				if (lastAllyDetectionTurn == curTurn && ally.coreDelay >= 9 && rc.getCoreDelay() < 2.0) {
+					// if the archon is building something, we can talk really
+					// loudly
+					ArchonReporter.reportArchonLocation(ally.location, ally.ID, MapEdgesReceiver.getMinAllMapRadius());
+				} else if (lastAllyDetectionTurn == curTurn && rc.getCoreDelay() < 1.0 && lastDistanceToAlly <= 2) {
+					// otherwise, be a little more judicious, so we don't lose
+					// our ally
 					ArchonReporter.reportArchonLocation(ally.location, ally.ID, broadcastRadiusSqHiPriority);
 				}
 			} else {

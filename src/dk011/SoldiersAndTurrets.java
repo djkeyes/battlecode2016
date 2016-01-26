@@ -8,7 +8,7 @@ public class SoldiersAndTurrets extends BaseHandler implements Strategy {
 	public final int POP_TO_MASS_TURRETS;
 
 	public SoldiersAndTurrets() {
-		POP_TO_MASS_TURRETS = rc.getInitialArchonLocations(us).length * 13;
+		POP_TO_MASS_TURRETS = Math.min(rc.getInitialArchonLocations(us).length * 13, 40);
 	}
 
 	private RobotType lastUnitType = null;
@@ -21,23 +21,25 @@ public class SoldiersAndTurrets extends BaseHandler implements Strategy {
 	public RobotType getNextToBuild(RobotInfo[] curAlliesInSight) {
 		// TODO: build a soldier in certain situations, if we need fast defense
 
-		int minSoldierCount = 2;
-		if (rc.getRobotCount() > 20) {
-			minSoldierCount = 1;
-		}
-		boolean shouldBuildSoldier = true;
-		int numSoldiersNearby = 0;
-		for (RobotInfo ally : curAlliesInSight) {
-			if (ally.type == RobotType.SOLDIER) {
-				numSoldiersNearby++;
-				if (numSoldiersNearby >= minSoldierCount) {
-					shouldBuildSoldier = false;
-					break;
+		if (!EnemyUnitReceiver.areAllDensProbablyDeadOrUnreachable()) {
+			int minSoldierCount = 2;
+			if (rc.getRobotCount() > 20) {
+				minSoldierCount = 1;
+			}
+			boolean shouldBuildSoldier = true;
+			int numSoldiersNearby = 0;
+			for (RobotInfo ally : curAlliesInSight) {
+				if (ally.type == RobotType.SOLDIER) {
+					numSoldiersNearby++;
+					if (numSoldiersNearby >= minSoldierCount) {
+						shouldBuildSoldier = false;
+						break;
+					}
 				}
 			}
-		}
-		if (shouldBuildSoldier) {
-			return lastUnitType = RobotType.SOLDIER;
+			if (shouldBuildSoldier) {
+				return lastUnitType = RobotType.SOLDIER;
+			}
 		}
 
 		if (isMassingTurrets()) {

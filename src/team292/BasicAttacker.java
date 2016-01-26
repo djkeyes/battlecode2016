@@ -15,6 +15,7 @@ public class BasicAttacker extends BaseHandler {
 		Pathfinding.PATIENCE = 1;
 
 		while (true) {
+			rc.setIndicatorString(0, "friendly clumps: " + FriendlyClumpCommunicator.friendlyUnitClumps.toString());
 			beginningOfLoop();
 
 			Messaging.receiveAndProcessMessages();
@@ -63,6 +64,10 @@ public class BasicAttacker extends BaseHandler {
 				return;
 			}
 
+			if (tryReportingFriendlyClump(nearbyAllies)) {
+				return;
+			}
+
 			if (tryMoveToNearestDen(nearbyEnemies)) {
 				return;
 			}
@@ -74,8 +79,47 @@ public class BasicAttacker extends BaseHandler {
 			}
 
 			MapLocation nearestArchon = getNearestArchon(nearbyAllies);
+			if (returnedInitialArchonPos) {
+				if (tryMoveNearestClump(nearbyEnemies)) {
+					return;
+				}
+			}
 			moveToNearestArchon(nearbyAllies, nearbyEnemies, nearestArchon);
 		}
+	}
+
+	private static final int CLUMP_REBROADCAST_THRESHOLD = 3;
+
+	private static boolean tryReportingFriendlyClump(RobotInfo[] nearbyAllies) throws GameActionException {
+		int numAttackingAllies = 0;
+		for (RobotInfo ally : nearbyAllies) {
+			if (ally.type.canAttack()) {
+				numAttackingAllies++;
+			}
+		}
+
+		if (numAttackingAllies < FriendlyClumpCommunicator.CLUMP_MIN_SIZE) {
+			return false;
+		}
+
+		int expiration = curTurn + FriendlyClumpCommunicator.CLUMP_EXPIRATION_TIME;
+		if (FriendlyClumpCommunicator.addClumpIfExpiredOrExpiringSoon(curLoc, expiration, CLUMP_REBROADCAST_THRESHOLD)) {
+			Messaging.sendFriendlyClumpBasicSignal();
+			return true;
+		}
+
+		return false;
+	}
+
+	private static boolean tryMoveNearestClump(RobotInfo[] nearbyEnemies) throws GameActionException {
+		MapLocation closestClump = FriendlyClumpCommunicator.getClosestClump();
+		if (closestClump != null) {
+			digMovementStrategy.setNearbyEnemies(nearbyEnemies);
+			Pathfinding.setTarget(closestClump, digMovementStrategy);
+			Pathfinding.pathfindToward();
+			return true;
+		}
+		return false;
 	}
 
 	protected static boolean tryMoveToNearestDen(RobotInfo[] nearbyEnemies) throws GameActionException {
