@@ -3,7 +3,7 @@ Battlecode Project Scaffold
 
 ## Foreword from zombfs
 
-This is the repository for team 292 ZomBFS from battlecode 2016. All the src/dkXXX packages are stuff I considered submitting--in particular, dk007 was the seeding tournament submission (turret turtle bot), and dk011 was the qualifying/final tournament submission (soldiers+turret bot).
+This is the repository for "ZomBFS" (team 292) and briefly "TODO: create team name" (team 155) from battlecode 2016. All the src/dkXXX packages are stuff I considered submitting--in particular, dk007 was the seeding tournament submission (turret turtle bot), and dk011 was the qualifying/final tournament submission (soldiers+turret bot).
 
 I'm not sure what links will still be unbroken a year from now, or how long the old website will exist, but if you want to install stuff yourself, you'll need to do this:
 
@@ -16,6 +16,22 @@ This repo is designed so that you can install the battlecode scaffold, then remo
 `rm -r battlecode-scaffold-master/.git/ battlecode-scaffold-master/src/ battlecode-scaffold-master/test/`
 
 `mv battlecode2016/* battlecode-scaffold-master/`
+
+The last released game specs are at http://s3.amazonaws.com/battlecode-releases-2016/releases/specs-1.0.0.html.
+
+The last released javadocs are at http://s3.amazonaws.com/battlecode-releases-2016/releases/javadoc/index.html.
+
+The puzzle this year was:
+
+5DB777
+
+A34D45
+
+1B330E
+
+877A2B
+
+And the solution is at http://s3.amazonaws.com/battlecode-releases-2016/misc/puzzle_solution.html
 
 Anyway, what follows is the remainder of the original README in the battlecode scaffold.
 
