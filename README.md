@@ -1,6 +1,28 @@
 Battlecode Project Scaffold
 ===========================
 
+## Foreword from zombfs
+
+This is the repository for team 292 ZomBFS from battlecode 2016. All the src/dkXXX packages are stuff I considered submitting--in particular, dk007 was the seeding tournament submission (turret turtle bot), and dk011 was the qualifying/final tournament submission (soldiers+turret bot).
+
+I'm not sure what links will still be unbroken a year from now, or how long the old website will exist, but if you want to install stuff yourself, you'll need to do this:
+
+1. download the battlecode scaffold at https://github.com/battlecode/battlecode-scaffold/archive/master.zip (this contains no libraries, until you run `ant update`)
+
+2. follow the "Getting Started" instructions later in this file
+
+This repo is designed so that you can install the battlecode scaffold, then remove the .git/, src/, and test/ directories from the install directory, and then copy the contents of the root of this repo into that directory. If you're on unix, you can do something like this (assuming battlecode scaffold and this repo are unzipped/checked-out to the same directory):
+
+`rm -r battlecode-scaffold-master/.git/ battlecode-scaffold-master/src/ battlecode-scaffold-master/test/`
+
+`mv battlecode2016/* battlecode-scaffold-master/`
+
+Anyway, what follows is the remainder of the original README in the battlecode scaffold.
+
+dkeyes
+
+===========================
+
 Here you'll find (almost) everything you need to write players for Battlecode
 2016.
 
